@@ -75,31 +75,31 @@ tx_symQ_rand = np.loadtxt('from_matlab/tx_symb_Q.txt')
 
 
 #------------------ Receptor
-# AAF
-rx_symI_fse_aaf_0 = np.loadtxt('from_matlab/dsp_in_norm_I_00dB_10k.txt')
-rx_symQ_fse_aaf_0 = np.loadtxt('from_matlab/dsp_in_norm_Q_00dB_10k.txt')
-rx_symI_fse_aaf_1 = np.loadtxt('from_matlab/dsp_in_norm_I_01dB_10k.txt')
-rx_symQ_fse_aaf_1 = np.loadtxt('from_matlab/dsp_in_norm_Q_01dB_10k.txt')
-rx_symI_fse_aaf_2 = np.loadtxt('from_matlab/dsp_in_norm_I_02dB_10k.txt')
-rx_symQ_fse_aaf_2 = np.loadtxt('from_matlab/dsp_in_norm_Q_02dB_10k.txt')
-rx_symI_fse_aaf_3 = np.loadtxt('from_matlab/dsp_in_norm_I_03dB_10k.txt')
-rx_symQ_fse_aaf_3 = np.loadtxt('from_matlab/dsp_in_norm_Q_03dB_10k.txt')
-rx_symI_fse_aaf_4 = np.loadtxt('from_matlab/dsp_in_norm_I_04dB_10k.txt')
-rx_symQ_fse_aaf_4 = np.loadtxt('from_matlab/dsp_in_norm_Q_04dB_10k.txt')
-rx_symI_fse_aaf_5 = np.loadtxt('from_matlab/dsp_in_norm_I_05dB_10k.txt')
-rx_symQ_fse_aaf_5 = np.loadtxt('from_matlab/dsp_in_norm_Q_05dB_10k.txt')
-rx_symI_fse_aaf_6 = np.loadtxt('from_matlab/dsp_in_norm_I_06dB_10k.txt')
-rx_symQ_fse_aaf_6 = np.loadtxt('from_matlab/dsp_in_norm_Q_06dB_10k.txt')
-rx_symI_fse_aaf_7 = np.loadtxt('from_matlab/dsp_in_norm_I_07dB_10k.txt')
-rx_symQ_fse_aaf_7 = np.loadtxt('from_matlab/dsp_in_norm_Q_07dB_10k.txt')
-rx_symI_fse_aaf_8 = np.loadtxt('from_matlab/dsp_in_norm_I_08dB_10k.txt')
-rx_symQ_fse_aaf_8 = np.loadtxt('from_matlab/dsp_in_norm_Q_08dB_10k.txt')
-rx_symI_fse_aaf_9 = np.loadtxt('from_matlab/dsp_in_norm_I_09dB_10k.txt')
-rx_symQ_fse_aaf_9 = np.loadtxt('from_matlab/dsp_in_norm_Q_09dB_10k.txt')
-rx_symI_fse_aaf_10 = np.loadtxt('from_matlab/dsp_in_norm_I_10dB_10k.txt')
-rx_symQ_fse_aaf_10 = np.loadtxt('from_matlab/dsp_in_norm_Q_10dB_10k.txt')
-rx_symI_fse_aaf_11 = np.loadtxt('from_matlab/dsp_in_norm_I_11dB_10k.txt')
-rx_symQ_fse_aaf_11 = np.loadtxt('from_matlab/dsp_in_norm_Q_11dB_10k.txt')
+# Downsampler
+rx_symI_dw_0 = np.loadtxt('from_matlab/dsp_in_norm_I_00dB_10k.txt')
+rx_symQ_dw_0 = np.loadtxt('from_matlab/dsp_in_norm_Q_00dB_10k.txt')
+rx_symI_dw_1 = np.loadtxt('from_matlab/dsp_in_norm_I_01dB_10k.txt')
+rx_symQ_dw_1 = np.loadtxt('from_matlab/dsp_in_norm_Q_01dB_10k.txt')
+rx_symI_dw_2 = np.loadtxt('from_matlab/dsp_in_norm_I_02dB_10k.txt')
+rx_symQ_dw_2 = np.loadtxt('from_matlab/dsp_in_norm_Q_02dB_10k.txt')
+rx_symI_dw_3 = np.loadtxt('from_matlab/dsp_in_norm_I_03dB_10k.txt')
+rx_symQ_dw_3 = np.loadtxt('from_matlab/dsp_in_norm_Q_03dB_10k.txt')
+rx_symI_dw_4 = np.loadtxt('from_matlab/dsp_in_norm_I_04dB_10k.txt')
+rx_symQ_dw_4 = np.loadtxt('from_matlab/dsp_in_norm_Q_04dB_10k.txt')
+rx_symI_dw_5 = np.loadtxt('from_matlab/dsp_in_norm_I_05dB_10k.txt')
+rx_symQ_dw_5 = np.loadtxt('from_matlab/dsp_in_norm_Q_05dB_10k.txt')
+rx_symI_dw_6 = np.loadtxt('from_matlab/dsp_in_norm_I_06dB_10k.txt')
+rx_symQ_dw_6 = np.loadtxt('from_matlab/dsp_in_norm_Q_06dB_10k.txt')
+rx_symI_dw_7 = np.loadtxt('from_matlab/dsp_in_norm_I_07dB_10k.txt')
+rx_symQ_dw_7 = np.loadtxt('from_matlab/dsp_in_norm_Q_07dB_10k.txt')
+rx_symI_dw_8 = np.loadtxt('from_matlab/dsp_in_norm_I_08dB_10k.txt')
+rx_symQ_dw_8 = np.loadtxt('from_matlab/dsp_in_norm_Q_08dB_10k.txt')
+rx_symI_dw_9 = np.loadtxt('from_matlab/dsp_in_norm_I_09dB_10k.txt')
+rx_symQ_dw_9 = np.loadtxt('from_matlab/dsp_in_norm_Q_09dB_10k.txt')
+rx_symI_dw_10 = np.loadtxt('from_matlab/dsp_in_norm_I_10dB_10k.txt')
+rx_symQ_dw_10 = np.loadtxt('from_matlab/dsp_in_norm_Q_10dB_10k.txt')
+rx_symI_dw_11 = np.loadtxt('from_matlab/dsp_in_norm_I_11dB_10k.txt')
+rx_symQ_dw_11 = np.loadtxt('from_matlab/dsp_in_norm_Q_11dB_10k.txt')
 
 
 bersI_contadas = np.zeros(12)
@@ -107,41 +107,41 @@ bersQ_contadas = np.zeros(12)
 th_ber         = np.zeros(12)
 for ebno_idx in range(0,12):
     if ebno_idx == 0:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_0
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_0
+        rx_symI_dw = rx_symI_dw_0
+        rx_symQ_dw = rx_symQ_dw_0
     elif ebno_idx == 1:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_1
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_1
+        rx_symI_dw = rx_symI_dw_1
+        rx_symQ_dw = rx_symQ_dw_1
     elif ebno_idx == 2:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_2
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_2
+        rx_symI_dw = rx_symI_dw_2
+        rx_symQ_dw = rx_symQ_dw_2
     elif ebno_idx == 3:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_3
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_3
+        rx_symI_dw = rx_symI_dw_3
+        rx_symQ_dw = rx_symQ_dw_3
     elif ebno_idx == 4:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_4
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_4
+        rx_symI_dw = rx_symI_dw_4
+        rx_symQ_dw = rx_symQ_dw_4
     elif ebno_idx == 5:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_5
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_5
+        rx_symI_dw = rx_symI_dw_5
+        rx_symQ_dw = rx_symQ_dw_5
     elif ebno_idx == 6:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_6
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_6
+        rx_symI_dw = rx_symI_dw_6
+        rx_symQ_dw = rx_symQ_dw_6
     elif ebno_idx == 7:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_7
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_7
+        rx_symI_dw = rx_symI_dw_7
+        rx_symQ_dw = rx_symQ_dw_7
     elif ebno_idx == 8:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_8
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_8
+        rx_symI_dw = rx_symI_dw_8
+        rx_symQ_dw = rx_symQ_dw_8
     elif ebno_idx == 9:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_9
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_9
+        rx_symI_dw = rx_symI_dw_9
+        rx_symQ_dw = rx_symQ_dw_9
     elif ebno_idx == 10:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_10
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_10
+        rx_symI_dw = rx_symI_dw_10
+        rx_symQ_dw = rx_symQ_dw_10
     elif ebno_idx == 11:
-        rx_symI_fse_aaf = rx_symI_fse_aaf_11
-        rx_symQ_fse_aaf = rx_symQ_fse_aaf_11
+        rx_symI_dw = rx_symI_dw_11
+        rx_symQ_dw = rx_symQ_dw_11
     else:
         break
 
@@ -168,9 +168,9 @@ for ebno_idx in range(0,12):
     for i in range(NSYMB*OS_DSP):
         # Filter buffer
         fseI_buffer[1:] = fseI_buffer[:-1]
-        fseI_buffer[0]  = rx_symI_fse_aaf[i]
+        fseI_buffer[0]  = rx_symI_dw[i]
         fseQ_buffer[1:] = fseQ_buffer[:-1]
-        fseQ_buffer[0]  = rx_symQ_fse_aaf[i]
+        fseQ_buffer[0]  = rx_symQ_dw[i]
 
         # Filter output
         rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)

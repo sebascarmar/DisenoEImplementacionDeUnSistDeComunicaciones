@@ -75,9 +75,9 @@ tx_symQ_rand = np.loadtxt('from_matlab/tx_symb_Q.txt')
 
 
 #------------------ Receptor
-# AAF
-rx_symI_fse_aaf = np.loadtxt('from_matlab/dsp_in_norm_I_00dB_10k.txt')
-rx_symQ_fse_aaf = np.loadtxt('from_matlab/dsp_in_norm_Q_00dB_10k.txt')
+# Downsampler
+rx_symI_dw = np.loadtxt('from_matlab/dsp_in_norm_I_00dB_10k.txt')
+rx_symQ_dw = np.loadtxt('from_matlab/dsp_in_norm_Q_00dB_10k.txt')
 
 # Variables para FFE
 fseI_buffer = np.zeros(NTAPS_FSE)
@@ -102,9 +102,9 @@ rx_symQ_slcr  = np.zeros(NSYMB)
 for i in range(NSYMB*OS_DSP):
     # Filter buffer
     fseI_buffer[1:] = fseI_buffer[:-1]
-    fseI_buffer[0]  = rx_symI_fse_aaf[i]
+    fseI_buffer[0]  = rx_symI_dw[i]
     fseQ_buffer[1:] = fseQ_buffer[:-1]
-    fseQ_buffer[0]  = rx_symQ_fse_aaf[i]
+    fseQ_buffer[0]  = rx_symQ_dw[i]
 
     # Filter output
     rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
