@@ -252,7 +252,7 @@ for ebno_idx in range(0,12):
     
     print("EbNo=",ebno_idx," dB")
     print("BER_I: ", ber_I_rot)
-    print("BER_I: ", ber_Q_rot)
+    print("BER_Q: ", ber_Q_rot)
     print("theo_ber: ", th_ber[ebno_idx], "\n")
 
 # Fin del for de barrido de EbNo

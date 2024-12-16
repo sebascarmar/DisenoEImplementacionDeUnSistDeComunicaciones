@@ -181,7 +181,7 @@ for i in range(len(phases)):
 th_ber = theoric_ber(M, EbNo_db)
 
 print("BER_I: ", ber_I)
-print("BER_I: ", ber_Q)
+print("BER_Q: ", ber_Q)
 print("theo_ber: ", th_ber)
 
 
