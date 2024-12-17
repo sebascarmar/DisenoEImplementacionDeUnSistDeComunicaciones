@@ -99,7 +99,7 @@ Ki        = Kp/1000
 # Contador de BER
 START_CNT = 400000
 
-np.random.seed(1)  # Establece la semilla
+#np.random.seed(1)  # Establece la semilla
 
 
 
@@ -125,16 +125,9 @@ tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
 EbNo       = 10**(EbNo_db/10)
 SNR_slicer = EbNo*np.log2(M)
 SNR_ch     = SNR_slicer/OS
-
-#noise_var = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
-noise_var = 2*np.var(tx_symI_rrc)/SNR_ch # Es igual a 2*np.var(tx_symQ_rrc)/SNR_ch
-
-#noise_I = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
-#noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
-auxx1 = np.loadtxt('./from_matlab/auxx1.txt')
-auxx2 = np.loadtxt('./from_matlab/auxx2.txt')
-noise_I = np.sqrt(noise_var/2)*auxx1
-noise_Q = np.sqrt(noise_var/2)*auxx2
+noise_var = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
+noise_I = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
+noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
 
 ch_symI_noisy = tx_symI_rrc + noise_I
 ch_symQ_noisy = tx_symQ_rrc + noise_Q
