@@ -153,7 +153,7 @@ SNR_ch     = SNR_slicer/OS
 noise_var = 2*np.var(tx_symI_rrc)/SNR_ch # Es igual a 2*np.var(tx_symQ_rrc)/SNR_ch
 
 #noise_I = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
-noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
+#noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
 auxx1 = np.loadtxt('./from_matlab/auxx1.txt')
 auxx2 = np.loadtxt('./from_matlab/auxx2.txt')
 noise_I = np.sqrt(noise_var/2)*auxx1
