@@ -279,13 +279,7 @@ print("BER_Q: ", ber_Q)
 print("theo_ber: ", th_ber)
 
 
-
-
-
-
-
-
-
+# Gráficas de interés
 fase = 1
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
