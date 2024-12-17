@@ -158,7 +158,6 @@ ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = noisy_symb_IjQ[NSYMB_CONVERGENCE*OS-1:
 
 ######## RECEPTOR
 aaf_coeff = signal.firwin(numtaps=100, cutoff=0.9*(BR) ,window='hamming', fs=4*BR)
-#savemat('./to_matlab/aaf_coeff.mat', {'my_array': aaf_coeff})
 aux2I = np.convolve(aaf_coeff, ch_symIjQ_rot.real) # con 'same' no da lo mismo
 aux2Q = np.convolve(aaf_coeff, ch_symIjQ_rot.imag) # con 'same' no da lo mismo
 rx_symI_aaf = aux2I[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
@@ -167,8 +166,6 @@ rx_symQ_aaf = aux2Q[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
 # Downsampler
 rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
-#data = np.column_stack((rx_symI_dw, rx_symQ_dw))  # Combina las partes real e imaginaria en columnas
-#np.savetxt('./to_matlab/dsp_in_norm_complex.csv', data, delimiter=',', header='Real,Imag', comments='')
 
 # AGC
 #target = 1 # Vrms
