@@ -212,6 +212,7 @@ aux2Q = np.convolve(aaf_coeff, ch_symIjQ_rot.imag) # con 'same' no da lo mismo
 rx_symI_aaf = aux2I[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
 rx_symQ_aaf = aux2Q[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
 
+# Downsampler
 rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 #data = np.column_stack((rx_symI_dw, rx_symQ_dw))  # Combina las partes real e imaginaria en columnas
@@ -238,6 +239,14 @@ rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 #plt.ylabel('Imag')
 #plt.show()
 
+# AGC
+#target = 1 # Vrms
+#metric = np.std(rx_symI_dw+1j*rx_symQ_dw)
+#agc_gain = target/metric
+agc_gain = 1
+rx_symI_agc =  rx_symI_dw * agc_gain
+rx_symQ_agc =  rx_symQ_dw * agc_gain
+
 
 # Variables para FFE
 fseI_buffer = np.zeros(NTAPS_FSE)
@@ -262,9 +271,9 @@ rx_symQ_slcr  = np.zeros(NSYMB)
 for i in range(NSYMB*OS_DSP):
     # Filter buffer
     fseI_buffer[1:] = fseI_buffer[:-1]
-    fseI_buffer[0]  = rx_symI_dw[i]
+    fseI_buffer[0]  = rx_symI_agc[i]
     fseQ_buffer[1:] = fseQ_buffer[:-1]
-    fseQ_buffer[0]  = rx_symQ_dw[i]
+    fseQ_buffer[0]  = rx_symQ_agc[i]
 
     # Filter output
     rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
