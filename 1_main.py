@@ -107,8 +107,6 @@ np.random.seed(1)  # Establece la semilla
 # Symbols generator
 tx_symI_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
 tx_symQ_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
-#tx_symI_rand = np.loadtxt('from_matlab/tx_symb_I.txt')
-#tx_symQ_rand = np.loadtxt('from_matlab/tx_symb_Q.txt')
 
 # Up-sampler
 tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_rand*OS
@@ -116,7 +114,6 @@ tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_r
 
 # RRC Filter
 (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
-#rrc = np.loadtxt('./from_matlab/rrc.txt')
 
 auxI = np.convolve(tx_symI_up, rrc) # con 'same' no da lo mismo
 auxQ = np.convolve(tx_symQ_up, rrc) # con 'same' no da lo mismo
