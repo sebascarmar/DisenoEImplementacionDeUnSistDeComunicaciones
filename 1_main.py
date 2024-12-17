@@ -293,26 +293,52 @@ print("theo_ber: ", th_ber)
 
 
 fase = 1
-plt.figure(figsize=[6,6])
+plt.figure(figsize=[10,6])
+plt.subplot(2,1,1)
 plt.title('FSE Output I')
 plt.plot(rx_symI_fse[fase:len(rx_symI_fse)-fase:2],'x')
 plt.grid(True)
+plt.subplot(2,1,2)
+plt.title('FSE Output Q')
+plt.plot(rx_symQ_fse[fase:len(rx_symQ_fse)-fase:2],'x')
 plt.xlabel('Nº símbolos')
-plt.ylabel('I')
 
-plt.figure(figsize=[6,6])
+plt.figure(figsize=[10,6])
+plt.subplot(2,1,1)
 plt.title('FCR Output I')
 plt.plot(rx_symIjQ_fcr.real[fase:len(rx_symIjQ_fcr)-fase:2],'x')
 plt.grid(True)
+plt.subplot(2,1,2)
+plt.title('FCR Output Q')
+plt.plot(rx_symIjQ_fcr.imag[fase:len(rx_symIjQ_fcr)-fase:2],'x')
 plt.xlabel('Nº símbolos')
 plt.ylabel('I')
 
+# Constelación a la salida del FCR (rangos ajustados para 10k)
 plt.figure(figsize=[6,6])
-plt.title('Slicer Output I')
-plt.plot(rx_symI_slcr,'x')
+plt.title('FCR Const - pre offset')
+plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
+         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
+         '.')
+plt.xlim((-2, 2))
+plt.ylim((-2, 2))
 plt.grid(True)
-plt.xlabel('Nº símbolos')
-plt.ylabel('I')
+plt.xlabel('Real')
+plt.ylabel('Imag')
+
+plt.figure(figsize=[6,6])
+plt.title('FCR Const - post offset')
+plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+         '.')
+plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE+200000:len(rx_symIjQ_fcr):2],
+         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE+200000:len(rx_symIjQ_fcr):2],
+         '.')
+plt.xlim((-2, 2))
+plt.ylim((-2, 2))
+plt.grid(True)
+plt.xlabel('Real')
+plt.ylabel('Imag')
 
 plt.figure(figsize=[10,6])
 plt.plot(coeffs_log.T)
