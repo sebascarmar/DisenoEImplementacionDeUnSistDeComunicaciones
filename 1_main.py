@@ -119,30 +119,7 @@ tx_symI_rrc = auxI[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
 tx_symQ_rrc = auxQ[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
 
 
-#plt.figure(figsize=[10,6])
-#plt.subplot(3,1,1)
-#plt.plot(tx_symI_rand,'o')
-#plt.xlim(0,20)
-#plt.grid(True)
-#plt.subplot(3,1,2)
-#plt.plot(tx_symI_up,'o')
-#plt.xlim(0,20)
-#plt.grid(True)
-#plt.subplot(3,1,3)
-#plt.plot(tx_symI_rrc,'g-',linewidth=2.0)
-#plt.grid(True)
-#plt.show()
-#------------------
-#plt.figure(figsize=[6,6])
-#plt.plot(tx_symI_rrc,
-#         tx_symQ_rrc,
-#         '.',linewidth=2.0)
-#plt.xlim((-2, 2))
-#plt.ylim((-2, 2))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#
+
 ######## CANAL
 # AWG
 EbNo       = 10**(EbNo_db/10)
@@ -162,16 +139,6 @@ noise_Q = np.sqrt(noise_var/2)*auxx2
 ch_symI_noisy = tx_symI_rrc + noise_I
 ch_symQ_noisy = tx_symQ_rrc + noise_Q
 
-#plt.figure(figsize=[6,6])
-#plt.plot(ch_symI_noisy[0:10000],
-#         ch_symQ_noisy[0:10000],
-#         '.')
-#plt.xlim((-2, 2))
-#plt.ylim((-2, 2))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#plt.show()
 
 # Offset de frecuencia
 Ts = 1/(OS*BR)
@@ -182,26 +149,6 @@ ch_symIjQ_rot  = noisy_symb_IjQ
 
 ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = noisy_symb_IjQ[NSYMB_CONVERGENCE*OS-1: ] * ej2pif
 
-#plt.figure(figsize=[6,6])
-#plt.plot(ch_symIjQ_rot.real[0:nsymb_off_freq*OS],
-#         ch_symIjQ_rot.imag[0:nsymb_off_freq*OS],
-#         '.')
-#plt.xlim((-2, 2))
-#plt.ylim((-2, 2))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#
-#plt.figure(figsize=[6,6])
-#plt.plot(ch_symIjQ_rot.real[nsymb_off_freq*OS:],
-#         ch_symIjQ_rot.imag[nsymb_off_freq*OS:],
-#         '.')
-#plt.xlim((-2, 2))
-#plt.ylim((-2, 2))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#plt.show()
 
 
 ######## RECEPTOR
@@ -217,27 +164,6 @@ rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 #data = np.column_stack((rx_symI_dw, rx_symQ_dw))  # Combina las partes real e imaginaria en columnas
 #np.savetxt('./to_matlab/dsp_in_norm_complex.csv', data, delimiter=',', header='Real,Imag', comments='')
-
-#plt.figure(figsize=[6,6])
-#plt.plot(rx_symI_dw[0:nsymb_convergence-1],
-#         rx_symQ_dw[0:nsymb_convergence-1],
-#         '.')
-#plt.xlim((-1.7, 1.7))
-#plt.ylim((-1.7, 1.7))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#
-#plt.figure(figsize=[6,6])
-#plt.plot(rx_symI_dw[nsymb_convergence:],
-#         rx_symQ_dw[nsymb_convergence:],
-#         '.')
-#plt.xlim((-1.7, 1.7))
-#plt.ylim((-1.7, 1.7))
-#plt.grid(True)
-#plt.xlabel('Real')
-#plt.ylabel('Imag')
-#plt.show()
 
 # AGC
 #target = 1 # Vrms
@@ -389,3 +315,89 @@ plt.title('Coeficientes FFE')
 plt.grid(True)
 
 plt.show()
+
+
+###### Gráficos intermedios
+# Símbolos generados, up-sampleados y filtrados
+#plt.figure(figsize=[10,6])
+#plt.subplot(3,1,1)
+#plt.plot(tx_symI_rand,'o')
+#plt.xlim(0,20)
+#plt.grid(True)
+#plt.subplot(3,1,2)
+#plt.plot(tx_symI_up,'o')
+#plt.xlim(0,20)
+#plt.grid(True)
+#plt.subplot(3,1,3)
+#plt.plot(tx_symI_rrc,'g-',linewidth=2.0)
+#plt.xlim(0,500)
+#plt.grid(True)
+#plt.show()
+#---------------
+# Conteslación de símbolos post filtro RRC
+#plt.figure(figsize=[6,6])
+#plt.plot(tx_symI_rrc,
+#         tx_symQ_rrc,
+#         '.',linewidth=2.0)
+#plt.xlim((-2, 2))
+#plt.ylim((-2, 2))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#plt.show()
+#---------------
+# Constelación de símbolos con ruido agregado
+#plt.figure(figsize=[6,6])
+#plt.plot(ch_symI_noisy[0:10000],
+#         ch_symQ_noisy[0:10000],
+#         '.')
+#plt.xlim((-2, 2))
+#plt.ylim((-2, 2))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#plt.show()
+#---------------
+# Símbolos con ruidos pre y post rotación
+#plt.figure(figsize=[6,6])
+#plt.plot(ch_symIjQ_rot.real[0:NSYMB_CONVERGENCE*OS],
+#         ch_symIjQ_rot.imag[0:NSYMB_CONVERGENCE*OS],
+#         '.')
+#plt.xlim((-6, 6))
+#plt.ylim((-6, 6))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#
+#plt.figure(figsize=[6,6])
+#plt.plot(ch_symIjQ_rot.real[NSYMB_CONVERGENCE*OS:],
+#         ch_symIjQ_rot.imag[NSYMB_CONVERGENCE*OS:],
+#         '.')
+#plt.xlim((-6, 6))
+#plt.ylim((-6, 6))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#plt.show()
+#---------------
+# Símbolos downsampleados pre y post offset de protadora
+#plt.figure(figsize=[6,6])
+#plt.plot(rx_symI_dw[0:NSYMB_CONVERGENCE-1],
+#         rx_symQ_dw[0:NSYMB_CONVERGENCE-1],
+#         '.')
+#plt.xlim((-6, 6))
+#plt.ylim((-6, 6))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#
+#plt.figure(figsize=[6,6])
+#plt.plot(rx_symI_dw[NSYMB_CONVERGENCE:],
+#         rx_symQ_dw[NSYMB_CONVERGENCE:],
+#         '.')
+#plt.xlim((-6, 6))
+#plt.ylim((-6, 6))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#plt.show()
