@@ -115,10 +115,8 @@ tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_r
 # RRC Filter
 (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
 
-auxI = np.convolve(tx_symI_up, rrc) # con 'same' no da lo mismo
-auxQ = np.convolve(tx_symQ_up, rrc) # con 'same' no da lo mismo
-tx_symI_rrc = auxI[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
-tx_symQ_rrc = auxQ[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
+tx_symI_rrc = signal.lfilter(rrc, [1], tx_symI_up)
+tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
 
 
 
@@ -155,10 +153,8 @@ ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = noisy_symb_IjQ[NSYMB_CONVERGENCE*OS-1:
 
 ######## RECEPTOR
 aaf_coeff = signal.firwin(numtaps=100, cutoff=0.9*(BR) ,window='hamming', fs=4*BR)
-aux2I = np.convolve(aaf_coeff, ch_symIjQ_rot.real) # con 'same' no da lo mismo
-aux2Q = np.convolve(aaf_coeff, ch_symIjQ_rot.imag) # con 'same' no da lo mismo
-rx_symI_aaf = aux2I[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
-rx_symQ_aaf = aux2Q[0:NSYMB*OS]      # elimina la cola final, pero no la inicial
+rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symIjQ_rot.real)
+rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symIjQ_rot.imag)
 
 # Downsampler
 rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
@@ -234,7 +230,7 @@ for i in range(NSYMB*OS_DSP):
     
 
 #####################  Bit-Error Rate
-# Syncro
+# Synchro
 #LAT =  -find_delay(tx_symI_rand,rx_symI_slcr)
 LAT=28
 rx_symI_ber_sync = rx_symI_slcr[LAT:]
@@ -274,6 +270,7 @@ for i in range(len(phases)):
 
 th_ber = theoric_ber(M, EbNo_db)
 
+print("EbNo=", EbNo_db, " | f_off=",f_offset)
 print("BER_I: ", ber_I)
 print("BER_Q: ", ber_Q)
 print("theo_ber: ", th_ber)
