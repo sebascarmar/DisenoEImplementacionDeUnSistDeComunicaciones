@@ -136,16 +136,20 @@ ch_symQ_noisy = tx_symQ_rrc + noise_Q
 # Offset de frecuencia
 Ts = 1/(OS*BR)
 time_vector    = np.arange(NSYMB_CONVERGENCE*OS*Ts, NSYMB*OS*Ts, Ts)
-ej2pif         = np.exp(1j*2*np.pi*f_offset * time_vector)
-noisy_symb_IjQ = ch_symI_noisy + 1j*ch_symQ_noisy
-ch_symIjQ_rot  = noisy_symb_IjQ
+titas          = 2*np.pi*f_offset * time_vector
+ch_symIjQ_rot  = ch_symI_noisy + 1j*ch_symQ_noisy
+ch_symI_rot = ch_symI_noisy
+ch_symQ_rot = ch_symQ_noisy
 
-ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = noisy_symb_IjQ[NSYMB_CONVERGENCE*OS-1: ] * ej2pif
-
+ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = ((ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]+
+                                           1j*ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ])*
+                                           (np.cos(titas)+1j*np.sin(titas)))
+ch_symI_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas)-
+                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas))
 
 # Filtro de canal
 ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.5*BR ,window='hamming', fs=4*BR)
-ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symIjQ_rot.real)
+ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symIjQ_rot.imag)
 
 
