@@ -214,13 +214,15 @@ for i in range(NSYMB*OS_DSP):
         rx_symI_slcr[k],rx_symQ_slcr[k] = slicer_qpsk(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])
         
         # Error for LMS
-        coeff_err   = ( rx_symI_fcr[i]+1j*rx_symQ_fcr[i] -
-                       (rx_symI_slcr[k]+1j*rx_symQ_slcr[k])) * np.exp(1j*nco_out)
-        
+        coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
+                       (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.sin(nco_out))
+        coeff_err_Q = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.sin(nco_out) +
+                       (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.cos(nco_out))
+
         fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
-                       lms_step*(coeff_err.real*fseI_buffer + coeff_err.imag*fseQ_buffer))
+                       lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
         fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
-                       lms_step*( coeff_err.real*fseQ_buffer - coeff_err.imag*fseI_buffer))
+                       lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
         if (((i+1)/OS_DSP)%log_step) == 0:
             coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
         
