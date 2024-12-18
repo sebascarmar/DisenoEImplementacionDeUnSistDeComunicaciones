@@ -39,18 +39,12 @@ def r_rcosine(fc, fs, rolloff, nbauds, norm):
 
 
 def slicer_qpsk(x):
-     # Parte real
-    if x.real>=0:
-        a=1;
+    if(x>=0):
+        a = 1;
     else:
-        a=-1;
-    # Parte imag
-    if x.imag>=0:
-        b = 1;
-    else:
-        b = -1;
+        a =-1;
 
-    return a, b
+    return a
 
 
 def find_delay(signal1, signal2):
@@ -211,7 +205,8 @@ for i in range(NSYMB*OS_DSP):
     if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
         k = int(i/OS_DSP)
         # Slicer
-        rx_symI_slcr[k],rx_symQ_slcr[k] = slicer_qpsk(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])
+        rx_symI_slcr[k] = slicer_qpsk(rx_symI_fcr[i])
+        rx_symQ_slcr[k] = slicer_qpsk(rx_symQ_fcr[i])
         
         # Error for LMS
         coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
