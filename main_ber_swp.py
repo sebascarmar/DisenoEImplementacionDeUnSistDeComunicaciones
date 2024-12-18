@@ -137,14 +137,13 @@ for EbNo_db in range(sweep_times):
     Ts = 1/(OS*BR)
     time_vector    = np.arange(NSYMB_CONVERGENCE*OS*Ts, NSYMB*OS*Ts, Ts)
     titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
-    ch_symIjQ_rot  = ch_symI_noisy + 1j*ch_symQ_noisy
     ch_symI_rot = np.array(ch_symI_noisy, dtype=np.float32)
     ch_symQ_rot = np.array(ch_symQ_noisy, dtype=np.float32)
     
-    ch_symI_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas)-
-                                             ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
-    ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas)+
-                                             ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
+    ch_symI_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas)-
+                                             ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas))
+    ch_symQ_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas)+
+                                             ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas))
     
     
     # Filtro de canal
