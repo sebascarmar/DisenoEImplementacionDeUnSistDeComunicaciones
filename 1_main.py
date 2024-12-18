@@ -143,11 +143,16 @@ ch_symIjQ_rot  = noisy_symb_IjQ
 ch_symIjQ_rot[NSYMB_CONVERGENCE*OS-1: ] = noisy_symb_IjQ[NSYMB_CONVERGENCE*OS-1: ] * ej2pif
 
 
+# Filtro de canal
+ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.5*BR ,window='hamming', fs=4*BR)
+ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symIjQ_rot.real)
+ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symIjQ_rot.imag)
+
 
 ######## RECEPTOR
 aaf_coeff = signal.firwin(numtaps=100, cutoff=0.9*(BR) ,window='hamming', fs=4*BR)
-rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symIjQ_rot.real)
-rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symIjQ_rot.imag)
+rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
+rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
 # Downsampler
 rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
@@ -225,7 +230,7 @@ for i in range(NSYMB*OS_DSP):
 #####################  Bit-Error Rate
 # Synchro
 #LAT =  -find_delay(tx_symI_rand,rx_symI_slcr)
-LAT=28
+LAT=40
 rx_symI_ber_sync = rx_symI_slcr[LAT:]
 rx_symQ_ber_sync = rx_symQ_slcr[LAT:]
 
