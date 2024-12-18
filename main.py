@@ -181,7 +181,8 @@ coeffs_log  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 # Variables para FCR
 nco_out     = 0
 int_err     = 0 
-rx_symIjQ_fcr = np.zeros(NSYMB*OS_DSP, dtype=complex)
+rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
+rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
 
 # Variables para el slicer
 rx_symI_slcr  = np.zeros(NSYMB)
@@ -198,16 +199,19 @@ for i in range(NSYMB*OS_DSP):
     rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
     rx_symQ_fse[i] = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
     
-    # FCR output
-    rx_symIjQ_fcr[i] = (rx_symI_fse[i]+1j*rx_symQ_fse[i]) * np.exp(-1j*nco_out)
+    # FCR output: multiplicación por e^{-jnco_out}
+    rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
+    rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
+
 
     if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
         k = int(i/OS_DSP)
         # Slicer
-        rx_symI_slcr[k],rx_symQ_slcr[k] = slicer_qpsk(rx_symIjQ_fcr[i])
+        rx_symI_slcr[k],rx_symQ_slcr[k] = slicer_qpsk(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])
         
         # Error for LMS
-        coeff_err   = (rx_symIjQ_fcr[i]-rx_symI_slcr[k]-1j*rx_symQ_slcr[k]) * np.exp(1j*nco_out)
+        coeff_err   = ( rx_symI_fcr[i]+1j*rx_symQ_fcr[i] -
+                       (rx_symI_slcr[k]+1j*rx_symQ_slcr[k])) * np.exp(1j*nco_out)
         
         fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
                        lms_step*(coeff_err.real*fseI_buffer + coeff_err.imag*fseQ_buffer))
@@ -217,7 +221,7 @@ for i in range(NSYMB*OS_DSP):
             coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
         
         # Phase error
-        angle_err = np.angle(rx_symIjQ_fcr[i])-np.angle(rx_symI_slcr[k]+1j*rx_symQ_slcr[k])
+        angle_err = np.angle(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])-np.angle(rx_symI_slcr[k]+1j*rx_symQ_slcr[k])
         # PI loop filter
         Kp = 1e-3 if(i>(NSYMB_CONVERGENCE/2)) else 0
         Ki = Kp/1000
@@ -276,6 +280,7 @@ print("theo_ber: ", th_ber)
 
 # Gráficas de interés
 fase = 1
+# Salida del FSE vs tiempo
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 plt.title('FSE Output I')
@@ -286,22 +291,23 @@ plt.title('FSE Output Q')
 plt.plot(rx_symQ_fse[fase:len(rx_symQ_fse)-fase:2],'x')
 plt.xlabel('Nº símbolos')
 
+# Salida del FCR vs tiempo
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 plt.title('FCR Output I')
-plt.plot(rx_symIjQ_fcr.real[fase:len(rx_symIjQ_fcr)-fase:2],'x')
+plt.plot(rx_symI_fcr[fase:len(rx_symI_fcr)-fase:2],'x')
 plt.grid(True)
 plt.subplot(2,1,2)
 plt.title('FCR Output Q')
-plt.plot(rx_symIjQ_fcr.imag[fase:len(rx_symIjQ_fcr)-fase:2],'x')
+plt.plot(rx_symQ_fcr[fase:len(rx_symQ_fcr)-fase:2],'x')
 plt.xlabel('Nº símbolos')
 plt.ylabel('I')
 
 # Constelación a la salida del FCR (rangos ajustados para 10k)
 plt.figure(figsize=[6,6])
 plt.title('FCR Const - pre offset')
-plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
-         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
+plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
+         rx_symQ_fcr[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
          '.')
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
@@ -311,11 +317,11 @@ plt.ylabel('Imag')
 
 plt.figure(figsize=[6,6])
 plt.title('FCR Const - post offset')
-plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
-         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+         rx_symQ_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
          '.')
-plt.plot(rx_symIjQ_fcr.real[fase+NSYMB_CONVERGENCE+200000:len(rx_symIjQ_fcr):2],
-         rx_symIjQ_fcr.imag[fase+NSYMB_CONVERGENCE+200000:len(rx_symIjQ_fcr):2],
+plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symI_fcr):2],
+         rx_symQ_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symQ_fcr):2],
          '.')
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
