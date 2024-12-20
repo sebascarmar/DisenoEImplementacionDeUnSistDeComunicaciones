@@ -103,8 +103,8 @@ tx_symI_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
 tx_symQ_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
 
 # Up-sampler
-tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_rand*OS
-tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_rand*OS
+tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_rand
+tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_rand
 
 # RRC Filter
 (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
@@ -156,10 +156,9 @@ rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 
 # AGC
-#target = 1 # Vrms
-#metric = np.std(rx_symI_dw+1j*rx_symQ_dw)
-#agc_gain = target/metric
-agc_gain = 1
+target = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
+metric = np.std(rx_symI_dw+1j*rx_symQ_dw)
+agc_gain = target/metric
 rx_symI_agc =  rx_symI_dw * agc_gain
 rx_symQ_agc =  rx_symQ_dw * agc_gain
 
