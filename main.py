@@ -141,13 +141,13 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]
 
 
 # Filtro de canal
-ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.5*BR ,window='hamming', fs=4*BR)
+ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.45*BR ,window='hamming', fs=4*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 
 ######## RECEPTOR
-aaf_coeff = signal.firwin(numtaps=100, cutoff=0.9*(BR) ,window='hamming', fs=4*BR)
+aaf_coeff = signal.firwin(numtaps=100, cutoff=BR ,window='hamming', fs=4*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
