@@ -211,7 +211,7 @@ for i in range(NSYMB*OS_DSP):
                        (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.sin(nco_out))
         coeff_err_Q = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.sin(nco_out) +
                        (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.cos(nco_out))
-
+        
         fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
                        lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
         fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
@@ -220,7 +220,13 @@ for i in range(NSYMB*OS_DSP):
             coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
         
         # Phase error
-        angle_err = np.angle(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])-np.angle(rx_symI_slcr[k]+1j*rx_symQ_slcr[k])
+        prod = (rx_symI_fcr[i]+1j*rx_symQ_fcr[i])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
+        if np.abs(prod)!= 0:
+            prod_norm = prod/np.abs(prod)
+        else:
+            prod_norm = 0 + 1j*0
+        angle_err = prod_norm.imag
+        
         # PI loop filter
         Kp = 1e-3 if(i>(NSYMB_CONVERGENCE/2)) else 0
         Ki = Kp/1000
