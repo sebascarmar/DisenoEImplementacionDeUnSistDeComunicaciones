@@ -228,10 +228,10 @@ for i in range(NSYMB*OS_DSP):
         angle_err = prod_norm.imag
         
         # PI loop filter
-        Kp = 1e-3 if(i>(NSYMB_CONVERGENCE/2)) else 0
-        Ki = Kp/1000
-        prop_err = Kp * angle_err
-        int_err  = Ki*angle_err + int_err
+        Kp2 = Kp if(i>(NSYMB_CONVERGENCE/2)) else 0
+        Ki2 = Ki if(i>(NSYMB_CONVERGENCE/2)) else 0
+        prop_err =  Kp2 * angle_err
+        int_err  = (Ki2 * angle_err) + int_err
         # NCO
         nco_out  = (prop_err+int_err) + nco_out
     
