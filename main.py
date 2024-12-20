@@ -78,8 +78,8 @@ NBAUD = 16
 M     = 4       # orden de modulación
 
 # Canal
-EbNo_db  = 0
-f_offset = 10e3 # Hz
+EbNo_db  = 4
+f_offset = 20e3 # Hz
 NSYMB_CONVERGENCE = 100000 # Convergencia de FSE y FCR (mitad y mitad)
 
 # Receptor
