@@ -85,7 +85,7 @@ NSYMB_CONVERGENCE = 100000 # Convergencia de FSE y FCR (mitad y mitad)
 # Receptor
 OS_DSP    = 2
 NTAPS_FSE = 33
-lms_step  = 1e-3
+lms_step  = 0.1e-3
 lms_leak  = 0
 Kp        = 1e-3
 Ki        = Kp/1000
@@ -141,7 +141,7 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]
 
 
 # Filtro de canal
-ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.45*BR ,window='hamming', fs=4*BR)
+ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.49*BR ,window='hamming', fs=4*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
