@@ -80,7 +80,7 @@ M     = 4       # orden de modulación
 # Canal
 EbNo_db  = 4
 f_offset = 20e3 # Hz
-NSYMB_CONVERGENCE = 100000 # Convergencia de FSE y FCR (mitad y mitad)
+NSYMB_CONVERGENCE = 20000 # Convergencia de FSE y FCR (mitad y mitad)
 
 # Receptor
 OS_DSP    = 2
@@ -91,7 +91,7 @@ Kp        = 1e-3
 Ki        = Kp/1000
 
 # Contador de BER
-START_CNT = 400000
+START_CNT = 450000
 
 #np.random.seed(1)  # Establece la semilla
 
@@ -134,10 +134,10 @@ titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
 ch_symI_rot = np.array(ch_symI_noisy, dtype=np.float32)
 ch_symQ_rot = np.array(ch_symQ_noisy, dtype=np.float32)
 
-ch_symI_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas)-
-                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas))
-ch_symQ_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas)+
-                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas))
+ch_symI_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas)-
+                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
+ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas)+
+                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
 
 
 # Filtro de canal
