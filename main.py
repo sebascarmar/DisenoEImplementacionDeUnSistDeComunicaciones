@@ -255,8 +255,8 @@ for i in range(NSYMB*OS_DSP):
 
 #####################  Bit-Error Rate
 # Synchro
-#LAT =  -find_delay(tx_symI_map,rx_symI_slcr)
-LAT=40
+LAT =  -find_delay(tx_symI_map[0:510],rx_symI_slcr[0:510])
+print("Latencia=", LAT)
 rx_symI_ber_sync = rx_symI_slcr[LAT:]
 rx_symQ_ber_sync = rx_symQ_slcr[LAT:]
 
