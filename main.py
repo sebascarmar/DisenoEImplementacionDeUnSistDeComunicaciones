@@ -328,8 +328,8 @@ plt.ylabel('I')
 # Constelación a la salida del FCR (rangos ajustados para 10k)
 plt.figure(figsize=[6,6])
 plt.title('FCR Const - pre offset')
-plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
-         rx_symQ_fcr[fase+NSYMB_CONVERGENCE-50000:NSYMB_CONVERGENCE:2],
+plt.plot(rx_symI_fcr[fase:NSYMB_CONVERGENCE:2],
+         rx_symQ_fcr[fase:NSYMB_CONVERGENCE:2],
          '.')
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
