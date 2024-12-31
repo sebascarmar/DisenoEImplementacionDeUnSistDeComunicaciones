@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.io import savemat
 import math
+from classes.prbs9 import prbs9
+
 
 def r_rcosine(fc, fs, rolloff, nbauds, norm):
 
@@ -98,13 +100,28 @@ START_CNT = 450000
 
 
 #######  TRANSMISOR
-# Symbols generator
-tx_symI_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
-tx_symQ_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
+# Bits generator
+tx_bitI_prbs = np.zeros(NSYMB)
+tx_bitQ_prbs = np.zeros(NSYMB)
+
+# Instancia PRBS's
+prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
+prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
+
+for i in range(NSYMB):
+    ### Lane I
+    tx_bitI_prbs[i] = prbs9I.get_new_symbol()
+    ### Lane Q
+    tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
+
+# Mapper
+tx_symI_map = 2*(tx_bitI_prbs != 1)-1
+tx_symQ_map = 2*(tx_bitQ_prbs != 1)-1
 
 # Up-sampler
-tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_rand
-tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_rand
+tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_map
+tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_map
+
 
 # RRC Filter
 (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
@@ -135,9 +152,9 @@ ch_symI_rot = np.array(ch_symI_noisy, dtype=np.float32)
 ch_symQ_rot = np.array(ch_symQ_noisy, dtype=np.float32)
 
 ch_symI_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas)-
-                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
+                                       ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
 ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas)+
-                                         ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
+                                       ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
 
 
 # Filtro de canal
@@ -238,7 +255,7 @@ for i in range(NSYMB*OS_DSP):
 
 #####################  Bit-Error Rate
 # Synchro
-#LAT =  -find_delay(tx_symI_rand,rx_symI_slcr)
+#LAT =  -find_delay(tx_symI_map,rx_symI_slcr)
 LAT=40
 rx_symI_ber_sync = rx_symI_slcr[LAT:]
 rx_symQ_ber_sync = rx_symQ_slcr[LAT:]
@@ -256,8 +273,8 @@ for i in range(len(phases)):
     # Demapper
     rx_bit_I = np.where(rx_symI_rot_4_ber == 1, 0, 1)
     rx_bit_Q = np.where(rx_symQ_rot_4_ber == 1, 0, 1)
-    tx_bit_I = np.where(tx_symI_rand == 1, 0, 1)
-    tx_bit_Q = np.where(tx_symQ_rand == 1, 0, 1)
+    tx_bit_I = np.where(tx_symI_map == 1, 0, 1)
+    tx_bit_Q = np.where(tx_symQ_map == 1, 0, 1)
 
     # BER counter
     error_I=0
@@ -346,7 +363,7 @@ plt.show()
 # Símbolos generados, up-sampleados y filtrados
 #plt.figure(figsize=[10,6])
 #plt.subplot(3,1,1)
-#plt.plot(tx_symI_rand,'o')
+#plt.plot(tx_symI_map,'o')
 #plt.xlim(0,20)
 #plt.grid(True)
 #plt.subplot(3,1,2)
