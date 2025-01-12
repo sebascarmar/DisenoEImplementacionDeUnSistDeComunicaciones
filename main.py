@@ -76,7 +76,7 @@ NSYMB = 1000000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
-NBAUD = 16
+NBAUD = 5
 M     = 4       # orden de modulación
 
 # Canal
@@ -158,13 +158,13 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
 
 
 # Filtro de canal
-ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.49*BR ,window='hamming', fs=4*BR)
+ch_filt_coeff = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 
 ######## RECEPTOR
-aaf_coeff = signal.firwin(numtaps=100, cutoff=BR ,window='hamming', fs=4*BR)
+aaf_coeff = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
