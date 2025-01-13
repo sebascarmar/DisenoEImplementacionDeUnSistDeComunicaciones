@@ -65,6 +65,10 @@ def theoric_ber(M, EbNodB):
 
     return ber
 
+def inv(arreglo):
+    # Retorna el arreglo con sus símbolos invertidos
+    return np.where(arreglo == 1, -1, 1)
+
 
 ####################################################################################
 #                                      MAIN                                        #
@@ -73,6 +77,7 @@ def theoric_ber(M, EbNodB):
 ############################### PARAMETERS #############################
 
 #### General
+NSYMB = 10000000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -80,7 +85,7 @@ NBAUD = 5
 M     = 4       # modulation order
 
 #### Channel
-EbNo_db  = 3
+EbNo_db  = 4
 f_offset = 0e3 # Hz
 NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 
@@ -92,10 +97,11 @@ lms_leak  = 0
 Kp        = 1e-3
 Ki        = Kp/1000
 
-# Contador de BER
-START_CNT = 450000
+#### BER counter
+START_SYN = 450191
+START_CNT = START_SYN + 4*511*511
 
-#np.random.seed(1)  # Establece la semilla
+# np.random.seed(2)  # set the seed
 
 
 ############################## TRANSCEIVER #############################
@@ -252,50 +258,141 @@ for i in range(NSYMB*OS_DSP):
         nco_out  = (prop_err+int_err) + nco_out
     
 
-#####################  Bit-Error Rate
-# Synchro
-LAT =  -find_delay(tx_symI_map[0:510],rx_symI_slcr[0:510])
-print("Latencia=", LAT)
-rx_symI_ber_sync = rx_symI_slcr[LAT:]
-rx_symQ_ber_sync = rx_symQ_slcr[LAT:]
+  
+############################ BIT-ERROR RATE ############################
+#### Synchronzation
 
-# Counter
-phases = np.array([0, np.pi/2, np.pi, (3/2)*np.pi])
-ber_I  = np.zeros(4)
-ber_Q  = np.zeros(4)
-for i in range(len(phases)):
-    # Rotation of constellation
-    rx_symIjQ_rot_4_ber = (rx_symI_ber_sync+1j*rx_symQ_ber_sync) * np.exp(1j*phases[i])
-    rx_symI_rot_4_ber   = 2*(rx_symIjQ_rot_4_ber.real>0.0)-1
-    rx_symQ_rot_4_ber   = 2*(rx_symIjQ_rot_4_ber.imag>0.0)-1
+rx_prbs_I = tx_symI_map[START_SYN:START_SYN+511]
+rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
 
-    # Demapper
-    rx_bit_I = np.where(rx_symI_rot_4_ber == 1, 0, 1)
-    rx_bit_Q = np.where(rx_symQ_rot_4_ber == 1, 0, 1)
-    tx_bit_I = np.where(tx_symI_map == 1, 0, 1)
-    tx_bit_Q = np.where(tx_symQ_map == 1, 0, 1)
 
-    # BER counter
-    error_I=0
-    total_I=0
-    error_Q=0
-    total_Q=0
-    for k in range(START_CNT,NSYMB-LAT):
-        if (rx_bit_I[k] != tx_bit_I[k]):
-            error_I = error_I + 1
-        total_I = total_I + 1 
-        if (rx_bit_Q[k] != tx_bit_Q[k]):
-            error_Q = error_Q + 1
-        total_Q = total_Q + 1 
-    
-    ber_I[i] = error_I/total_I
-    ber_Q[i] = error_Q/total_Q
+err_bit_count_I = 0
+err_bit_count_Q = 0
+min_error_aux_I = len(rx_prbs_I)
+min_error_aux_Q = len(rx_prbs_Q)
+# min_error_I     = len(rx_prbs_I)
+# min_error_Q     = len(rx_prbs_Q)
+LAT_I           = 0
+LAT_Q           = 0
+
+LAT             = 0
+rot_ang_detec   = 0
+for angle in [0, 90, 180, 270]:
+    # Rotate rx symbs
+    if( angle == 0):
+        rx_slcr_I =     rx_symI_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+        rx_slcr_Q =     rx_symQ_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+    elif( angle == 90 ):
+        rx_slcr_I = inv(rx_symQ_slcr[START_SYN+511*511*1:START_SYN+511*511*2])
+        rx_slcr_Q =     rx_symI_slcr[START_SYN+511*511*1:START_SYN+511*511*2]
+    elif( angle == 180 ):
+        rx_slcr_I = inv(rx_symI_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+        rx_slcr_Q = inv(rx_symQ_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+    else: # angle==270
+        rx_slcr_I =     rx_symQ_slcr[START_SYN+511*511*3:START_SYN+511*511*4]
+        rx_slcr_Q = inv(rx_symI_slcr[START_SYN+511*511*3:START_SYN+511*511*4])
+
+    # Lane I synchro
+    min_error_aux_I = len(rx_prbs_I)
+    for BER_IDX in range(len(rx_prbs_I)):
+
+        err_bit_count_I = 0
+        # Count errors for each BER_IDX
+        for i in range(len(rx_prbs_I)):
+            if( i>0 ):
+                rx_prbs_I = np.roll(rx_prbs_I,-1)
+            new_bit_prbs = rx_prbs_I[BER_IDX]
+
+            if( new_bit_prbs != rx_slcr_I[i+511*BER_IDX] ):
+                err_bit_count_I += 1
+            else:
+                err_bit_count_I = err_bit_count_I
+
+        rx_prbs_I = np.roll(rx_prbs_I,-1)
+        
+        if err_bit_count_I < min_error_aux_I:
+            min_error_aux_I = err_bit_count_I
+            LAT_I           = BER_IDX
+
+    # Lane Q synchro
+    min_error_aux_Q = len(rx_prbs_Q)
+    for BER_IDX in range(len(rx_prbs_Q)):
+
+        err_bit_count_Q = 0
+        # Count errors for each BER_IDX
+        for i in range(len(rx_prbs_Q)):
+            if( i>0 ):
+                rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+            new_bit_prbs = rx_prbs_Q[BER_IDX]
+
+            if( new_bit_prbs != rx_slcr_Q[i+511*BER_IDX] ):
+                err_bit_count_Q += 1
+            else:
+                err_bit_count_Q = err_bit_count_Q
+
+        rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+        
+        if( err_bit_count_Q < min_error_aux_Q ):
+            min_error_aux_Q = err_bit_count_Q
+            LAT_Q           = BER_IDX
+
+    print(angle)
+    print("Lat_I:" ,LAT_I, "err_I:", min_error_aux_I)
+    print("Lat_Q:" ,LAT_Q, "err_Q:", min_error_aux_Q, "\n")
+
+
+    if( LAT_I == LAT_Q ):
+        # if ((min_error_aux_I <= min_error_I) or (min_error_aux_I < 20)) and ((min_error_aux_Q <= min_error_Q) or (min_error_aux_Q < 20)):
+        if( ((min_error_aux_I < 200) and (min_error_aux_Q < 200)) ):
+            # min_error_I   = min_error_aux_I
+            # min_error_Q   = min_error_aux_Q
+            LAT           = LAT_I 
+            rot_ang_detec = angle
+
+
+#### Counting
+print("LAT:",LAT, "| ang:",rot_ang_detec)
+rx_prbs_I = tx_symI_map
+rx_prbs_Q = tx_symQ_map
+# LAT = 365
+# rot_ang_detec = 180
+
+# Select the detected rotation
+if( rot_ang_detec == 0 ):
+    rx_slcr_I =     rx_symI_slcr
+    rx_slcr_Q =     rx_symQ_slcr
+elif( rot_ang_detec == 90 ):
+    rx_slcr_I = inv(rx_symQ_slcr)
+    rx_slcr_Q =     rx_symI_slcr
+elif( rot_ang_detec == 180 ):
+    rx_slcr_I = inv(rx_symI_slcr)
+    rx_slcr_Q = inv(rx_symQ_slcr)
+else: # rot_ang_detec=270
+    rx_slcr_I =     rx_symQ_slcr
+    rx_slcr_Q = inv(rx_symI_slcr)
+
+# BER (Lane I)
+bit_err_I = 0
+bit_tot_I = 0
+for i in range(START_CNT,len(rx_slcr_I)-LAT):
+    if( rx_prbs_I[LAT+i] != rx_slcr_I[i] ):
+        bit_err_I +=1
+    bit_tot_I += 1
+
+# BER (Lane Q)
+bit_err_Q = 0
+bit_tot_Q = 0
+for i in range(START_CNT,len(rx_slcr_Q)-LAT):
+    if( rx_prbs_Q[LAT+i] != rx_slcr_Q[i] ):
+        bit_err_Q +=1
+    bit_tot_Q += 1
+
 
 th_ber = theoric_ber(M, EbNo_db)
 
 print("EbNo=", EbNo_db, " | f_off=",f_offset)
-print("BER_I: ", ber_I)
-print("BER_Q: ", ber_Q)
+print("BER_I: ", bit_err_I/bit_tot_I)
+print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
 
 
