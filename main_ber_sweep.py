@@ -1,9 +1,10 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.io import savemat
 import math
+from classes.prbs9 import prbs9
+
 
 def r_rcosine(fc, fs, rolloff, nbauds, norm):
 
@@ -56,157 +57,175 @@ def find_delay(signal1, signal2):
     return delay
 
 
-def theoric_ber(M, EbNodB):
-    EbNo = 10**(EbNodB/10)
+def theoric_ber(M, SNRdB):
+    SNR_slicer  = 10**(SNRdB/10)
+    EbNo = SNR_slicer/np.log2(M)
     k    = np.log2(M)
     x    = np.sqrt(3*k*EbNo/(M-1))
     ber  = (4/k)*(1-1/np.sqrt(M))*(1/2)*math.erfc(x/np.sqrt(2))
 
     return ber
 
+def inv(arreglo):
+    # Retorna el arreglo con sus símbolos invertidos
+    return np.where(arreglo == 1, -1, 1)
+
 
 ####################################################################################
 #                                      MAIN                                        #
 ####################################################################################
 
-#------------------ Parámetros
-# Generales
-NSYMB = 1000000 # 1e6
+############################### PARAMETERS #############################
+
+#### General
+NSYMB = 3000000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
-NBAUD = 16
-M     = 4       # orden de modulación
+NBAUD = 5
+M     = 4       # modulation order
 
-# Canal
-sweep_times = 12 
-f_offset    = 10e3 # Hz
-NSYMB_CONVERGENCE = 100000 # Convergencia de FSE y FCR (mitad y mitad)
+#### Channel
+SWEEP_TIMES = 10
+f_offset    = 0e3 # Hz
+NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 
-# Receptor
+#### Receiver
 OS_DSP    = 2
 NTAPS_FSE = 33
-lms_step  = 1e-3
+lms_step  = 0.1e-3
 lms_leak  = 0
 Kp        = 1e-3
 Ki        = Kp/1000
 
-# Contador de BER
-START_CNT = 400000
+#### BER counter
+START_SYN = 450191
+START_CNT = START_SYN + 4*511*511
 
-#np.random.seed(1)  # Establece la semilla
+# np.random.seed(2)  # set the seed
 
 
+bersI_contadas = np.zeros(SWEEP_TIMES+2)
+bersQ_contadas = np.zeros(SWEEP_TIMES+2)
+th_ber         = np.zeros(SWEEP_TIMES+2)
+for SNR_db in range(2, SWEEP_TIMES+2):
+    ############################## TRANSCEIVER #############################
+
+    #### Bits generation
+    tx_bitI_prbs = np.zeros(NSYMB)
+    tx_bitQ_prbs = np.zeros(NSYMB)
+
+    prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
+    prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
+
+    for i in range(NSYMB):
+        tx_bitI_prbs[i] = prbs9I.get_new_symbol()
+        tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
+
+    #### Mapper
+    tx_symI_map = 2*(tx_bitI_prbs != 1)-1
+    tx_symQ_map = 2*(tx_bitQ_prbs != 1)-1
+
+    #### Up-sampler
+    tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_map
+    tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_map
 
 
-bersI_contadas = np.zeros(sweep_times)
-bersQ_contadas = np.zeros(sweep_times)
-th_ber         = np.zeros(sweep_times)
-for EbNo_db in range(sweep_times):
-    #######  TRANSMISOR
-    # Symbols generator
-    tx_symI_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
-    tx_symQ_rand = 2*(np.random.uniform(-1,1,NSYMB)>0.0)-1
-    
-    # Up-sampler
-    tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_rand*OS
-    tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_rand*OS
-    
-    # RRC Filter
+    #### RRC Filter
     (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
-    
+
     tx_symI_rrc = signal.lfilter(rrc, [1], tx_symI_up)
     tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
-    
-    
-    
-    ######## CANAL
-    # AWG
-    EbNo       = 10**(EbNo_db/10)
-    SNR_slicer = EbNo*np.log2(M)
+
+
+
+    ################################ CHANNEL ###############################
+    #### AWGN
+    SNR_slicer = 10**(SNR_db/10)
     SNR_ch     = SNR_slicer/OS
-    noise_var = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
-    noise_I = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
-    noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
-    
+    noise_var  = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
+    noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
+    noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
+
     ch_symI_noisy = tx_symI_rrc + noise_I
     ch_symQ_noisy = tx_symQ_rrc + noise_Q
-    
-    
-    # Offset de frecuencia
+
+
+    #### Frequency Offset
     Ts = 1/(OS*BR)
     time_vector    = np.arange(NSYMB_CONVERGENCE*OS*Ts, NSYMB*OS*Ts, Ts)
     titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
-    ch_symI_rot = np.array(ch_symI_noisy, dtype=np.float32)
-    ch_symQ_rot = np.array(ch_symQ_noisy, dtype=np.float32)
-    
+    ch_symI_rot    = np.array(ch_symI_noisy, dtype=np.float32)
+    ch_symQ_rot    = np.array(ch_symQ_noisy, dtype=np.float32)
+
     ch_symI_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas)-
                                              ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas))
     ch_symQ_rot[NSYMB_CONVERGENCE*OS-1: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.sin(titas)+
                                              ch_symQ_noisy[NSYMB_CONVERGENCE*OS-1: ]*np.cos(titas))
-    
-    
-    # Filtro de canal
-    ch_filt_coeff = signal.firwin(numtaps=100, cutoff=0.5*BR ,window='hamming', fs=4*BR)
+
+
+    #### Channel filter
+    ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
     ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
     ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
-    
-    
-    ######## RECEPTOR
-    aaf_coeff = signal.firwin(numtaps=100, cutoff=0.9*(BR) ,window='hamming', fs=4*BR)
+
+
+    ############################### RECEIVER ###############################
+    #### Anti-alias filter
+    aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
     rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
     rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
-    
-    # Downsampler
+
+    #### Downsampler
     rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
     rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
-    
-    # AGC
-#    target = 1 # Vrms
-#    metric = np.std(rx_symI_dw+1j*rx_symQ_dw)
-#    agc_gain = target/metric
-    agc_gain = 1
+
+    #### AGC
+    target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
+    metric      = np.std(rx_symI_dw+1j*rx_symQ_dw)
+    agc_gain    = target/metric
     rx_symI_agc =  rx_symI_dw * agc_gain
     rx_symQ_agc =  rx_symQ_dw * agc_gain
-    
-    
-    # Variables para FFE
+
+    #### DSP
+    # FSE variables
     fseI_buffer = np.zeros(NTAPS_FSE)
     fseQ_buffer = np.zeros(NTAPS_FSE)
     fseI_coeff  = np.zeros(NTAPS_FSE); fseI_coeff[int(NTAPS_FSE/2)] = 1
     fseQ_coeff  = np.zeros(NTAPS_FSE); fseQ_coeff[int(NTAPS_FSE/2)] = 0
     rx_symI_fse = np.zeros(NSYMB*OS_DSP)
     rx_symQ_fse = np.zeros(NSYMB*OS_DSP)
-    
+
     log_step    = 500
     coeffs_log  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
-    
-    # Variables para FCR
+
+    # FCR variables
     nco_out     = 0
     int_err     = 0 
     rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
     rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
-    
-    # Variables para el slicer
-    rx_symI_slcr  = np.zeros(NSYMB)
-    rx_symQ_slcr  = np.zeros(NSYMB)
-    
+
+    # Slicer variables
+    rx_symI_slcr = np.zeros(NSYMB)
+    rx_symQ_slcr = np.zeros(NSYMB)
+
+    # Loop
     for i in range(NSYMB*OS_DSP):
         # Filter buffer
         fseI_buffer[1:] = fseI_buffer[:-1]
         fseI_buffer[0]  = rx_symI_agc[i]
         fseQ_buffer[1:] = fseQ_buffer[:-1]
         fseQ_buffer[0]  = rx_symQ_agc[i]
-     
+
         # Filter output
         rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
         rx_symQ_fse[i] = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
         
-        # FCR output: multiplicación por e^{-jnco_out}
+        # FCR output: multiplication by e^{-jnco_out}
         rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
         rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
-     
-     
+
+
         if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
             k = int(i/OS_DSP)
             # Slicer
@@ -215,93 +234,180 @@ for EbNo_db in range(sweep_times):
             
             # Error for LMS
             coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
-                           (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.sin(nco_out))
+                        (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.sin(nco_out))
             coeff_err_Q = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.sin(nco_out) +
-                           (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.cos(nco_out))
+                        (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.cos(nco_out))
             
             fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
-                           lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
+                        lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
             fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
-                           lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
-            if (((i+1)/OS_DSP)%log_step) == 0:
+                        lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
+            if( (((i+1)/OS_DSP)%log_step) == 0 ):
                 coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
             
             # Phase error
-            angle_err = np.angle(rx_symI_fcr[i]+1j*rx_symQ_fcr[i])-np.angle(rx_symI_slcr[k]+1j*rx_symQ_slcr[k])
+            prod = (rx_symI_fcr[i]+1j*rx_symQ_fcr[i])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
+            if( np.abs(prod)!= 0 ):
+                prod_norm = prod/np.abs(prod)
+            else:
+                prod_norm = 0 + 1j*0
+            angle_err = prod_norm.imag
+            
             # PI loop filter
-            Kp = 1e-3 if(i>(NSYMB_CONVERGENCE/2)) else 0
-            Ki = Kp/1000
-            prop_err = Kp * angle_err
-            int_err  = Ki*angle_err + int_err
+            Kp2 = Kp if(i>(NSYMB_CONVERGENCE/2)) else 0
+            Ki2 = Ki if(i>(NSYMB_CONVERGENCE/2)) else 0
+            prop_err =  Kp2 * angle_err
+            int_err  = (Ki2 * angle_err) + int_err
             # NCO
             nco_out  = (prop_err+int_err) + nco_out
-    # Fin del for del dsp
-    
-    #####################  Bit-Error Rate
-    # Synchro
-    #LAT =  -find_delay(tx_symI_rand,rx_symI_slcr)
-    LAT=40
-    rx_symI_ber_sync = rx_symI_slcr[LAT:]
-    rx_symQ_ber_sync = rx_symQ_slcr[LAT:]
-    
-    # Counter
-    phases = np.array([0, np.pi/2, np.pi, (3/2)*np.pi])
-    ber_I  = np.zeros(4)
-    ber_Q  = np.zeros(4)
-    for i in range(len(phases)):
-        # Rotation of constellation
-        rx_symIjQ_rot_4_ber = (rx_symI_ber_sync+1j*rx_symQ_ber_sync) * np.exp(1j*phases[i])
-        rx_symI_rot_4_ber   = 2*(rx_symIjQ_rot_4_ber.real>0.0)-1
-        rx_symQ_rot_4_ber   = 2*(rx_symIjQ_rot_4_ber.imag>0.0)-1
-       
-        # Demapper
-        rx_bit_I = np.where(rx_symI_rot_4_ber == 1, 0, 1)
-        rx_bit_Q = np.where(rx_symQ_rot_4_ber == 1, 0, 1)
-        tx_bit_I = np.where(tx_symI_rand == 1, 0, 1)
-        tx_bit_Q = np.where(tx_symQ_rand == 1, 0, 1)
-     
-        # BER counter
-        error_I=0
-        total_I=0
-        error_Q=0
-        total_Q=0
-        for k in range(START_CNT,NSYMB-LAT):
-            if (rx_bit_I[k] != tx_bit_I[k]):
-                error_I = error_I + 1
-            total_I = total_I + 1 
-            if (rx_bit_Q[k] != tx_bit_Q[k]):
-                error_Q = error_Q + 1
-            total_Q = total_Q + 1 
         
-        ber_I[i] = error_I/total_I
-        ber_Q[i] = error_Q/total_Q
-    # Fin del for del conteo
+
     
+    ############################ BIT-ERROR RATE ############################
+    #### Synchronzation
+
+    rx_prbs_I = tx_symI_map[START_SYN:START_SYN+511]
+    rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
+
+
+    err_bit_count_I = 0
+    err_bit_count_Q = 0
+    min_error_aux_I = len(rx_prbs_I)
+    min_error_aux_Q = len(rx_prbs_Q)
+    # min_error_I     = len(rx_prbs_I)
+    # min_error_Q     = len(rx_prbs_Q)
+    LAT_I           = 0
+    LAT_Q           = 0
+
+    LAT             = 0
+    rot_ang_detec   = 0
+    for angle in [0, 90, 180, 270]:
+        # Rotate rx symbs
+        if( angle == 0):
+            rx_slcr_I =     rx_symI_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+            rx_slcr_Q =     rx_symQ_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+        elif( angle == 90 ):
+            rx_slcr_I = inv(rx_symQ_slcr[START_SYN+511*511*1:START_SYN+511*511*2])
+            rx_slcr_Q =     rx_symI_slcr[START_SYN+511*511*1:START_SYN+511*511*2]
+        elif( angle == 180 ):
+            rx_slcr_I = inv(rx_symI_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+            rx_slcr_Q = inv(rx_symQ_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+        else: # angle==270
+            rx_slcr_I =     rx_symQ_slcr[START_SYN+511*511*3:START_SYN+511*511*4]
+            rx_slcr_Q = inv(rx_symI_slcr[START_SYN+511*511*3:START_SYN+511*511*4])
+
+        # Lane I synchro
+        min_error_aux_I = len(rx_prbs_I)
+        for BER_IDX in range(len(rx_prbs_I)):
+
+            err_bit_count_I = 0
+            # Count errors for each BER_IDX
+            for i in range(len(rx_prbs_I)):
+                if( i>0 ):
+                    rx_prbs_I = np.roll(rx_prbs_I,-1)
+                new_bit_prbs = rx_prbs_I[BER_IDX]
+
+                if( new_bit_prbs != rx_slcr_I[i+511*BER_IDX] ):
+                    err_bit_count_I += 1
+                else:
+                    err_bit_count_I = err_bit_count_I
+
+            rx_prbs_I = np.roll(rx_prbs_I,-1)
+            
+            if err_bit_count_I < min_error_aux_I:
+                min_error_aux_I = err_bit_count_I
+                LAT_I           = BER_IDX
+
+        # Lane Q synchro
+        min_error_aux_Q = len(rx_prbs_Q)
+        for BER_IDX in range(len(rx_prbs_Q)):
+
+            err_bit_count_Q = 0
+            # Count errors for each BER_IDX
+            for i in range(len(rx_prbs_Q)):
+                if( i>0 ):
+                    rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+                new_bit_prbs = rx_prbs_Q[BER_IDX]
+
+                if( new_bit_prbs != rx_slcr_Q[i+511*BER_IDX] ):
+                    err_bit_count_Q += 1
+                else:
+                    err_bit_count_Q = err_bit_count_Q
+
+            rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+            
+            if( err_bit_count_Q < min_error_aux_Q ):
+                min_error_aux_Q = err_bit_count_Q
+                LAT_Q           = BER_IDX
+
+        # Latency detection
+        if( LAT_I == LAT_Q ):
+            # if ((min_error_aux_I <= min_error_I) or (min_error_aux_I < 20)) and ((min_error_aux_Q <= min_error_Q) or (min_error_aux_Q < 20)):
+            if( ((min_error_aux_I < 200) and (min_error_aux_Q < 200)) ):
+                # min_error_I   = min_error_aux_I
+                # min_error_Q   = min_error_aux_Q
+                LAT           = LAT_I 
+                rot_ang_detec = angle
+
+
+    #### Counting
+    print("LAT:",LAT, "| ang:",rot_ang_detec)
+    rx_prbs_I = tx_symI_map
+    rx_prbs_Q = tx_symQ_map
+    # LAT = 365
+    # rot_ang_detec = 180
+
+    # Select the detected rotation
+    if( rot_ang_detec == 0 ):
+        rx_slcr_I =     rx_symI_slcr
+        rx_slcr_Q =     rx_symQ_slcr
+    elif( rot_ang_detec == 90 ):
+        rx_slcr_I = inv(rx_symQ_slcr)
+        rx_slcr_Q =     rx_symI_slcr
+    elif( rot_ang_detec == 180 ):
+        rx_slcr_I = inv(rx_symI_slcr)
+        rx_slcr_Q = inv(rx_symQ_slcr)
+    else: # rot_ang_detec=270
+        rx_slcr_I =     rx_symQ_slcr
+        rx_slcr_Q = inv(rx_symI_slcr)
+
+    # BER (Lane I)
+    bit_err_I = 0
+    bit_tot_I = 0
+    for i in range(START_CNT,len(rx_slcr_I)-LAT):
+        if( rx_prbs_I[LAT+i] != rx_slcr_I[i] ):
+            bit_err_I +=1
+        bit_tot_I += 1
+
+    # BER (Lane Q)
+    bit_err_Q = 0
+    bit_tot_Q = 0
+    for i in range(START_CNT,len(rx_slcr_Q)-LAT):
+        if( rx_prbs_Q[LAT+i] != rx_slcr_Q[i] ):
+            bit_err_Q +=1
+        bit_tot_Q += 1
+
+    bersI_contadas[SNR_db] = bit_err_I/bit_tot_I
+    bersQ_contadas[SNR_db] = bit_err_Q/bit_tot_Q
+    th_ber[SNR_db] = theoric_ber(M, SNR_db)
+
+    print("SNR=", SNR_db, " | f_off=",f_offset)
+    print("BER_I: ", bit_err_I/bit_tot_I)
+    print("BER_Q: ", bit_err_Q/bit_tot_Q)
+    print("theo_ber: ", th_ber[SNR_db], "\n")
     
-    bersI_contadas[EbNo_db] = np.min(ber_I)
-    bersQ_contadas[EbNo_db] = np.min(ber_Q)
-    th_ber[EbNo_db] = theoric_ber(M, EbNo_db)
-    
-
-    print("EbNo =", EbNo_db, "dB | f_off =",f_offset, "Hz")
-    print("BER_I: ", ber_I)
-    print("BER_Q: ", ber_Q)
-    print("theo_ber: ", th_ber[EbNo_db],"\n")
-
-# Fin del for de barrido de EbNo
 
 
-
-
+#########################  PRINCIPAL GRAPHICS ##########################
 plt.figure(figsize=[14,6])
-plt.title('BER vs EbNo')
-plt.semilogy(range(sweep_times), th_ber  , 'r', linewidth=2.0)
-plt.semilogy(range(sweep_times), bersI_contadas, 'b', linewidth=2.0)
-plt.semilogy(range(sweep_times), bersI_contadas, 'g', linewidth=2.0)
-plt.xlabel('EbNo(dB)')
+plt.title('BER vs SNR')
+plt.semilogy(range(SWEEP_TIMES+2), th_ber  , 'r', linewidth=2.0)
+plt.semilogy(range(SWEEP_TIMES+2), bersI_contadas, 'b', linewidth=2.0)
+plt.semilogy(range(SWEEP_TIMES+2), bersI_contadas, 'g', linewidth=2.0)
+plt.xlabel('SNR(dB)')
 plt.ylabel('BER')
 plt.grid(True)
 plt.xlim(0,15)
 plt.ylim(0.000001,1)
-plt.legend(['BER teo','BER I','BER Q'])
+plt.legend(['SNR theo','SNR I','SNR Q'])
 plt.show()
