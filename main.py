@@ -70,21 +70,21 @@ def theoric_ber(M, EbNodB):
 #                                      MAIN                                        #
 ####################################################################################
 
-#------------------ Parámetros
-# Generales
-NSYMB = 1000000 # 1e6
+############################### PARAMETERS #############################
+
+#### General
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
 NBAUD = 5
-M     = 4       # orden de modulación
+M     = 4       # modulation order
 
-# Canal
-EbNo_db  = 4
-f_offset = 20e3 # Hz
-NSYMB_CONVERGENCE = 20000 # Convergencia de FSE y FCR (mitad y mitad)
+#### Channel
+EbNo_db  = 3
+f_offset = 0e3 # Hz
+NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 
-# Receptor
+#### Receiver
 OS_DSP    = 2
 NTAPS_FSE = 33
 lms_step  = 0.1e-3
@@ -98,32 +98,29 @@ START_CNT = 450000
 #np.random.seed(1)  # Establece la semilla
 
 
+############################## TRANSCEIVER #############################
 
-#######  TRANSMISOR
-# Bits generator
+#### Bits generation
 tx_bitI_prbs = np.zeros(NSYMB)
 tx_bitQ_prbs = np.zeros(NSYMB)
 
-# Instancia PRBS's
 prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
 prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
 for i in range(NSYMB):
-    ### Lane I
     tx_bitI_prbs[i] = prbs9I.get_new_symbol()
-    ### Lane Q
     tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
 
-# Mapper
+#### Mapper
 tx_symI_map = 2*(tx_bitI_prbs != 1)-1
 tx_symQ_map = 2*(tx_bitQ_prbs != 1)-1
 
-# Up-sampler
+#### Up-sampler
 tx_symI_up = np.zeros(OS*NSYMB); tx_symI_up[0:len(tx_symI_up):int(OS)]=tx_symI_map
 tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_map
 
 
-# RRC Filter
+#### RRC Filter
 (t, rrc, dot) = r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
 
 tx_symI_rrc = signal.lfilter(rrc, [1], tx_symI_up)
@@ -131,25 +128,25 @@ tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
 
 
 
-######## CANAL
-# AWG
+################################ CHANNEL ###############################
+#### AWGN
 EbNo       = 10**(EbNo_db/10)
 SNR_slicer = EbNo*np.log2(M)
 SNR_ch     = SNR_slicer/OS
-noise_var = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
-noise_I = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
-noise_Q = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
+noise_var  = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
+noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
+noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
 
 ch_symI_noisy = tx_symI_rrc + noise_I
 ch_symQ_noisy = tx_symQ_rrc + noise_Q
 
 
-# Offset de frecuencia
+#### Frequency Offset
 Ts = 1/(OS*BR)
 time_vector    = np.arange(NSYMB_CONVERGENCE*OS*Ts, NSYMB*OS*Ts, Ts)
 titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
-ch_symI_rot = np.array(ch_symI_noisy, dtype=np.float32)
-ch_symQ_rot = np.array(ch_symQ_noisy, dtype=np.float32)
+ch_symI_rot    = np.array(ch_symI_noisy, dtype=np.float32)
+ch_symQ_rot    = np.array(ch_symQ_noisy, dtype=np.float32)
 
 ch_symI_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas)-
                                        ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
@@ -157,30 +154,31 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
                                        ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
 
 
-# Filtro de canal
-ch_filt_coeff = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
+#### Channel filter
+ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 
-######## RECEPTOR
-aaf_coeff = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
+############################### RECEIVER ###############################
+#### Anti-alias filter
+aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
-# Downsampler
+#### Downsampler
 rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 
-# AGC
-target = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
-metric = np.std(rx_symI_dw+1j*rx_symQ_dw)
-agc_gain = target/metric
+#### AGC
+target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
+metric      = np.std(rx_symI_dw+1j*rx_symQ_dw)
+agc_gain    = target/metric
 rx_symI_agc =  rx_symI_dw * agc_gain
 rx_symQ_agc =  rx_symQ_dw * agc_gain
 
-
-# Variables para FFE
+#### DSP
+# FSE variables
 fseI_buffer = np.zeros(NTAPS_FSE)
 fseQ_buffer = np.zeros(NTAPS_FSE)
 fseI_coeff  = np.zeros(NTAPS_FSE); fseI_coeff[int(NTAPS_FSE/2)] = 1
@@ -191,16 +189,17 @@ rx_symQ_fse = np.zeros(NSYMB*OS_DSP)
 log_step    = 500
 coeffs_log  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
-# Variables para FCR
+# FCR variables
 nco_out     = 0
 int_err     = 0 
 rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
 rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
 
-# Variables para el slicer
-rx_symI_slcr  = np.zeros(NSYMB)
-rx_symQ_slcr  = np.zeros(NSYMB)
+# Slicer variables
+rx_symI_slcr = np.zeros(NSYMB)
+rx_symQ_slcr = np.zeros(NSYMB)
 
+# Loop
 for i in range(NSYMB*OS_DSP):
     # Filter buffer
     fseI_buffer[1:] = fseI_buffer[:-1]
@@ -212,7 +211,7 @@ for i in range(NSYMB*OS_DSP):
     rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
     rx_symQ_fse[i] = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
     
-    # FCR output: multiplicación por e^{-jnco_out}
+    # FCR output: multiplication by e^{-jnco_out}
     rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
     rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
 
@@ -233,12 +232,12 @@ for i in range(NSYMB*OS_DSP):
                        lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
         fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
                        lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
-        if (((i+1)/OS_DSP)%log_step) == 0:
+        if( (((i+1)/OS_DSP)%log_step) == 0 ):
             coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
         
         # Phase error
         prod = (rx_symI_fcr[i]+1j*rx_symQ_fcr[i])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
-        if np.abs(prod)!= 0:
+        if( np.abs(prod)!= 0 ):
             prod_norm = prod/np.abs(prod)
         else:
             prod_norm = 0 + 1j*0
@@ -300,7 +299,7 @@ print("BER_Q: ", ber_Q)
 print("theo_ber: ", th_ber)
 
 
-# Gráficas de interés
+#########################  PRINCIPAL GRAPHICS ##########################
 fase = 1
 # Salida del FSE vs tiempo
 plt.figure(figsize=[10,6])
@@ -359,7 +358,7 @@ plt.grid(True)
 plt.show()
 
 
-###### Gráficos intermedios
+###########################  OTHER GRAPHICS ############################
 # Símbolos generados, up-sampleados y filtrados
 #plt.figure(figsize=[10,6])
 #plt.subplot(3,1,1)
