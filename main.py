@@ -267,18 +267,19 @@ for i in range(NSYMB*OS_DSP):
   
 ############################ BIT-ERROR RATE ############################
 #### Synchronzation
-
+# Symbs generated
 rx_prbs_I = tx_symI_map[START_SYN:START_SYN+511]
 rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
 
-
+# Synchro variables
 err_sym_count = 0
 min_error_aux = len(rx_prbs_I)
 min_error     = len(rx_prbs_I)
 lat_aux       = 0
-
 latency       = 0
 rot_ang_detec = 0
+
+# Loop
 for angle in [0, 90, 180, 270]:
     # Rotate rx symbs
     if( angle == 0):
@@ -330,8 +331,6 @@ for angle in [0, 90, 180, 270]:
 print("latency:",latency, "| ang:",rot_ang_detec)
 rx_prbs_I = tx_symI_map
 rx_prbs_Q = tx_symQ_map
-# latency = 365
-# rot_ang_detec = 180
 
 # Select the detected rotation
 if( rot_ang_detec == 0 ):
