@@ -57,8 +57,9 @@ def find_delay(signal1, signal2):
     return delay
 
 
-def theoric_ber(M, EbNodB):
-    EbNo = 10**(EbNodB/10)
+def theoric_ber(M, SNRdB):
+    SNR_slicer  = 10**(SNRdB/10)
+    EbNo = SNR_slicer/np.log2(M)
     k    = np.log2(M)
     x    = np.sqrt(3*k*EbNo/(M-1))
     ber  = (4/k)*(1-1/np.sqrt(M))*(1/2)*math.erfc(x/np.sqrt(2))
@@ -85,7 +86,7 @@ NBAUD = 5
 M     = 4       # modulation order
 
 #### Channel
-EbNo_db  = 4
+SNR_db   = 7
 f_offset = 0e3 # Hz
 NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 
@@ -136,8 +137,7 @@ tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
 
 ################################ CHANNEL ###############################
 #### AWGN
-EbNo       = 10**(EbNo_db/10)
-SNR_slicer = EbNo*np.log2(M)
+SNR_slicer = 10**(SNR_db/10)
 SNR_ch     = SNR_slicer/OS
 noise_var  = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
 noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
@@ -363,9 +363,9 @@ for i in range(START_CNT,len(rx_slcr_Q)-latency):
     bit_tot_Q += 1
 
 
-th_ber = theoric_ber(M, EbNo_db)
+th_ber = theoric_ber(M, SNR_db)
 
-print("EbNo=", EbNo_db, " | f_off=",f_offset)
+print("SNR=", SNR_db, " | f_off=",f_offset)
 print("BER_I: ", bit_err_I/bit_tot_I)
 print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
