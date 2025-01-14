@@ -154,6 +154,12 @@ titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
 ch_symI_rot    = np.array(ch_symI_noisy, dtype=np.float32)
 ch_symQ_rot    = np.array(ch_symQ_noisy, dtype=np.float32)
 
+# Force a fixed size
+if( len(titas) > (NSYMB*OS-NSYMB_CONVERGENCE*OS) ):
+    titas = titas[0:(NSYMB*OS-NSYMB_CONVERGENCE*OS)]
+else:
+    titas = titas
+
 ch_symI_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas)-
                                        ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas))
 ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.sin(titas)+
