@@ -40,7 +40,7 @@ def r_rcosine(fc, fs, rolloff, nbauds, norm):
     return t_vect_n, y_vect, dot
 
 
-def slicer_qpsk(x):
+def slicer_pam(x):
     if(x>=0):
         a = 1;
     else:
@@ -235,8 +235,8 @@ for SNR_db in range(2, SWEEP_TIMES+2):
         if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
             k = int(i/OS_DSP)
             # Slicer
-            rx_symI_slcr[k] = slicer_qpsk(rx_symI_fcr[i])
-            rx_symQ_slcr[k] = slicer_qpsk(rx_symQ_fcr[i])
+            rx_symI_slcr[k] = slicer_pam(rx_symI_fcr[i])
+            rx_symQ_slcr[k] = slicer_pam(rx_symQ_fcr[i])
             
             # Error for LMS
             coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
