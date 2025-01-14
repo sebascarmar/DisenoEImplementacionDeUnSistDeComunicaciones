@@ -276,17 +276,13 @@ for SNR_db in range(2, SWEEP_TIMES+2):
     rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
 
 
-    err_bit_count_I = 0
-    err_bit_count_Q = 0
-    min_error_aux_I = len(rx_prbs_I)
-    min_error_aux_Q = len(rx_prbs_Q)
-    # min_error_I     = len(rx_prbs_I)
-    # min_error_Q     = len(rx_prbs_Q)
-    LAT_I           = 0
-    LAT_Q           = 0
+    err_sym_count = 0
+    min_error_aux = len(rx_prbs_I)
+    min_error     = len(rx_prbs_I)
+    lat_aux       = 0
 
-    LAT             = 0
-    rot_ang_detec   = 0
+    latency       = 0
+    rot_ang_detec = 0
     for angle in [0, 90, 180, 270]:
         # Rotate rx symbs
         if( angle == 0):
@@ -302,65 +298,47 @@ for SNR_db in range(2, SWEEP_TIMES+2):
             rx_slcr_I =     rx_symQ_slcr[START_SYN+511*511*3:START_SYN+511*511*4]
             rx_slcr_Q = inv(rx_symI_slcr[START_SYN+511*511*3:START_SYN+511*511*4])
 
-        # Lane I synchro
-        min_error_aux_I = len(rx_prbs_I)
+        # Symbol error counting for every angle
+        min_error_aux = len(rx_prbs_I)
         for BER_IDX in range(len(rx_prbs_I)):
 
-            err_bit_count_I = 0
+            err_sym_count = 0
             # Count errors for each BER_IDX
             for i in range(len(rx_prbs_I)):
                 if( i>0 ):
                     rx_prbs_I = np.roll(rx_prbs_I,-1)
-                new_bit_prbs = rx_prbs_I[BER_IDX]
+                    rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+                new_bit_prbs_I = rx_prbs_I[BER_IDX]
+                new_bit_prbs_Q = rx_prbs_Q[BER_IDX]
 
-                if( new_bit_prbs != rx_slcr_I[i+511*BER_IDX] ):
-                    err_bit_count_I += 1
+                if( (new_bit_prbs_I != rx_slcr_I[i+511*BER_IDX]) or (new_bit_prbs_Q != rx_slcr_Q[i+511*BER_IDX]) ):
+                    err_sym_count += 1
                 else:
-                    err_bit_count_I = err_bit_count_I
+                    err_sym_count = err_sym_count
 
             rx_prbs_I = np.roll(rx_prbs_I,-1)
-            
-            if err_bit_count_I < min_error_aux_I:
-                min_error_aux_I = err_bit_count_I
-                LAT_I           = BER_IDX
-
-        # Lane Q synchro
-        min_error_aux_Q = len(rx_prbs_Q)
-        for BER_IDX in range(len(rx_prbs_Q)):
-
-            err_bit_count_Q = 0
-            # Count errors for each BER_IDX
-            for i in range(len(rx_prbs_Q)):
-                if( i>0 ):
-                    rx_prbs_Q = np.roll(rx_prbs_Q,-1)
-                new_bit_prbs = rx_prbs_Q[BER_IDX]
-
-                if( new_bit_prbs != rx_slcr_Q[i+511*BER_IDX] ):
-                    err_bit_count_Q += 1
-                else:
-                    err_bit_count_Q = err_bit_count_Q
-
             rx_prbs_Q = np.roll(rx_prbs_Q,-1)
             
-            if( err_bit_count_Q < min_error_aux_Q ):
-                min_error_aux_Q = err_bit_count_Q
-                LAT_Q           = BER_IDX
+            if( err_sym_count < min_error_aux ):
+                min_error_aux = err_sym_count
+                lat_aux       = BER_IDX
 
-        # Latency detection
-        if( LAT_I == LAT_Q ):
-            # if ((min_error_aux_I <= min_error_I) or (min_error_aux_I < 20)) and ((min_error_aux_Q <= min_error_Q) or (min_error_aux_Q < 20)):
-            if( ((min_error_aux_I < 200) and (min_error_aux_Q < 200)) ):
-                # min_error_I   = min_error_aux_I
-                # min_error_Q   = min_error_aux_Q
-                LAT           = LAT_I 
-                rot_ang_detec = angle
+
+        print(angle)
+        print("Lat:" ,lat_aux, "err:", min_error_aux, "\n")
+
+        
+        if( min_error_aux < min_error ):
+            min_error     = min_error_aux
+            latency       = lat_aux 
+            rot_ang_detec = angle
 
 
     #### Counting
-    print("LAT:",LAT, "| ang:",rot_ang_detec)
+    print("latency:",latency, "| ang:",rot_ang_detec)
     rx_prbs_I = tx_symI_map
     rx_prbs_Q = tx_symQ_map
-    # LAT = 365
+    # latency = 365
     # rot_ang_detec = 180
 
     # Select the detected rotation
@@ -380,16 +358,16 @@ for SNR_db in range(2, SWEEP_TIMES+2):
     # BER (Lane I)
     bit_err_I = 0
     bit_tot_I = 0
-    for i in range(START_CNT,len(rx_slcr_I)-LAT):
-        if( rx_prbs_I[LAT+i] != rx_slcr_I[i] ):
+    for i in range(START_CNT,len(rx_slcr_I)-latency):
+        if( rx_prbs_I[latency+i] != rx_slcr_I[i] ):
             bit_err_I +=1
         bit_tot_I += 1
 
     # BER (Lane Q)
     bit_err_Q = 0
     bit_tot_Q = 0
-    for i in range(START_CNT,len(rx_slcr_Q)-LAT):
-        if( rx_prbs_Q[LAT+i] != rx_slcr_Q[i] ):
+    for i in range(START_CNT,len(rx_slcr_Q)-latency):
+        if( rx_prbs_Q[latency+i] != rx_slcr_Q[i] ):
             bit_err_Q +=1
         bit_tot_Q += 1
 
