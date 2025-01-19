@@ -317,16 +317,31 @@ for SNR_db in range(START_SWP, SWEEP_TIMES+START_SWP):
     
 
 
-#########################  PRINCIPAL GRAPHICS ##########################
+############################ GRAPHICS #############################
+
+# Create a full range for the x axis, starting from 0
+x_axis_full = np.arange(0, SWEEP_TIMES+START_SWP)
+# Create a new array for counted errors aligned with x_axis_full,
+#filling with NaN where there is no data
+bersI_full = np.full_like(x_axis_full, np.nan, dtype=float)
+bersI_full[START_SWP: len(bersI_contadas)] = bersI_contadas[START_SWP:] 
+
+bersQ_full = np.full_like(x_axis_full, np.nan, dtype=float)
+bersQ_full[START_SWP: len(bersQ_contadas)] = bersQ_contadas[START_SWP:] 
+
+th_ber_full = np.full_like(x_axis_full, np.nan, dtype=float)
+th_ber_full[START_SWP: len(th_ber)] = th_ber[START_SWP:] 
+
+# Plot
 plt.figure(figsize=[14,6])
 plt.title('BER vs SNR')
-plt.semilogy(range(SWEEP_TIMES+2), th_ber  , 'r', linewidth=2.0)
-plt.semilogy(range(SWEEP_TIMES+2), bersI_contadas, 'b', linewidth=2.0)
-plt.semilogy(range(SWEEP_TIMES+2), bersI_contadas, 'g', linewidth=2.0)
+plt.semilogy(x_axis_full, th_ber_full, 'r', linewidth=2.0)
+plt.semilogy(x_axis_full, bersI_full, 'b', linewidth=2.0)
+plt.semilogy(x_axis_full, bersQ_full, 'g', linewidth=2.0)
 plt.xlabel('SNR(dB)')
 plt.ylabel('BER')
 plt.grid(True)
-plt.xlim(0,15)
-plt.ylim(0.000001,1)
+# plt.xlim(0,SWEEP_TIMES+START_SWP)
+# plt.ylim(0.0001,1)
 plt.legend(['SNR theo','SNR I','SNR Q'])
 plt.show()
