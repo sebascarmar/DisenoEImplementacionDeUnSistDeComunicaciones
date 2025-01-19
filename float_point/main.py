@@ -322,7 +322,10 @@ plt.grid(True)
 plt.subplot(2,1,2)
 plt.title('FSE Output Q')
 plt.plot(rx_symQ_fse[fase:len(rx_symQ_fse)-fase:2],'x')
+plt.grid(True)
 plt.xlabel('Nº símbolos')
+plt.savefig("fse_out.png", dpi=300, format='png')
+plt.close()
 
 # Salida del FCR vs tiempo
 plt.figure(figsize=[10,6])
@@ -333,41 +336,65 @@ plt.grid(True)
 plt.subplot(2,1,2)
 plt.title('FCR Output Q')
 plt.plot(rx_symQ_fcr[fase:len(rx_symQ_fcr)-fase:2],'x')
+plt.grid(True)
 plt.xlabel('Nº símbolos')
 plt.ylabel('I')
+plt.savefig("fcr_out.png", dpi=300, format='png')
+plt.close()
 
-# Constelación a la salida del FCR (rangos ajustados para 10k)
-plt.figure(figsize=[6,6])
-plt.title('FCR Const - pre offset')
-plt.plot(rx_symI_fcr[fase:NSYMB_CONVERGENCE:2],
-         rx_symQ_fcr[fase:NSYMB_CONVERGENCE:2],
-         '.')
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
+# Salida del NCO vs tiempo
+plt.figure(figsize=[10,6])
+plt.title('NCO Output')
+plt.plot(nco_log[fase:len(nco_log)-fase:2],'.')
 plt.grid(True)
-plt.xlabel('Real')
-plt.ylabel('Imag')
+plt.xlabel('Nº símbolos')
+plt.ylabel('rad')
+plt.savefig("nco_out.png", dpi=300, format='png')
+plt.close()
 
-plt.figure(figsize=[6,6])
-plt.title('FCR Const - post offset')
-plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
-         rx_symQ_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
-         '.')
-plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symI_fcr):2],
-         rx_symQ_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symQ_fcr):2],
-         '.')
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
+# Error integral vs tiempo
+plt.figure(figsize=[10,6])
+plt.title('Int error')
+plt.plot(int_log[fase:len(int_log)-fase:2],'.')
 plt.grid(True)
-plt.xlabel('Real')
-plt.ylabel('Imag')
+plt.xlabel('Nº símbolos')
+plt.ylabel('rad/s')
+plt.savefig("int_err.png", dpi=300, format='png')
+plt.close()
+
+## Constelación a la salida del FCR (rangos ajustados para 10k)
+#plt.figure(figsize=[6,6])
+#plt.title('FCR Const - pre offset')
+#plt.plot(rx_symI_fcr[fase:NSYMB_CONVERGENCE:2],
+#         rx_symQ_fcr[fase:NSYMB_CONVERGENCE:2],
+#         '.')
+#plt.xlim((-2, 2))
+#plt.ylim((-2, 2))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
+#
+#plt.figure(figsize=[6,6])
+#plt.title('FCR Const - post offset')
+#plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+#         rx_symQ_fcr[fase+NSYMB_CONVERGENCE:NSYMB_CONVERGENCE+200000:2],
+#         '.')
+#plt.plot(rx_symI_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symI_fcr):2],
+#         rx_symQ_fcr[fase+NSYMB_CONVERGENCE+200000:len(rx_symQ_fcr):2],
+#         '.')
+#plt.xlim((-2, 2))
+#plt.ylim((-2, 2))
+#plt.grid(True)
+#plt.xlabel('Real')
+#plt.ylabel('Imag')
 
 plt.figure(figsize=[10,6])
 plt.plot(coeffs_log.T)
 plt.title('Coeficientes FFE')
 plt.grid(True)
+plt.savefig("coeff.png", dpi=300, format='png')
+plt.close()
 
-plt.show()
 
 
 ###########################  OTHER GRAPHICS ############################
