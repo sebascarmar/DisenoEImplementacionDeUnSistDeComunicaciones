@@ -142,6 +142,9 @@ nco_out     = 0
 int_err     = 0 
 rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
 rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
+nco_log = np.zeros(NSYMB*OS_DSP)
+int_log = np.zeros(NSYMB*OS_DSP)
+
 
 # Slicer variables
 rx_symI_slcr = np.zeros(NSYMB)
@@ -162,7 +165,8 @@ for i in range(NSYMB*OS_DSP):
     # FCR output: multiplication by e^{-jnco_out}
     rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
     rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
-
+    nco_log[i] = nco_out
+    int_log[i] = int_err
 
     if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
         k = int(i/OS_DSP)
