@@ -450,3 +450,30 @@ plt.show()
 #plt.xlabel('Real')
 #plt.ylabel('Imag')
 #plt.show()
+#---------------
+## Respuesta en frecuencia de los filtros
+#w_cha, h_cha = signal.freqz(ch_filt_coeff, worN=8000, fs=4*BR)
+#w_aaf, h_aaf = signal.freqz(aaf_coeff, worN=8000, fs=4*BR)
+## Gráfica de la respuesta en frecuencia
+#plt.figure(figsize=(8, 4))
+#plt.plot(w_cha, 20 * np.log10(np.abs(h_cha)), 'b')
+#plt.axvline(x=(0.49*BR),color='k',linewidth=2.0)
+#plt.axhline(y=20*np.log10(0.5),color='k',linewidth=2.0)
+#plt.title("Respuesta en frecuencia del filtro de canal")
+#plt.xlabel("Frecuencia [Hz]")
+#plt.ylabel("Magnitud [dB]")
+#plt.xlim(0, 2*BR)
+#plt.grid()
+#
+#plt.figure(figsize=(8, 4))
+#plt.plot(w_aaf, 20 * np.log10(np.abs(h_aaf)), 'r')
+#plt.axvline(x=(1.*BR),color='k',linewidth=2.0)
+#plt.axhline(y=20*np.log10(0.5),color='k',linewidth=2.0)
+#plt.title("Respuesta en frecuencia del filtro anti alias")
+#plt.xlabel("Frecuencia [Hz]")
+#plt.ylabel("Magnitud [dB]")
+#plt.xlim(0, 2*BR)
+#plt.grid()
+#
+#plt.show()
+#
