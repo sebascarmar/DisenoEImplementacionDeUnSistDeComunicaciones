@@ -13,6 +13,10 @@ from classes.prbs9 import prbs9
 
 ############################### PARAMETERS #############################
 
+#### Sweep
+SWEEP_TIMES = 3
+START_SWP   = 2
+
 #### General
 NSYMB = 3000000 # 1e6
 BR    = 25e6    # Baud
@@ -41,10 +45,10 @@ START_CNT = START_SYN + 4*511*511
 # np.random.seed(2)  # set the seed
 
 
-bersI_contadas = np.zeros(SWEEP_TIMES+2)
-bersQ_contadas = np.zeros(SWEEP_TIMES+2)
-th_ber         = np.zeros(SWEEP_TIMES+2)
-for SNR_db in range(2, SWEEP_TIMES+2):
+bersI_contadas = np.zeros(SWEEP_TIMES+START_SWP)
+bersQ_contadas = np.zeros(SWEEP_TIMES+START_SWP)
+th_ber         = np.zeros(SWEEP_TIMES+START_SWP)
+for SNR_db in range(START_SWP, SWEEP_TIMES+START_SWP):
     ############################## TRANSCEIVER #############################
 
     #### Bits generation
