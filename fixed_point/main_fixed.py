@@ -7,6 +7,7 @@ import functions as fn
 from classes.prbs9 import prbs9
 from classes.poly_filter import poly_filter
 from classes.noise_gen import noise_gen
+from classes.offset_gen import offset_gen
 
 
 ####################################################################################
@@ -69,6 +70,14 @@ awgn_gen_Q = noise_gen(OS, SNR_db)
 ch_symI_noisy_log = np.zeros(OS*NSYMB)
 ch_symQ_noisy_log = np.zeros(OS*NSYMB)
 
+#### Frequency Offset
+offset_freq = offset_gen(OS*BR, f_offset)
+ch_symI_rot_log = np.zeros(OS*NSYMB)
+ch_symQ_rot_log = np.zeros(OS*NSYMB)
+
+
+
+
 for i in range(NSYMB*OS):
 
     if( i%OS ==0 ): # Downsampling to BR rate (os=1)
@@ -100,6 +109,25 @@ for i in range(NSYMB*OS):
     #ch_symI_noisy_log[i] = ch_symI_noisy
     #ch_symQ_noisy_log[i] = ch_symQ_noisy
 
+    #### Frequency Offset
+    if( i>(NSYMB_CONVERGENCE*OS-1) ):
+        ch_symI_rot, ch_symQ_rot = offset_freq.get_offset(ch_symI_noisy, ch_symQ_noisy)
+    else:
+        ch_symI_rot, ch_symQ_rot = offset_freq.get_no_offset(ch_symI_noisy, ch_symQ_noisy)
+    ch_symI_rot_log[i] = ch_symI_rot
+    ch_symQ_rot_log[i] = ch_symQ_rot
+
+# Guardar el array en un archivo de texto
+#np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
+#np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
+#np.savetxt('tx_symI_rrc.txt', tx_symI_rrc_log, delimiter=',')
+#np.savetxt('tx_symQ_rrc.txt', tx_symQ_rrc_log, delimiter=',')
+#np.savetxt('ch_symI_noisy.txt', ch_symI_noisy_log, delimiter=',')
+#np.savetxt('ch_symQ_noisy.txt', ch_symQ_noisy_log, delimiter=',')
+np.savetxt('ch_symI_rot.txt', ch_symI_rot_log, delimiter=',')
+np.savetxt('ch_symQ_rot.txt', ch_symQ_rot_log, delimiter=',')
+print("listo")
+input()
 
 #-------------------------------------------
 #### PARA COMPARARRRRR
