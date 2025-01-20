@@ -6,6 +6,7 @@ import math
 import functions as fn
 from classes.prbs9 import prbs9
 from classes.poly_filter import poly_filter
+from classes.noise_gen import noise_gen
 
 
 ####################################################################################
@@ -61,6 +62,13 @@ tx_filter_Q = poly_filter(rrc, NBAUD, OS, NSYMB)
 tx_symI_rrc_log = np.zeros(OS*NSYMB)
 tx_symQ_rrc_log = np.zeros(OS*NSYMB)
 
+################################ CHANNEL ###############################
+#### AWGN
+awgn_gen_I = noise_gen(OS, SNR_db)
+awgn_gen_Q = noise_gen(OS, SNR_db)
+ch_symI_noisy_log = np.zeros(OS*NSYMB)
+ch_symQ_noisy_log = np.zeros(OS*NSYMB)
+
 for i in range(NSYMB*OS):
 
     if( i%OS ==0 ): # Downsampling to BR rate (os=1)
@@ -85,6 +93,12 @@ for i in range(NSYMB*OS):
     tx_symI_rrc_log[i] = tx_symI_rrc
     tx_symQ_rrc_log[i] = tx_symQ_rrc
 
+
+    #### Noise
+    ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_rrc)
+    ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_rrc)
+    #ch_symI_noisy_log[i] = ch_symI_noisy
+    #ch_symQ_noisy_log[i] = ch_symQ_noisy
 
 
 #-------------------------------------------
