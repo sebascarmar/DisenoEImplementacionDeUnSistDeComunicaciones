@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 ### Calculate RRC filter coefficients
 def r_rcosine(fc, fs, rolloff, nbauds, norm):
