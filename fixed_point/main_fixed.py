@@ -85,23 +85,20 @@ for i in range(NSYMB*OS):
         #### Bits generation
         tx_bitI_prbs = prbs9I.get_new_symbol()
         tx_bitQ_prbs = prbs9Q.get_new_symbol()
-        print(k,tx_bitI_prbs)
-        tx_bitI_prbs_log[k] = tx_bitI_prbs
-        tx_bitQ_prbs_log[k] = tx_bitQ_prbs
+        #tx_bitI_prbs_log[k] = tx_bitI_prbs
+        #tx_bitQ_prbs_log[k] = tx_bitQ_prbs
         
         #### Mapper
         tx_symI_map = 1 if(tx_bitI_prbs == 0) else -1
         tx_symQ_map = 1 if(tx_bitQ_prbs == 0) else -1
-        tx_symI_map_log[k]=tx_symI_map
-        tx_symQ_map_log[k]=tx_symQ_map
+        #tx_symI_map_log[k]=tx_symI_map
+        #tx_symQ_map_log[k]=tx_symQ_map
 
     #### Up-sampler & Tx Filter
     tx_symI_rrc = tx_filter_I.convol(i, tx_symI_map) 
-    tx_symQ_rrc = tx_filter_Q.convol(i, tx_symI_map) 
-
-    tx_symI_rrc_log[i] = tx_symI_rrc
-    tx_symQ_rrc_log[i] = tx_symQ_rrc
-
+    tx_symQ_rrc = tx_filter_Q.convol(i, tx_symQ_map) 
+    #tx_symI_rrc_log[i] = tx_symI_rrc
+    #tx_symQ_rrc_log[i] = tx_symQ_rrc
 
     #### Noise
     ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_rrc)
