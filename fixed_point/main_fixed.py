@@ -103,6 +103,31 @@ agc_gain    = 1
 rx_symI_agc_log =  np.zeros(NSYMB*OS_DSP)
 rx_symQ_agc_log =  np.zeros(NSYMB*OS_DSP)
 
+#### DSP
+# FSE variables
+fseI_buffer = np.zeros(NTAPS_FSE)
+fseQ_buffer = np.zeros(NTAPS_FSE)
+fseI_coeff  = np.zeros(NTAPS_FSE); fseI_coeff[int(NTAPS_FSE/2)] = 1
+fseQ_coeff  = np.zeros(NTAPS_FSE); fseQ_coeff[int(NTAPS_FSE/2)] = 0
+
+rx_symI_fse = np.zeros(NSYMB*OS_DSP)
+rx_symQ_fse = np.zeros(NSYMB*OS_DSP)
+log_step        = 500
+coeffs_log      = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
+
+# FCR variables
+nco_out     = 0
+int_err     = 0 
+rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
+rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
+nco_log = np.zeros(NSYMB*OS_DSP)
+int_log = np.zeros(NSYMB*OS_DSP)
+
+
+# Slicer variables
+rx_symI_slcr = np.zeros(NSYMB)
+rx_symQ_slcr = np.zeros(NSYMB)
+
 
 
 
@@ -176,7 +201,59 @@ for i in range(NSYMB*OS):
         rx_symQ_agc =  rx_symQ_dw * agc_gain
         rx_symI_agc_log[j] = rx_symI_agc
         rx_symQ_agc_log[j] = rx_symQ_agc
-
+        
+        #### DSP
+        # Filter buffer
+        fseI_buffer[1:] = fseI_buffer[:-1]
+        fseI_buffer[0]  = rx_symI_agc
+        fseQ_buffer[1:] = fseQ_buffer[:-1]
+        fseQ_buffer[0]  = rx_symQ_agc
+        
+        # Filter output
+        rx_symI_fse[j] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
+        rx_symQ_fse[j] = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
+        
+        # FCR output: multiplication by e^{-jnco_out}
+        rx_symI_fcr[j] = rx_symI_fse[j]*np.cos(-nco_out) - rx_symQ_fse[j]*np.sin(-nco_out)
+        rx_symQ_fcr[j] = rx_symI_fse[j]*np.sin(-nco_out) + rx_symQ_fse[j]*np.cos(-nco_out)
+        #nco_log[j] = nco_out
+        #int_log[j] = int_err
+        
+        if((j+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
+            k = int(j/OS_DSP)
+            # Slicer
+            rx_symI_slcr[k] = fn.slicer_pam(rx_symI_fcr[j])
+            rx_symQ_slcr[k] = fn.slicer_pam(rx_symQ_fcr[j])
+            
+            # Error for LMS
+            coeff_err_I = ((rx_symI_fcr[j]-rx_symI_slcr[k])*np.cos(nco_out) -
+                           (rx_symQ_fcr[j]-rx_symQ_slcr[k])*np.sin(nco_out))
+            coeff_err_Q = ((rx_symI_fcr[j]-rx_symI_slcr[k])*np.sin(nco_out) +
+                           (rx_symQ_fcr[j]-rx_symQ_slcr[k])*np.cos(nco_out))
+            
+            fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
+                           lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
+            fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
+                           lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
+            if( (((j+1)/OS_DSP)%log_step) == 0 ):
+                coeffs_log[:, int(((j+1)/OS_DSP)/log_step)-1] = fseI_coeff
+            
+            # Phase error
+            prod = (rx_symI_fcr[j]+1j*rx_symQ_fcr[j])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
+            if( np.abs(prod)!= 0 ):
+                prod_norm = prod/np.abs(prod)
+            else:
+                prod_norm = 0 + 1j*0
+            angle_err = prod_norm.imag
+            
+            # PI loop filter
+            Kp2 = Kp if(j>(NSYMB_CONVERGENCE/2)) else 0
+            Ki2 = Ki if(j>(NSYMB_CONVERGENCE/2)) else 0
+            prop_err =  Kp2 * angle_err
+            int_err  = (Ki2 * angle_err) + int_err
+            # NCO
+            nco_out  = (prop_err+int_err) + nco_out
+         
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
 #np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
@@ -194,6 +271,12 @@ for i in range(NSYMB*OS):
 #np.savetxt('rx_symQ_dw.txt', rx_symQ_dw_log, delimiter=',')
 np.savetxt('rx_symI_agc.txt', rx_symI_agc_log, delimiter=',')
 np.savetxt('rx_symQ_agc.txt', rx_symQ_agc_log, delimiter=',')
+np.savetxt('rx_symI_fse.txt', rx_symI_fse, delimiter=',')
+np.savetxt('rx_symQ_fse.txt', rx_symQ_fse, delimiter=',')
+np.savetxt('rx_symI_fcr.txt', rx_symI_fcr, delimiter=',')
+np.savetxt('rx_symQ_fcr.txt', rx_symQ_fcr, delimiter=',')
+np.savetxt('rx_symI_slcr.txt', rx_symI_slcr, delimiter=',')
+np.savetxt('rx_symQ_slcr.txt', rx_symQ_slcr, delimiter=',')
 print("listo")
 input()
 
