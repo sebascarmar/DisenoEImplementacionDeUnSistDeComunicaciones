@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 3000000 # 1e6
+NSYMB = 1300000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -24,22 +24,22 @@ M     = 4       # modulation order
 #### Channel
 SNR_db   = 7
 f_offset = 10e3 # Hz
-NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
+NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
+fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 OS_DSP    = 2
 NTAPS_FSE = 33
-lms_step  = 0.5e-3
+lms_step  = 0.1e-3
 lms_leak  = 0
 Kp        = 1e-3
 Ki        = Kp/1000
 
 #### BER counter
 START_SYN = 450191
-START_CNT = START_SYN + 4*511*511
+START_CNT = START_SYN + 511*511
 
 np.random.seed(2)  # set the seed
-
 
 ############################## TRANSMITTER  #############################
 
@@ -225,8 +225,8 @@ for i in range(NSYMB*OS_DSP):
 ############################ BIT-ERROR RATE ############################
 #### Synchronzation
 # Symbs generated
-rx_prbs_I = tx_symI_map[START_SYN:START_SYN+511]
-rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
+rx_prbs_I = tx_symI_map[START_SYN-1:START_SYN-1+511]
+rx_prbs_Q = tx_symQ_map[START_SYN-1:START_SYN-1+511]
 
 # Synchro variables
 err_sym_count = 0
@@ -240,17 +240,17 @@ rot_ang_detec = 0
 for angle in [0, 90, 180, 270]:
     # Rotate rx symbs
     if( angle == 0):
-        rx_slcr_I =     rx_symI_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
-        rx_slcr_Q =     rx_symQ_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+        rx_slcr_I =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+        rx_slcr_Q =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
     elif( angle == 90 ):
-        rx_slcr_I = fn.inv(rx_symQ_slcr[START_SYN+511*511*1:START_SYN+511*511*2])
-        rx_slcr_Q =     rx_symI_slcr[START_SYN+511*511*1:START_SYN+511*511*2]
+        rx_slcr_I = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+        rx_slcr_Q =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
     elif( angle == 180 ):
-        rx_slcr_I = fn.inv(rx_symI_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
-        rx_slcr_Q = fn.inv(rx_symQ_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+        rx_slcr_I = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
+        rx_slcr_Q = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
     else: # angle==270
-        rx_slcr_I =     rx_symQ_slcr[START_SYN+511*511*3:START_SYN+511*511*4]
-        rx_slcr_Q = fn.inv(rx_symI_slcr[START_SYN+511*511*3:START_SYN+511*511*4])
+        rx_slcr_I =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+        rx_slcr_Q = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
 
     # Symbol error counting for every angle
     min_error_aux = len(rx_prbs_I)
@@ -277,7 +277,6 @@ for angle in [0, 90, 180, 270]:
             min_error_aux = err_sym_count
             lat_aux       = BER_IDX
 
-    print(angle,lat_aux, min_error_aux)
     if( min_error_aux < min_error ):
         min_error     = min_error_aux
         latency       = lat_aux 
@@ -288,8 +287,6 @@ for angle in [0, 90, 180, 270]:
 print("latency:",latency, "| ang:",rot_ang_detec)
 rx_prbs_I = tx_symI_map
 rx_prbs_Q = tx_symQ_map
-#latency       = 497
-#rot_ang_detec = 0
 
 # Select the detected rotation
 if( rot_ang_detec == 0 ):
@@ -324,7 +321,7 @@ for i in range(START_CNT,len(rx_slcr_Q)-latency):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 
-print("SNR=", SNR_db, " | f_off=",f_offset)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
 print("BER_I: ", bit_err_I/bit_tot_I)
 print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
