@@ -8,6 +8,7 @@ from classes.prbs9 import prbs9
 from classes.poly_filter import poly_filter
 from classes.noise_gen import noise_gen
 from classes.offset_gen import offset_gen
+from classes.fir_filter import fir_filter
 
 
 ####################################################################################
@@ -75,6 +76,20 @@ offset_freq = offset_gen(OS*BR, f_offset)
 ch_symI_rot_log = np.zeros(OS*NSYMB)
 ch_symQ_rot_log = np.zeros(OS*NSYMB)
 
+#### Channel filter
+ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=4*BR)
+chann_filt_I = fir_filter(ch_filt_coeff)
+chann_filt_Q = fir_filter(ch_filt_coeff)
+ch_symI_chfilt_log = np.zeros(OS*NSYMB)
+ch_symQ_chfilt_log = np.zeros(OS*NSYMB)
+
+############################### RECEIVER ###############################
+#### Anti-alias filter
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
+aaf_filt_I = fir_filter(aaf_coeff)
+aaf_filt_Q = fir_filter(aaf_coeff)
+rx_symI_aaf_log = np.zeros(OS*NSYMB)
+rx_symQ_aaf_log = np.zeros(OS*NSYMB)
 
 
 
@@ -100,6 +115,7 @@ for i in range(NSYMB*OS):
     #tx_symI_rrc_log[i] = tx_symI_rrc
     #tx_symQ_rrc_log[i] = tx_symQ_rrc
 
+    ################################ CHANNEL ###############################
     #### Noise
     ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_rrc)
     ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_rrc)
@@ -114,6 +130,19 @@ for i in range(NSYMB*OS):
     ch_symI_rot_log[i] = ch_symI_rot
     ch_symQ_rot_log[i] = ch_symQ_rot
 
+    #### Channel filter (ISI)
+    ch_symI_chfilt = chann_filt_I.convol(ch_symI_rot)
+    ch_symQ_chfilt = chann_filt_Q.convol(ch_symQ_rot)
+    ch_symI_chfilt_log[i] = ch_symI_chfilt
+    ch_symQ_chfilt_log[i] = ch_symQ_chfilt
+
+    ############################### RECEIVER ###############################
+    #### Anti-alias filter
+    rx_symI_aaf = aaf_filt_I.convol(ch_symI_chfilt)
+    rx_symQ_aaf = aaf_filt_Q.convol(ch_symQ_chfilt)
+    #rx_symI_aaf_log[i] = rx_symI_aaf
+    #rx_symQ_aaf_log[i] = rx_symQ_aaf
+
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
 #np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
@@ -121,8 +150,12 @@ for i in range(NSYMB*OS):
 #np.savetxt('tx_symQ_rrc.txt', tx_symQ_rrc_log, delimiter=',')
 #np.savetxt('ch_symI_noisy.txt', ch_symI_noisy_log, delimiter=',')
 #np.savetxt('ch_symQ_noisy.txt', ch_symQ_noisy_log, delimiter=',')
-np.savetxt('ch_symI_rot.txt', ch_symI_rot_log, delimiter=',')
-np.savetxt('ch_symQ_rot.txt', ch_symQ_rot_log, delimiter=',')
+#np.savetxt('ch_symI_rot.txt', ch_symI_rot_log, delimiter=',')
+#np.savetxt('ch_symQ_rot.txt', ch_symQ_rot_log, delimiter=',')
+#np.savetxt('ch_symI_chfilt.txt', ch_symI_chfilt_log, delimiter=',')
+#np.savetxt('ch_symQ_chfilt.txt', ch_symQ_chfilt_log, delimiter=',')
+#np.savetxt('rx_symI_aaf.txt', rx_symI_aaf_log, delimiter=',')
+#np.savetxt('rx_symQ_aaf.txt', rx_symQ_aaf_log, delimiter=',')
 print("listo")
 input()
 
