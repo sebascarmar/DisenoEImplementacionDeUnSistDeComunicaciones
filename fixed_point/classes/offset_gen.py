@@ -3,7 +3,7 @@ import numpy as np
 class offset_gen:
 
     def __init__(self, fs, f_offset):
-        time_vec = np.arange(0, 1/f_offset, 1/Ts)
+        time_vec = np.arange(0, 1/f_offset, 1/fs)
         titas    = np.array(2*np.pi*f_offset * time_vec, dtype=np.float32)
         
         self.sin = np.sin(titas)
