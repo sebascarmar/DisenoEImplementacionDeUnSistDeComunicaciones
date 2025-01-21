@@ -18,7 +18,7 @@ from classes.fir_filter import fir_filter
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 31# 1e6
+NSYMB = 1300000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -28,19 +28,20 @@ M     = 4       # modulation order
 #### Channel
 SNR_db   = 7
 f_offset = 10e3 # Hz
-NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
+NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
+fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 OS_DSP    = 2
 NTAPS_FSE = 33
-lms_step  = 0.5e-3
+lms_step  = 0.1e-3
 lms_leak  = 0
 Kp        = 1e-3
 Ki        = Kp/1000
 
 #### BER counter
 START_SYN = 450191
-START_CNT = START_SYN + 4*511*511
+START_CNT = START_SYN + 511*511
 
 np.random.seed(2)  # set the seed
 
