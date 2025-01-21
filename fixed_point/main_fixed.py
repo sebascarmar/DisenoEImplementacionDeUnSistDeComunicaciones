@@ -91,6 +91,18 @@ aaf_filt_Q = fir_filter(aaf_coeff)
 rx_symI_aaf_log = np.zeros(OS*NSYMB)
 rx_symQ_aaf_log = np.zeros(OS*NSYMB)
 
+#### Downsampler (rate 2)
+dw_aaf_shifter_I = np.zeros(OS_DSP)
+dw_aaf_shifter_Q = np.zeros(OS_DSP)
+rx_symI_dw_log = np.zeros(NSYMB*OS_DSP)
+rx_symQ_dw_log = np.zeros(NSYMB*OS_DSP)
+
+#### AGC
+agc_gain    = 1
+rx_symI_agc_log =  np.zeros(NSYMB*OS_DSP)
+rx_symQ_agc_log =  np.zeros(NSYMB*OS_DSP)
+
+
 
 
 for i in range(NSYMB*OS):
@@ -143,6 +155,26 @@ for i in range(NSYMB*OS):
     #rx_symI_aaf_log[i] = rx_symI_aaf
     #rx_symQ_aaf_log[i] = rx_symQ_aaf
 
+    #### Downsamplers (rate 2)
+    dw_aaf_shifter_I    = np.roll(dw_aaf_shifter_I,1)
+    dw_aaf_shifter_Q    = np.roll(dw_aaf_shifter_Q,1)
+    dw_aaf_shifter_I[0] = rx_symI_aaf
+    dw_aaf_shifter_Q[0] = rx_symQ_aaf
+
+    rx_symI_dw = dw_aaf_shifter_I[0]
+    rx_symQ_dw = dw_aaf_shifter_Q[0]
+
+    if( i%OS_DSP ==0 ): # Downsampling to OS_DSP*BR rate
+        j = int(i/OS_DSP)
+        #rx_symI_dw_log[j] = rx_symI_dw
+        #rx_symQ_dw_log[j] = rx_symQ_dw
+        
+        #### AGC
+        rx_symI_agc =  rx_symI_dw * agc_gain
+        rx_symQ_agc =  rx_symQ_dw * agc_gain
+        rx_symI_agc_log[j] = rx_symI_agc
+        rx_symQ_agc_log[j] = rx_symQ_agc
+
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
 #np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
@@ -156,6 +188,10 @@ for i in range(NSYMB*OS):
 #np.savetxt('ch_symQ_chfilt.txt', ch_symQ_chfilt_log, delimiter=',')
 #np.savetxt('rx_symI_aaf.txt', rx_symI_aaf_log, delimiter=',')
 #np.savetxt('rx_symQ_aaf.txt', rx_symQ_aaf_log, delimiter=',')
+#np.savetxt('rx_symI_dw.txt', rx_symI_dw_log, delimiter=',')
+#np.savetxt('rx_symQ_dw.txt', rx_symQ_dw_log, delimiter=',')
+np.savetxt('rx_symI_agc.txt', rx_symI_agc_log, delimiter=',')
+np.savetxt('rx_symQ_agc.txt', rx_symQ_agc_log, delimiter=',')
 print("listo")
 input()
 
