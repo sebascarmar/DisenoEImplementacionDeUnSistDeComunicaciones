@@ -81,8 +81,10 @@ tx_symQ_map = 2*(tx_bitQ_prbs != 1)-1
 
 
 #### Frecuency Offset
-ch_symI_rot = np.loadtxt('ch_symI_rot.txt', delimiter=',')
-ch_symQ_rot = np.loadtxt('ch_symQ_rot.txt', delimiter=',')
+#ch_symI_rot = np.loadtxt('ch_symI_rot.txt', delimiter=',')
+#ch_symQ_rot = np.loadtxt('ch_symQ_rot.txt', delimiter=',')
+#print(ch_symI_rot[0:40])
+#print(ch_symQ_rot[0:40])
 #Ts = 1/(OS*BR)
 #time_vector    = np.arange(NSYMB_CONVERGENCE*OS*Ts, NSYMB*OS*Ts, Ts)
 #titas          = np.array(2*np.pi*f_offset * time_vector, dtype=np.float32)
@@ -101,28 +103,44 @@ ch_symQ_rot = np.loadtxt('ch_symQ_rot.txt', delimiter=',')
 #                                       ch_symQ_noisy[NSYMB_CONVERGENCE*OS: ]*np.cos(titas))
 
 #### Channel filter
-ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
-ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
-ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
+#ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=4*BR)
+#ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
+#ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
+#ch_symI_ch_filt = np.loadtxt('ch_symI_chfilt.txt', delimiter=',')
+#ch_symQ_ch_filt = np.loadtxt('ch_symQ_chfilt.txt', delimiter=',')
+#print(ch_symI_ch_filt[0:10])
+#print(ch_symQ_ch_filt[0:10])
 
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
-rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
-rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
+#aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
+#rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
+#rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
+#rx_symI_aaf = np.loadtxt('rx_symI_aaf.txt', delimiter=',')
+#rx_symQ_aaf = np.loadtxt('rx_symQ_aaf.txt', delimiter=',')
+#print(rx_symI_aaf[0:10])
+#print(rx_symQ_aaf[0:10])
 
 #### Downsampler
-rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
-rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
+#rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
+#rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
+#rx_symI_dw = np.loadtxt('rx_symI_dw.txt', delimiter=',')
+#rx_symQ_dw = np.loadtxt('rx_symQ_dw.txt', delimiter=',')
+#print(rx_symI_dw[0:10])
+#print(rx_symQ_dw[0:10])
 
 #### AGC
-target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
-metric      = np.std(rx_symI_dw+1j*rx_symQ_dw)
-agc_gain    = target/metric
-agc_gain    = 1
-rx_symI_agc =  rx_symI_dw * agc_gain
-rx_symQ_agc =  rx_symQ_dw * agc_gain
+#target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
+#metric      = np.std(rx_symI_dw+1j*rx_symQ_dw)
+#agc_gain    = target/metric
+#agc_gain    = 1
+#rx_symI_agc =  rx_symI_dw * agc_gain
+#rx_symQ_agc =  rx_symQ_dw * agc_gain
+rx_symI_agc = np.loadtxt('rx_symI_agc.txt', delimiter=',')
+rx_symQ_agc = np.loadtxt('rx_symQ_agc.txt', delimiter=',')
+print(rx_symI_agc[0:10])
+print(rx_symQ_agc[0:10])
 
 #### DSP
 # FSE variables
