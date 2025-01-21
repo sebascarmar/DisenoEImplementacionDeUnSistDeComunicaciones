@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 10000000 # 1e6
+NSYMB = 1300000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -23,8 +23,9 @@ M     = 4       # modulation order
 
 #### Channel
 SNR_db   = 7
-f_offset = 0e3 # Hz
-NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
+f_offset = 10e3 # Hz
+NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
+fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 OS_DSP    = 2
@@ -103,7 +104,7 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
 
 
 #### Channel filter
-ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=0.49*BR ,window='hamming', fs=4*BR)
+ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=4*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
@@ -305,7 +306,7 @@ for i in range(START_CNT,len(rx_slcr_Q)-latency):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 
-print("SNR=", SNR_db, " | f_off=",f_offset)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
 print("BER_I: ", bit_err_I/bit_tot_I)
 print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
