@@ -36,7 +36,7 @@ Ki        = Kp/1000
 
 #### BER counter
 START_SYN = 450191
-START_CNT = START_SYN + 4*511*511
+START_CNT = START_SYN + 511*511
 
 # np.random.seed(2)  # set the seed
 
@@ -208,8 +208,8 @@ for i in range(NSYMB*OS_DSP):
 ############################ BIT-ERROR RATE ############################
 #### Synchronzation
 # Symbs generated
-rx_prbs_I = tx_symI_map[START_SYN:START_SYN+511]
-rx_prbs_Q = tx_symQ_map[START_SYN:START_SYN+511]
+rx_prbs_I = tx_symI_map[START_SYN-1:START_SYN-1+511]
+rx_prbs_Q = tx_symQ_map[START_SYN-1:START_SYN-1+511]
 
 # Synchro variables
 err_sym_count = 0
@@ -223,17 +223,17 @@ rot_ang_detec = 0
 for angle in [0, 90, 180, 270]:
     # Rotate rx symbs
     if( angle == 0):
-        rx_slcr_I =     rx_symI_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
-        rx_slcr_Q =     rx_symQ_slcr[START_SYN+511*511*0:START_SYN+511*511*1]
+        rx_slcr_I =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+        rx_slcr_Q =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
     elif( angle == 90 ):
-        rx_slcr_I = fn.inv(rx_symQ_slcr[START_SYN+511*511*1:START_SYN+511*511*2])
-        rx_slcr_Q =     rx_symI_slcr[START_SYN+511*511*1:START_SYN+511*511*2]
+        rx_slcr_I = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+        rx_slcr_Q =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
     elif( angle == 180 ):
-        rx_slcr_I = fn.inv(rx_symI_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
-        rx_slcr_Q = fn.inv(rx_symQ_slcr[START_SYN+511*511*2:START_SYN+511*511*3])
+        rx_slcr_I = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
+        rx_slcr_Q = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
     else: # angle==270
-        rx_slcr_I =     rx_symQ_slcr[START_SYN+511*511*3:START_SYN+511*511*4]
-        rx_slcr_Q = fn.inv(rx_symI_slcr[START_SYN+511*511*3:START_SYN+511*511*4])
+        rx_slcr_I =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+        rx_slcr_Q = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
 
     # Symbol error counting for every angle
     min_error_aux = len(rx_prbs_I)
