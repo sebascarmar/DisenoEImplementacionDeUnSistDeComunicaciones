@@ -208,64 +208,94 @@ for i in range(NSYMB*OS_DSP):
   
 ############################ BIT-ERROR RATE ############################
 #### Synchronzation
-# Symbs generated
-rx_prbs_I = tx_symI_map[START_SYN-1:START_SYN-1+511]
-rx_prbs_Q = tx_symQ_map[START_SYN-1:START_SYN-1+511]
+# PRBS regster and data
+shifter_ber_I = np.zeros(511)
+shifter_ber_Q = np.zeros(511)
+rx_prbs_I     = tx_symI_map[START_SYN-1:START_CNT-1]
+rx_prbs_Q     = tx_symQ_map[START_SYN-1:START_CNT-1]
+
+# Rotate the received data
+rx_slcr_I_0   =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_Q_0   =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_I_90  = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_Q_90  =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_I_180 = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_Q_180 = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_I_270 =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_Q_270 = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
 
 # Synchro variables
-err_sym_count = 0
-min_error_aux = len(rx_prbs_I)
-min_error     = len(rx_prbs_I)
-lat_aux       = 0
+min_error   = len(shifter_ber_Q)
+err_sym_0   = 0
+err_sym_90  = 0
+err_sym_180 = 0
+err_sym_270 = 0
 latency       = 0
 rot_ang_detec = 0
 
 # Loop
-for angle in [0, 90, 180, 270]:
-    # Rotate rx symbs
-    if( angle == 0):
-        rx_slcr_I =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
-        rx_slcr_Q =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
-    elif( angle == 90 ):
-        rx_slcr_I = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
-        rx_slcr_Q =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
-    elif( angle == 180 ):
-        rx_slcr_I = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
-        rx_slcr_Q = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
-    else: # angle==270
-        rx_slcr_I =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
-        rx_slcr_Q = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
-
-    # Symbol error counting for every angle
-    min_error_aux = len(rx_prbs_I)
-    for BER_IDX in range(len(rx_prbs_I)):
-
-        err_sym_count = 0
-        # Count errors for each BER_IDX
-        for i in range(len(rx_prbs_I)):
-            if( i>0 ):
-                rx_prbs_I = np.roll(rx_prbs_I,-1)
-                rx_prbs_Q = np.roll(rx_prbs_Q,-1)
-            new_bit_prbs_I = rx_prbs_I[BER_IDX]
-            new_bit_prbs_Q = rx_prbs_Q[BER_IDX]
-
-            if( (new_bit_prbs_I != rx_slcr_I[i+511*BER_IDX]) or (new_bit_prbs_Q != rx_slcr_Q[i+511*BER_IDX]) ):
-                err_sym_count += 1
-            else:
-                err_sym_count = err_sym_count
-
-        rx_prbs_I = np.roll(rx_prbs_I,-1)
-        rx_prbs_Q = np.roll(rx_prbs_Q,-1)
+for BER_IDX in range(len(shifter_ber_I)):
+    # Reste accumulators
+    err_sym_0   = 0
+    err_sym_90  = 0
+    err_sym_180 = 0
+    err_sym_270 = 0
+    # Count errors for each BER_IDX
+    for i in range(len(shifter_ber_I)):
+        # Shift and update register used for PRBS 
+        shifter_ber_I = np.roll(shifter_ber_I,1)
+        shifter_ber_Q = np.roll(shifter_ber_Q,1)
+        shifter_ber_I[0] = rx_prbs_I[i+511*BER_IDX]
+        shifter_ber_Q[0] = rx_prbs_Q[i+511*BER_IDX]
         
-        if( err_sym_count < min_error_aux ):
-            min_error_aux = err_sym_count
-            lat_aux       = BER_IDX
-
-
-    if( min_error_aux < min_error ):
-        min_error     = min_error_aux
-        latency       = lat_aux 
-        rot_ang_detec = angle
+        # BER_IDX refers to a fixed position during counting
+        new_bit_prbs_I = shifter_ber_I[BER_IDX]
+        new_bit_prbs_Q = shifter_ber_Q[BER_IDX]
+        
+        # Compare PRBS with received data (rotated by 0º)
+        if( (new_bit_prbs_I!=rx_slcr_I_0[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_0[i+511*BER_IDX]) ):
+            err_sym_0 += 1
+        else:
+            err_sym_0 = err_sym_0
+        # Compare PRBS with received data (rotated by 90º)
+        if( (new_bit_prbs_I!=rx_slcr_I_90[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_90[i+511*BER_IDX]) ):
+            err_sym_90 += 1
+        else:
+            err_sym_90 = err_sym_90
+        # Compare PRBS with received data (rotated by 180º)
+        if( (new_bit_prbs_I!=rx_slcr_I_180[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_180[i+511*BER_IDX]) ):
+            err_sym_180 += 1
+        else:
+            err_sym_180 = err_sym_180
+        # Compare PRBS with received data (rotated by 270º)
+        if( (new_bit_prbs_I!=rx_slcr_I_270[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_270[i+511*BER_IDX]) ):
+            err_sym_270 += 1
+        else:
+            err_sym_270 = err_sym_270
+    
+    # Store data for the minimum case
+    if( err_sym_0<min_error   and err_sym_0<err_sym_90 and
+        err_sym_0<err_sym_180 and err_sym_0<err_sym_270):
+        min_error     = err_sym_0
+        latency       = BER_IDX
+        rot_ang_detec = 0
+    elif( err_sym_90<min_error and err_sym_90<err_sym_180 and
+          err_sym_90<err_sym_270 ):
+        min_error     = err_sym_90
+        latency       = BER_IDX
+        rot_ang_detec = 90
+    elif( err_sym_180<min_error and err_sym_180<err_sym_270 ):
+        min_error     = err_sym_180
+        latency       = BER_IDX
+        rot_ang_detec = 180
+    elif( err_sym_270<min_error ):
+        min_error     = err_sym_270
+        latency       = BER_IDX
+        rot_ang_detec = 270
+    else:
+        min_error     = min_error    
+        latency       = latency  
+        rot_ang_detec = rot_ang_detec
 
 
 #### Counting
@@ -287,19 +317,20 @@ else: # rot_ang_detec=270
     rx_slcr_I =     rx_symQ_slcr
     rx_slcr_Q = fn.inv(rx_symI_slcr)
 
+lat_comp = 511-latency
 # BER (Lane I)
 bit_err_I = 0
 bit_tot_I = 0
-for i in range(START_CNT,len(rx_slcr_I)-latency):
-    if( rx_prbs_I[latency+i] != rx_slcr_I[i] ):
+for i in range(START_CNT,len(rx_slcr_I)-lat_comp):
+    if( rx_prbs_I[lat_comp+i] != rx_slcr_I[i] ):
         bit_err_I +=1
     bit_tot_I += 1
 
 # BER (Lane Q)
 bit_err_Q = 0
 bit_tot_Q = 0
-for i in range(START_CNT,len(rx_slcr_Q)-latency):
-    if( rx_prbs_Q[latency+i] != rx_slcr_Q[i] ):
+for i in range(START_CNT,len(rx_slcr_Q)-lat_comp):
+    if( rx_prbs_Q[lat_comp+i] != rx_slcr_Q[i] ):
         bit_err_Q +=1
     bit_tot_Q += 1
 
