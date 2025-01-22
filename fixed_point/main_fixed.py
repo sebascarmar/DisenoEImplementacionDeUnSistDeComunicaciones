@@ -133,13 +133,13 @@ rx_symQ_slcr = np.zeros(NSYMB)
 prbs9I_rx = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
 prbs9Q_rx = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
-#### Synchronzation
+#### Synchronization
 # PRBS regster and data
-shifter_ber_I = np.zeros(511)
-shifter_ber_Q = np.zeros(511)
+shftr_berI = np.zeros(511)
+shftr_berQ = np.zeros(511)
 
 # Synchro variables
-min_error   = len(shifter_ber_Q)
+min_error   = len(shftr_berQ)
 err_sym_0   = 0
 err_sym_90  = 0
 err_sym_180 = 0
@@ -317,7 +317,7 @@ for i in range(NSYMB*OS):
                         latency       = latency  
                         rot_ang_detec = rot_ang_detec
                     
-                    
+                    # Update the pointer to the BER shifter 
                     BER_IDX += 1
                 else:
                     err_sym_0   = err_sym_0  
@@ -327,32 +327,28 @@ for i in range(NSYMB*OS):
                     BER_IDX = BER_IDX
              
                 # Shift and update register used for PRBS 
-                shifter_ber_I = np.roll(shifter_ber_I,1)
-                shifter_ber_Q = np.roll(shifter_ber_Q,1)
-                shifter_ber_I[0] = prbs9I_rx.get_new_bit()
-                shifter_ber_Q[0] = prbs9Q_rx.get_new_bit()
-             
-                # BER_IDX refers to a fixed position during counting
-                next_bitI_prbs_rx = shifter_ber_I[BER_IDX]
-                next_bitQ_prbs_rx = shifter_ber_Q[BER_IDX]
+                shftr_berI = np.roll(shftr_berI,1)
+                shftr_berQ = np.roll(shftr_berQ,1)
+                shftr_berI[0] = prbs9I_rx.get_new_bit()
+                shftr_berQ[0] = prbs9Q_rx.get_new_bit()
               
-                # Compare PRBS with received data (rotated by 0º)
-                if( (next_bitI_prbs_rx!=rx_bitI_demap) or (next_bitQ_prbs_rx!=rx_bitQ_demap) ):
+                # Compare PRBS with received data rotated by 0º (BER_IDX refers to a fixed position)
+                if( (shftr_berI[BER_IDX]!=rx_bitI_demap) or (shftr_berQ[BER_IDX]!=rx_bitQ_demap) ):
                     err_sym_0 += 1
                 else:
                     err_sym_0 = err_sym_0
-                # Compare PRBS with received data (rotated by 90º)
-                if( (next_bitI_prbs_rx!=fn.inv(rx_bitQ_demap)) or (next_bitQ_prbs_rx!=rx_bitI_demap) ):
+                # Compare PRBS with received data rotated by 90º (BER_IDX refers to a fixed position)
+                if( (shftr_berI[BER_IDX]!=fn.inv(rx_bitQ_demap)) or (shftr_berQ[BER_IDX]!=rx_bitI_demap) ):
                     err_sym_90 += 1
                 else:
                     err_sym_90 = err_sym_90
-                # Compare PRBS with received data (rotated by 180º)
-                if( (next_bitI_prbs_rx!=fn.inv(rx_bitI_demap)) or (next_bitQ_prbs_rx!=fn.inv(rx_bitQ_demap)) ):
+                # Compare PRBS with received data rotated by 180º (BER_IDX refers to a fixed position)
+                if( (shftr_berI[BER_IDX]!=fn.inv(rx_bitI_demap)) or (shftr_berQ[BER_IDX]!=fn.inv(rx_bitQ_demap)) ):
                     err_sym_180 += 1
                 else:
                     err_sym_180 = err_sym_180
-                # Compare PRBS with received data (rotated by 270º)
-                if( (next_bitI_prbs_rx!=rx_bitQ_demap) or (next_bitQ_prbs_rx!=fn.inv(rx_bitI_demap)) ):
+                # Compare PRBS with received data rotated by 270º (BER_IDX refers to a fixed position)
+                if( (shftr_berI[BER_IDX]!=rx_bitQ_demap) or (shftr_berQ[BER_IDX]!=fn.inv(rx_bitI_demap)) ):
                     err_sym_270 += 1
                 else:
                     err_sym_270 = err_sym_270
