@@ -135,8 +135,8 @@ prbs9Q_rx = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
 #### Synchronization
 # PRBS regster and data
-shftr_berI = np.zeros(511)
-shftr_berQ = np.zeros(511)
+shftr_berI = np.zeros(511, dtype=int)
+shftr_berQ = np.zeros(511, dtype=int)
 
 # Synchro variables
 min_error   = len(shftr_berQ)
@@ -341,30 +341,18 @@ for i in range(NSYMB*OS):
                 shftr_berQ[0] = prbs9Q_rx.get_new_bit()
               
                 # Compare PRBS with received data rotated by 0º (BER_IDX refers to a fixed position)
-                if( (shftr_berI[BER_IDX]!=rx_bitI_demap) or (shftr_berQ[BER_IDX]!=rx_bitQ_demap) ):
-                    err_sym_0 += 1
-                else:
-                    err_sym_0 = err_sym_0
+                err_sym_0   += (shftr_berI[BER_IDX]^rx_bitI_demap) | (shftr_berQ[BER_IDX]^rx_bitQ_demap)
                 # Compare PRBS with received data rotated by 90º (BER_IDX refers to a fixed position)
-                if( (shftr_berI[BER_IDX]!=fn.inv(rx_bitQ_demap)) or (shftr_berQ[BER_IDX]!=rx_bitI_demap) ):
-                    err_sym_90 += 1
-                else:
-                    err_sym_90 = err_sym_90
+                err_sym_90  += (shftr_berI[BER_IDX]^fn.inv(rx_bitQ_demap)) | (shftr_berQ[BER_IDX]^rx_bitI_demap)
                 # Compare PRBS with received data rotated by 180º (BER_IDX refers to a fixed position)
-                if( (shftr_berI[BER_IDX]!=fn.inv(rx_bitI_demap)) or (shftr_berQ[BER_IDX]!=fn.inv(rx_bitQ_demap)) ):
-                    err_sym_180 += 1
-                else:
-                    err_sym_180 = err_sym_180
+                err_sym_180 += (shftr_berI[BER_IDX]^fn.inv(rx_bitI_demap)) | (shftr_berQ[BER_IDX]^fn.inv(rx_bitQ_demap))
                 # Compare PRBS with received data rotated by 270º (BER_IDX refers to a fixed position)
-                if( (shftr_berI[BER_IDX]!=rx_bitQ_demap) or (shftr_berQ[BER_IDX]!=fn.inv(rx_bitI_demap)) ):
-                    err_sym_270 += 1
-                else:
-                    err_sym_270 = err_sym_270
+                err_sym_270 += (shftr_berI[BER_IDX]^rx_bitQ_demap) | (shftr_berQ[BER_IDX]^fn.inv(rx_bitI_demap))
                 
                 
-            elif( k>=START_CNT ):
+            else: ############################## Error counting (k<START_CNT)
                 
-                # Select the detected rotation
+                # Apply the detected rotation
                 if( rot_ang_detec == 0 ):
                     rx_bitI_rot =        rx_bitI_demap
                     rx_bitQ_rot =        rx_bitQ_demap
@@ -385,25 +373,13 @@ for i in range(NSYMB*OS):
                 shftr_berQ[0] = prbs9Q_rx.get_new_bit()
              
                 # Lane I
-                if( shftr_berI[latency] != rx_bitI_rot ):
-                    bit_err_I +=1
-                else:
-                    bit_err_I = bit_err_I
+                bit_err_I += shftr_berI[latency] ^ rx_bitI_rot
                 bit_tot_I += 1
                 
                 # Lane Q
-                if( shftr_berQ[latency] != rx_bitQ_rot ):
-                    bit_err_Q +=1
-                else:
-                    bit_err_Q = bit_err_Q
+                bit_err_Q += shftr_berQ[latency] ^ rx_bitQ_rot
                 bit_tot_Q += 1
                 
-            else:
-                # Mantener todas las variables iguales. Por ejemplo:
-                bit_err_I = 0
-                bit_tot_I = 0
-                bit_err_Q = 0
-                bit_tot_Q = 0
 
 
 th_ber = fn.theoric_ber(M, SNR_db)
