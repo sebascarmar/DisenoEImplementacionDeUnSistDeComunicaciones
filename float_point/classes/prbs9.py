@@ -5,7 +5,7 @@ class prbs9:
     def __init__(self, seed):
         self.reg = np.array(seed)
 
-    def get_new_symbol(self):
+    def get_new_bit(self):
         aux_out = self.reg[8] 
         # Calcula el nuevo bit de entrada al registro
         new_in  = self.reg[4]^self.reg[8]

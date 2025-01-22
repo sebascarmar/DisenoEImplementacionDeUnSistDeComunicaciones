@@ -52,8 +52,8 @@ prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
 prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
 for i in range(NSYMB):
-    tx_bitI_prbs[i] = prbs9I.get_new_symbol()
-    tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
+    tx_bitI_prbs[i] = prbs9I.get_new_bit()
+    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
 
 #### Mapper
 tx_symI_map = 2*(tx_bitI_prbs != 1)-1
@@ -374,25 +374,25 @@ plt.ylabel('I')
 plt.savefig("fcr_out.png", dpi=300, format='png')
 plt.close()
 
-# Salida del NCO vs tiempo
-plt.figure(figsize=[10,6])
-plt.title('NCO Output')
-plt.plot(nco_log[fase:len(nco_log)-fase:2],'.')
-plt.grid(True)
-plt.xlabel('Nº símbolos')
-plt.ylabel('rad')
-plt.savefig("nco_out.png", dpi=300, format='png')
-plt.close()
+## Salida del NCO vs tiempo
+#plt.figure(figsize=[10,6])
+#plt.title('NCO Output')
+#plt.plot(nco_log[fase:len(nco_log)-fase:2],'.')
+#plt.grid(True)
+#plt.xlabel('Nº símbolos')
+#plt.ylabel('rad')
+#plt.savefig("nco_out.png", dpi=300, format='png')
+#plt.close()
 
-# Error integral vs tiempo
-plt.figure(figsize=[10,6])
-plt.title('Int error')
-plt.plot(int_log[fase:len(int_log)-fase:2],'.')
-plt.grid(True)
-plt.xlabel('Nº símbolos')
-plt.ylabel('rad/s')
-plt.savefig("int_err.png", dpi=300, format='png')
-plt.close()
+## Error integral vs tiempo
+#plt.figure(figsize=[10,6])
+#plt.title('Int error')
+#plt.plot(int_log[fase:len(int_log)-fase:2],'.')
+#plt.grid(True)
+#plt.xlabel('Nº símbolos')
+#plt.ylabel('rad/s')
+#plt.savefig("int_err.png", dpi=300, format='png')
+#plt.close()
 
 ## Constelación a la salida del FCR (rangos ajustados para 10k)
 #plt.figure(figsize=[6,6])

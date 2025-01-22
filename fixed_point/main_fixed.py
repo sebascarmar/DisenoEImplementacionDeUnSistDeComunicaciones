@@ -156,8 +156,8 @@ for i in range(NSYMB*OS):
     if( i%OS ==0 ): # Downsampling to BR rate (os=1)
         n = int(i/OS)
         #### Bits generation
-        tx_bitI_prbs = prbs9I.get_new_symbol()
-        tx_bitQ_prbs = prbs9Q.get_new_symbol()
+        tx_bitI_prbs = prbs9I.get_new_bit()
+        tx_bitQ_prbs = prbs9Q.get_new_bit()
         #tx_bitI_prbs_log[n] = tx_bitI_prbs
         #tx_bitQ_prbs_log[n] = tx_bitQ_prbs
         

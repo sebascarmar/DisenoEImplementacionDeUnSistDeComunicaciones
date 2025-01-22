@@ -26,8 +26,7 @@ NBAUD = 5
 M     = 4       # modulation order
 
 #### Channel
-SWEEP_TIMES = 10
-f_offset    = 0e3 # Hz
+f_offset    = 5e3 # Hz
 NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 
 #### Receiver
@@ -59,8 +58,8 @@ for SNR_db in range(START_SWP, SWEEP_TIMES+START_SWP):
     prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
     for i in range(NSYMB):
-        tx_bitI_prbs[i] = prbs9I.get_new_symbol()
-        tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
+        tx_bitI_prbs[i] = prbs9I.get_new_bit()
+        tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
 
     #### Mapper
     tx_symI_map = 2*(tx_bitI_prbs != 1)-1

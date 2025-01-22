@@ -51,8 +51,8 @@ prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
 prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
 
 for i in range(NSYMB):
-    tx_bitI_prbs[i] = prbs9I.get_new_symbol()
-    tx_bitQ_prbs[i] = prbs9Q.get_new_symbol()
+    tx_bitI_prbs[i] = prbs9I.get_new_bit()
+    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
 
 #### Mapper
 tx_symI_map = 2*(tx_bitI_prbs != 1)-1
