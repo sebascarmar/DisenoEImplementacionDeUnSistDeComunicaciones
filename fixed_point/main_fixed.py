@@ -286,10 +286,31 @@ for i in range(NSYMB*OS):
             rx_bitQ_demap = 0 if(rx_symQ_slcr[k]==1) else 1
          
             ######################## BIT-ERROR RATE ########################
-            if( k>=START_SYN and k<START_CNT ):
+            if( k<START_SYN ): ### Wait for convergence before start synchronization
+                # Keep all variables at their reset value
+                shftr_berI = shftr_berI
+                shftr_berQ = shftr_berQ
+                
+                err_sym_0   = 0
+                err_sym_90  = 0
+                err_sym_180 = 0
+                err_sym_270 = 0
+                min_error   = len(shftr_berQ)
+                BER_IDX     = 0
+                latency       = 0
+                rot_ang_detec = 0
+                
+                rx_bitI_rot = 0
+                rx_bitQ_rot = 0
+                bit_err_I = 0
+                bit_tot_I = 0
+                bit_err_Q = 0
+                bit_tot_Q = 0
+                
+            elif( k>=START_SYN and k<START_CNT ): ########## Synchronization
+                
+                # Store data for the minimum case and reset accumulators for each sequence of the PRBS9
                 if( k%511 == 0 and k>START_SYN ):
-                    #print(BER_IDX,k, min(err_sym_0,err_sym_90,err_sym_180,err_sym_270))
-                    # Store data for the minimum case and reset accumulators
                     if( err_sym_0<min_error   and err_sym_0<err_sym_90 and
                         err_sym_0<err_sym_180 and err_sym_0<err_sym_270):
                         min_error     = err_sym_0
@@ -327,11 +348,16 @@ for i in range(NSYMB*OS):
                     
                     # Update the pointer to the BER shifter 
                     BER_IDX += 1
+                 
+                # Keep the values during each sequence of the PRBS9
                 else:
                     err_sym_0   = err_sym_0  
                     err_sym_90  = err_sym_90 
                     err_sym_180 = err_sym_180
                     err_sym_270 = err_sym_270
+                    min_error     = min_error    
+                    latency       = latency  
+                    rot_ang_detec = rot_ang_detec
                     BER_IDX = BER_IDX
              
                 # Shift and update register used for PRBS 
