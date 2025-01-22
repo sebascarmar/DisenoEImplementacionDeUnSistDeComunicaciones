@@ -148,6 +148,14 @@ BER_IDX       = 0
 latency       = 0
 rot_ang_detec = 0
 
+#### Counting errors after synchronization
+# BER (Lane I)
+bit_err_I = 0
+bit_tot_I = 0
+
+# BER (Lane Q)
+bit_err_Q = 0
+bit_tot_Q = 0
 
 
 for i in range(NSYMB*OS):
@@ -354,9 +362,56 @@ for i in range(NSYMB*OS):
                     err_sym_270 = err_sym_270
                 
                 
+            elif( k>=START_CNT ):
+                
+                # Select the detected rotation
+                if( rot_ang_detec == 0 ):
+                    rx_bitI_rot =        rx_bitI_demap
+                    rx_bitQ_rot =        rx_bitQ_demap
+                elif( rot_ang_detec == 90 ):
+                    rx_bitI_rot = fn.inv(rx_bitQ_demap)
+                    rx_bitQ_rot =        rx_bitI_demap
+                elif( rot_ang_detec == 180 ):
+                    rx_bitI_rot = fn.inv(rx_bitI_demap)
+                    rx_bitQ_rot = fn.inv(rx_bitQ_demap)
+                else: # rot_ang_detec=270
+                    rx_bitI_rot =        rx_bitQ_demap
+                    rx_bitQ_rot = fn.inv(rx_bitI_demap)
+                
+                # Shift and update register used for PRBS 
+                shftr_berI = np.roll(shftr_berI,1)
+                shftr_berQ = np.roll(shftr_berQ,1)
+                shftr_berI[0] = prbs9I_rx.get_new_bit()
+                shftr_berQ[0] = prbs9Q_rx.get_new_bit()
+             
+                # Lane I
+                if( shftr_berI[latency] != rx_bitI_rot ):
+                    bit_err_I +=1
+                else:
+                    bit_err_I = bit_err_I
+                bit_tot_I += 1
+                
+                # Lane Q
+                if( shftr_berQ[latency] != rx_bitQ_rot ):
+                    bit_err_Q +=1
+                else:
+                    bit_err_Q = bit_err_Q
+                bit_tot_Q += 1
+                
+            else:
+                # Mantener todas las variables iguales. Por ejemplo:
+                bit_err_I = 0
+                bit_tot_I = 0
+                bit_err_Q = 0
+                bit_tot_Q = 0
 
 
+th_ber = fn.theoric_ber(M, SNR_db)
 print("latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
+print("BER_I: ", bit_err_I/bit_tot_I)
+print("BER_Q: ", bit_err_Q/bit_tot_Q)
+print("theo_ber: ", th_ber)
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
 #np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
