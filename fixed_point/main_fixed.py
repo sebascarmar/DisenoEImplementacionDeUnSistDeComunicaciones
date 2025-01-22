@@ -272,10 +272,10 @@ for i in range(NSYMB*OS):
             int_err  = (Ki2 * angle_err) + int_err
             # NCO
             nco_out  = (prop_err+int_err) + nco_out
-
+            
             # Demapper
-            rx_bitI_slcr = 0 if(rx_symI_slcr[k]==1) else 1
-            rx_bitQ_slcr = 0 if(rx_symQ_slcr[k]==1) else 1
+            rx_bitI_demap = 0 if(rx_symI_slcr[k]==1) else 1
+            rx_bitQ_demap = 0 if(rx_symQ_slcr[k]==1) else 1
          
             ######################## BIT-ERROR RATE ########################
             if( k>=START_SYN and k<START_CNT ):
@@ -337,22 +337,22 @@ for i in range(NSYMB*OS):
                 next_bitQ_prbs_rx = shifter_ber_Q[BER_IDX]
               
                 # Compare PRBS with received data (rotated by 0º)
-                if( (next_bitI_prbs_rx!=rx_bitI_slcr) or (next_bitQ_prbs_rx!=rx_bitQ_slcr) ):
+                if( (next_bitI_prbs_rx!=rx_bitI_demap) or (next_bitQ_prbs_rx!=rx_bitQ_demap) ):
                     err_sym_0 += 1
                 else:
                     err_sym_0 = err_sym_0
                 # Compare PRBS with received data (rotated by 90º)
-                if( (next_bitI_prbs_rx!=fn.inv(rx_bitQ_slcr)) or (next_bitQ_prbs_rx!=rx_bitI_slcr) ):
+                if( (next_bitI_prbs_rx!=fn.inv(rx_bitQ_demap)) or (next_bitQ_prbs_rx!=rx_bitI_demap) ):
                     err_sym_90 += 1
                 else:
                     err_sym_90 = err_sym_90
                 # Compare PRBS with received data (rotated by 180º)
-                if( (next_bitI_prbs_rx!=fn.inv(rx_bitI_slcr)) or (next_bitQ_prbs_rx!=fn.inv(rx_bitQ_slcr)) ):
+                if( (next_bitI_prbs_rx!=fn.inv(rx_bitI_demap)) or (next_bitQ_prbs_rx!=fn.inv(rx_bitQ_demap)) ):
                     err_sym_180 += 1
                 else:
                     err_sym_180 = err_sym_180
                 # Compare PRBS with received data (rotated by 270º)
-                if( (next_bitI_prbs_rx!=rx_bitQ_slcr) or (next_bitQ_prbs_rx!=fn.inv(rx_bitI_slcr)) ):
+                if( (next_bitI_prbs_rx!=rx_bitQ_demap) or (next_bitQ_prbs_rx!=fn.inv(rx_bitI_demap)) ):
                     err_sym_270 += 1
                 else:
                     err_sym_270 = err_sym_270
