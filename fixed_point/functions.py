@@ -60,8 +60,8 @@ def theoric_ber(M, SNRdB):
 
 
 ### It's used for rotate the input constelation post slicer
-def inv(arreglo):
-    # Retorna el arreglo con sus símbolos invertidos
-    return np.where(arreglo == 1, -1, 1)
+def inv(bit):
+    # Invert the input bit
+    return 0 if (bit==1) else 1
 
 
