@@ -9,6 +9,7 @@ from classes.poly_filter import poly_filter
 from classes.noise_gen import noise_gen
 from classes.offset_gen import offset_gen
 from classes.fir_filter import fir_filter
+from classes.ber import ber
 
 
 ####################################################################################
@@ -131,35 +132,11 @@ rx_symI_slcr = np.zeros(NSYMB)
 rx_symQ_slcr = np.zeros(NSYMB)
 
 ############################ BIT-ERROR RATE ############################
-#### Bits generation
-prbs9I_rx = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
-prbs9Q_rx = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
-
-#### Synchronization
-# PRBS regster and data
-shftr_berI = np.zeros(511, dtype=int)
-shftr_berQ = np.zeros(511, dtype=int)
-
-# Synchro variables
-min_error   = len(shftr_berQ)
-err_sym_0   = 0
-err_sym_90  = 0
-err_sym_180 = 0
-err_sym_270 = 0
-BER_IDX       = 0
-latency       = 0
-rot_ang_detec = 0
-
-#### Counting errors after synchronization
-# BER (Lane I)
-bit_err_I = 0
-bit_tot_I = 0
-
-# BER (Lane Q)
-bit_err_Q = 0
-bit_tot_Q = 0
+ber_IjQ = ber(SEED_I, SEED_Q, START_SYN, START_CNT)
 
 
+
+################################## LOOP ################################
 for i in range(NSYMB*OS):
 
     ############################## TRANSMITTER  #############################
@@ -289,132 +266,21 @@ for i in range(NSYMB*OS):
          
             ######################## BIT-ERROR RATE ########################
             if( k<START_SYN ): ### Wait for convergence before start synchronization
-                # Keep all variables at their reset value
-                shftr_berI = shftr_berI
-                shftr_berQ = shftr_berQ
-                
-                err_sym_0   = 0
-                err_sym_90  = 0
-                err_sym_180 = 0
-                err_sym_270 = 0
-                min_error   = len(shftr_berQ)
-                BER_IDX     = 0
-                latency       = 0
-                rot_ang_detec = 0
-                
-                rx_bitI_rot = 0
-                rx_bitQ_rot = 0
-                bit_err_I = 0
-                bit_tot_I = 0
-                bit_err_Q = 0
-                bit_tot_Q = 0
+                ber_IjQ.reset_values()
                 
             elif( k>=START_SYN and k<START_CNT ): ########## Synchronization
+                latency, rot_ang_detec = ber_IjQ.synchronize(k, rx_bitI_demap, rx_bitQ_demap) 
                 
-                # Store data for the minimum case and reset accumulators for each sequence of the PRBS9
-                if( k%511 == 0 and k>START_SYN ):
-                    if( err_sym_0<min_error   and err_sym_0<err_sym_90 and
-                        err_sym_0<err_sym_180 and err_sym_0<err_sym_270):
-                        min_error     = err_sym_0
-                        err_sym_0     = 0
-                        latency       = BER_IDX
-                        rot_ang_detec = 0
-                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
-                    elif( err_sym_90<min_error and err_sym_90<err_sym_180 and
-                          err_sym_90<err_sym_270 ):
-                        min_error     = err_sym_90
-                        err_sym_90    = 0
-                        latency       = BER_IDX
-                        rot_ang_detec = 90
-                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
-                    elif( err_sym_180<min_error and err_sym_180<err_sym_270 ):
-                        min_error     = err_sym_180
-                        err_sym_180   = 0
-                        latency       = BER_IDX
-                        rot_ang_detec = 180
-                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
-                    elif( err_sym_270<min_error ):
-                        min_error     = err_sym_270
-                        err_sym_270   = 0
-                        latency       = BER_IDX
-                        rot_ang_detec = 270
-                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
-                    else:
-                        err_sym_0   = 0
-                        err_sym_90  = 0
-                        err_sym_180 = 0
-                        err_sym_270 = 0
-                        min_error     = min_error    
-                        latency       = latency  
-                        rot_ang_detec = rot_ang_detec
-                    
-                    # Update the pointer to the BER shifter 
-                    BER_IDX += 1
-                 
-                # Keep the values during each sequence of the PRBS9
-                else:
-                    err_sym_0   = err_sym_0  
-                    err_sym_90  = err_sym_90 
-                    err_sym_180 = err_sym_180
-                    err_sym_270 = err_sym_270
-                    min_error     = min_error    
-                    latency       = latency  
-                    rot_ang_detec = rot_ang_detec
-                    BER_IDX = BER_IDX
-             
-                # Shift and update register used for PRBS 
-                shftr_berI = np.roll(shftr_berI,1)
-                shftr_berQ = np.roll(shftr_berQ,1)
-                shftr_berI[0] = prbs9I_rx.get_new_bit()
-                shftr_berQ[0] = prbs9Q_rx.get_new_bit()
-              
-                # Compare PRBS with received data rotated by 0º (BER_IDX refers to a fixed position)
-                err_sym_0   += (shftr_berI[BER_IDX]^rx_bitI_demap) | (shftr_berQ[BER_IDX]^rx_bitQ_demap)
-                # Compare PRBS with received data rotated by 90º (BER_IDX refers to a fixed position)
-                err_sym_90  += (shftr_berI[BER_IDX]^fn.inv(rx_bitQ_demap)) | (shftr_berQ[BER_IDX]^rx_bitI_demap)
-                # Compare PRBS with received data rotated by 180º (BER_IDX refers to a fixed position)
-                err_sym_180 += (shftr_berI[BER_IDX]^fn.inv(rx_bitI_demap)) | (shftr_berQ[BER_IDX]^fn.inv(rx_bitQ_demap))
-                # Compare PRBS with received data rotated by 270º (BER_IDX refers to a fixed position)
-                err_sym_270 += (shftr_berI[BER_IDX]^rx_bitQ_demap) | (shftr_berQ[BER_IDX]^fn.inv(rx_bitI_demap))
-                
-                
-            else: ############################## Error counting (k<START_CNT)
-                
-                # Apply the detected rotation
-                if( rot_ang_detec == 0 ):
-                    rx_bitI_rot =        rx_bitI_demap
-                    rx_bitQ_rot =        rx_bitQ_demap
-                elif( rot_ang_detec == 90 ):
-                    rx_bitI_rot = fn.inv(rx_bitQ_demap)
-                    rx_bitQ_rot =        rx_bitI_demap
-                elif( rot_ang_detec == 180 ):
-                    rx_bitI_rot = fn.inv(rx_bitI_demap)
-                    rx_bitQ_rot = fn.inv(rx_bitQ_demap)
-                else: # rot_ang_detec=270
-                    rx_bitI_rot =        rx_bitQ_demap
-                    rx_bitQ_rot = fn.inv(rx_bitI_demap)
-                
-                # Shift and update register used for PRBS 
-                shftr_berI = np.roll(shftr_berI,1)
-                shftr_berQ = np.roll(shftr_berQ,1)
-                shftr_berI[0] = prbs9I_rx.get_new_bit()
-                shftr_berQ[0] = prbs9Q_rx.get_new_bit()
-             
-                # Lane I
-                bit_err_I += shftr_berI[latency] ^ rx_bitI_rot
-                bit_tot_I += 1
-                
-                # Lane Q
-                bit_err_Q += shftr_berQ[latency] ^ rx_bitQ_rot
-                bit_tot_Q += 1
+            else: ###################### Perform error counting (k<START_CNT)
+                rate_I, rate_Q = ber_IjQ.count_errors(rx_bitI_demap, rx_bitQ_demap) 
                 
 
 
 th_ber = fn.theoric_ber(M, SNR_db)
-print("latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+print("latency:",latency, "| ang:",rot_ang_detec)
 print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
-print("BER_I: ", bit_err_I/bit_tot_I)
-print("BER_Q: ", bit_err_Q/bit_tot_Q)
+print("BER_I: ", rate_I)
+print("BER_Q: ", rate_I)
 print("theo_ber: ", th_ber)
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
