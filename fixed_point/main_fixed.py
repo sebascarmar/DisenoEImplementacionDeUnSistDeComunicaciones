@@ -128,6 +128,25 @@ int_log = np.zeros(NSYMB*OS_DSP)
 rx_symI_slcr = np.zeros(NSYMB)
 rx_symQ_slcr = np.zeros(NSYMB)
 
+############################ BIT-ERROR RATE ############################
+#### Bits generation
+prbs9I_rx = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
+prbs9Q_rx = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
+
+#### Synchronzation
+# PRBS regster and data
+shifter_ber_I = np.zeros(511)
+shifter_ber_Q = np.zeros(511)
+
+# Synchro variables
+min_error   = len(shifter_ber_Q)
+err_sym_0   = 0
+err_sym_90  = 0
+err_sym_180 = 0
+err_sym_270 = 0
+BER_IDX       = 0
+latency       = 0
+rot_ang_detec = 0
 
 
 
@@ -253,7 +272,95 @@ for i in range(NSYMB*OS):
             int_err  = (Ki2 * angle_err) + int_err
             # NCO
             nco_out  = (prop_err+int_err) + nco_out
+
+            # Demapper
+            rx_bitI_slcr = 0 if(rx_symI_slcr[k]==1) else 1
+            rx_bitQ_slcr = 0 if(rx_symQ_slcr[k]==1) else 1
          
+            ######################## BIT-ERROR RATE ########################
+            if( k>=START_SYN and k<START_CNT ):
+                if( k%511 == 0 and k>START_SYN ):
+                    #print(BER_IDX,k, min(err_sym_0,err_sym_90,err_sym_180,err_sym_270))
+                    # Store data for the minimum case and reset accumulators
+                    if( err_sym_0<min_error   and err_sym_0<err_sym_90 and
+                        err_sym_0<err_sym_180 and err_sym_0<err_sym_270):
+                        min_error     = err_sym_0
+                        err_sym_0     = 0
+                        latency       = BER_IDX
+                        rot_ang_detec = 0
+                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+                    elif( err_sym_90<min_error and err_sym_90<err_sym_180 and
+                          err_sym_90<err_sym_270 ):
+                        min_error     = err_sym_90
+                        err_sym_90    = 0
+                        latency       = BER_IDX
+                        rot_ang_detec = 90
+                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+                    elif( err_sym_180<min_error and err_sym_180<err_sym_270 ):
+                        min_error     = err_sym_180
+                        err_sym_180   = 0
+                        latency       = BER_IDX
+                        rot_ang_detec = 180
+                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+                    elif( err_sym_270<min_error ):
+                        min_error     = err_sym_270
+                        err_sym_270   = 0
+                        latency       = BER_IDX
+                        rot_ang_detec = 270
+                        print(BER_IDX,i,"latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
+                    else:
+                        err_sym_0   = 0
+                        err_sym_90  = 0
+                        err_sym_180 = 0
+                        err_sym_270 = 0
+                        min_error     = min_error    
+                        latency       = latency  
+                        rot_ang_detec = rot_ang_detec
+                    
+                    
+                    BER_IDX += 1
+                else:
+                    err_sym_0   = err_sym_0  
+                    err_sym_90  = err_sym_90 
+                    err_sym_180 = err_sym_180
+                    err_sym_270 = err_sym_270
+                    BER_IDX = BER_IDX
+             
+                # Shift and update register used for PRBS 
+                shifter_ber_I = np.roll(shifter_ber_I,1)
+                shifter_ber_Q = np.roll(shifter_ber_Q,1)
+                shifter_ber_I[0] = prbs9I_rx.get_new_bit()
+                shifter_ber_Q[0] = prbs9Q_rx.get_new_bit()
+             
+                # BER_IDX refers to a fixed position during counting
+                next_bitI_prbs_rx = shifter_ber_I[BER_IDX]
+                next_bitQ_prbs_rx = shifter_ber_Q[BER_IDX]
+              
+                # Compare PRBS with received data (rotated by 0º)
+                if( (next_bitI_prbs_rx!=rx_bitI_slcr) or (next_bitQ_prbs_rx!=rx_bitQ_slcr) ):
+                    err_sym_0 += 1
+                else:
+                    err_sym_0 = err_sym_0
+                # Compare PRBS with received data (rotated by 90º)
+                if( (next_bitI_prbs_rx!=fn.inv(rx_bitQ_slcr)) or (next_bitQ_prbs_rx!=rx_bitI_slcr) ):
+                    err_sym_90 += 1
+                else:
+                    err_sym_90 = err_sym_90
+                # Compare PRBS with received data (rotated by 180º)
+                if( (next_bitI_prbs_rx!=fn.inv(rx_bitI_slcr)) or (next_bitQ_prbs_rx!=fn.inv(rx_bitQ_slcr)) ):
+                    err_sym_180 += 1
+                else:
+                    err_sym_180 = err_sym_180
+                # Compare PRBS with received data (rotated by 270º)
+                if( (next_bitI_prbs_rx!=rx_bitQ_slcr) or (next_bitQ_prbs_rx!=fn.inv(rx_bitI_slcr)) ):
+                    err_sym_270 += 1
+                else:
+                    err_sym_270 = err_sym_270
+                
+                
+
+
+print("latency:",latency, "| ang:",rot_ang_detec, "| error_min:", min_error)
 # Guardar el array en un archivo de texto
 #np.savetxt('tx_symI_map.txt', tx_symI_map_log, delimiter=',')
 #np.savetxt('tx_symQ_map.txt', tx_symQ_map_log, delimiter=',')
@@ -269,16 +376,14 @@ for i in range(NSYMB*OS):
 #np.savetxt('rx_symQ_aaf.txt', rx_symQ_aaf_log, delimiter=',')
 #np.savetxt('rx_symI_dw.txt', rx_symI_dw_log, delimiter=',')
 #np.savetxt('rx_symQ_dw.txt', rx_symQ_dw_log, delimiter=',')
-np.savetxt('rx_symI_agc.txt', rx_symI_agc_log, delimiter=',')
-np.savetxt('rx_symQ_agc.txt', rx_symQ_agc_log, delimiter=',')
-np.savetxt('rx_symI_fse.txt', rx_symI_fse, delimiter=',')
-np.savetxt('rx_symQ_fse.txt', rx_symQ_fse, delimiter=',')
-np.savetxt('rx_symI_fcr.txt', rx_symI_fcr, delimiter=',')
-np.savetxt('rx_symQ_fcr.txt', rx_symQ_fcr, delimiter=',')
+#np.savetxt('rx_symI_agc.txt', rx_symI_agc_log, delimiter=',')
+#np.savetxt('rx_symQ_agc.txt', rx_symQ_agc_log, delimiter=',')
+#np.savetxt('rx_symI_fse.txt', rx_symI_fse, delimiter=',')
+#np.savetxt('rx_symQ_fse.txt', rx_symQ_fse, delimiter=',')
+#np.savetxt('rx_symI_fcr.txt', rx_symI_fcr, delimiter=',')
+#np.savetxt('rx_symQ_fcr.txt', rx_symQ_fcr, delimiter=',')
 np.savetxt('rx_symI_slcr.txt', rx_symI_slcr, delimiter=',')
 np.savetxt('rx_symQ_slcr.txt', rx_symQ_slcr, delimiter=',')
-print("listo")
-input()
 
 #-------------------------------------------
 
