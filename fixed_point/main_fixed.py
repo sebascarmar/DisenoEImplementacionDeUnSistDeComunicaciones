@@ -24,6 +24,8 @@ OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
 NBAUD = 5
 M     = 4       # modulation order
+SEED_I =  0x1AA
+SEED_Q =  0x1FE
 
 #### Channel
 SNR_db   = 7
@@ -51,8 +53,8 @@ np.random.seed(2)  # set the seed
 tx_bitI_prbs_log = np.zeros(NSYMB)
 tx_bitQ_prbs_log = np.zeros(NSYMB)
 
-prbs9I = prbs9([0, 1, 0, 1, 0, 1, 0, 1, 1]) # Seed: 0x1AA
-prbs9Q = prbs9([0, 1, 1, 1, 1, 1, 1, 1, 1]) # Seed: 0x1FE
+prbs9I = prbs9(SEED_I)
+prbs9Q = prbs9(SEED_Q)
 
 #### Mapper
 tx_symI_map_log = np.zeros(NSYMB)
