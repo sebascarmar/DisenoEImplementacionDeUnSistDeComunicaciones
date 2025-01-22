@@ -58,10 +58,3 @@ def theoric_ber(M, SNRdB):
 
     return ber
 
-
-### It's used for rotate the input constelation post slicer
-def inv(bit):
-    # Invert the input bit
-    return 0 if (bit==1) else 1
-
-
