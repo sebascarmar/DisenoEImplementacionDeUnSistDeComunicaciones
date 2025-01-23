@@ -138,15 +138,15 @@ rx_symI_fse = np.zeros(NSYMB*OS_DSP)
 rx_symQ_fse = np.zeros(NSYMB*OS_DSP)
 
 log_step    = 500
-coeffs_log  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
+fse_coeff  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
 # FCR variables
 nco_out     = 0
 int_err     = 0 
 rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
 rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
-nco_log = np.zeros(NSYMB*OS_DSP)
-int_log = np.zeros(NSYMB*OS_DSP)
+nco_log     = np.zeros(NSYMB*OS_DSP)
+int_err_log = np.zeros(NSYMB*OS_DSP)
 
 # Downsampler (rate 1)
 rx_symI_dw_rate1 = np.zeros(NSYMB)
@@ -194,7 +194,7 @@ for i in range(NSYMB*OS_DSP):
         fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
                        lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
         if( (((i+1)/OS_DSP)%log_step) == 0 ):
-            coeffs_log[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
+            fse_coeff[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
         
         # Phase error
         prod = (rx_symI_fcr[i]+1j*rx_symQ_fcr[i])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
