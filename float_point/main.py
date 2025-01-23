@@ -117,16 +117,16 @@ aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
-#### Downsampler
-rx_symI_dw = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
-rx_symQ_dw = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
+#### Downsampler (rate 2)
+rx_symI_dw_rate2 = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
+rx_symQ_dw_rate2 = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 
 #### AGC
 target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
-metric      = np.std(rx_symI_dw+1j*rx_symQ_dw)
+metric      = np.std(rx_symI_dw_rate2+1j*rx_symQ_dw_rate2)
 agc_gain    = target/metric
-rx_symI_agc =  rx_symI_dw * agc_gain
-rx_symQ_agc =  rx_symQ_dw * agc_gain
+rx_symI_agc =  rx_symI_dw_rate2 * agc_gain
+rx_symQ_agc =  rx_symQ_dw_rate2 * agc_gain
 
 #### DSP
 # FSE variables
@@ -148,6 +148,9 @@ rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
 nco_log = np.zeros(NSYMB*OS_DSP)
 int_log = np.zeros(NSYMB*OS_DSP)
 
+# Downsampler (rate 1)
+rx_symI_dw_rate1 = np.zeros(NSYMB)
+rx_symQ_dw_rate1 = np.zeros(NSYMB)
 
 # Slicer variables
 rx_symI_slcr = np.zeros(NSYMB)
@@ -168,14 +171,17 @@ for i in range(NSYMB*OS_DSP):
     # FCR output: multiplication by e^{-jnco_out}
     rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
     rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
-    nco_log[i] = nco_out
-    int_log[i] = int_err
+    nco_log[i]     = nco_out
+    int_err_log[i] = int_err
 
     if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
         k = int(i/OS_DSP)
+        # Downsampler (rate 1)
+        rx_symI_dw_rate1[k] = rx_symI_fcr[i]
+        rx_symQ_dw_rate1[k] = rx_symQ_fcr[i]
         # Slicer
-        rx_symI_slcr[k] = fn.slicer_pam(rx_symI_fcr[i])
-        rx_symQ_slcr[k] = fn.slicer_pam(rx_symQ_fcr[i])
+        rx_symI_slcr[k] = fn.slicer_pam(rx_symI_dw_rate1[k])
+        rx_symQ_slcr[k] = fn.slicer_pam(rx_symQ_dw_rate1[k])
         
         # Error for LMS
         coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
