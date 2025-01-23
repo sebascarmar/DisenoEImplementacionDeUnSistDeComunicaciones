@@ -19,7 +19,7 @@ from classes.ber import ber
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 1300000 # 1e6
+NSYMB = 1000000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
