@@ -81,7 +81,7 @@ CH_SYMI_ROT_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_ROT_LOG = np.zeros(OS*NSYMB)
 
 #### Channel filter
-ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=4*BR)
+ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=OS*BR)
 chann_filt_I = fir_filter(ch_filt_coeff)
 chann_filt_Q = fir_filter(ch_filt_coeff)
 CH_SYMI_CHFILT_LOG = np.zeros(OS*NSYMB)
@@ -89,7 +89,7 @@ CH_SYMQ_CHFILT_LOG = np.zeros(OS*NSYMB)
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff  = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=OS*BR)
 aaf_filt_I = fir_filter(aaf_coeff)
 aaf_filt_Q = fir_filter(aaf_coeff)
 RX_SYMI_AAF_LOG = np.zeros(OS*NSYMB)

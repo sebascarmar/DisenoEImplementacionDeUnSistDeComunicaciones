@@ -106,14 +106,14 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
 
 
 #### Channel filter
-ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=4*BR)
+ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=OS*BR)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=4*BR)
+aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=OS*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
@@ -631,11 +631,41 @@ plt.close()
 #
 ############################## TX FILTER ###############################
 ### Transmitter Filter graphics: frequency response and time
-##darkcyan
+#
+## Get frequencies and magnitudes
+#f_rrc, h_rrc = signal.freqz(rrc, worN=800, fs=OS*BR)
+## Find the -3 dB point
+#fc_idx = np.where(20*np.log10(np.abs(h_rrc)) <= -3.01)[0][0]
+#actual_fc_rrc = f_rrc[fc_idx]
+### Frequency response of the channel filter
+#plt.figure(figsize=(8, 5))
+#plt.semilogx(f_rrc, 20*np.log10(np.abs(h_rrc)), color='darkcyan')
+#plt.axhline(y=-3.01,color='black',linestyle='dashed',linewidth=2.0,label=f"{3.01:.2f}dB")
+#plt.axvline(x=actual_fc_rrc,color='gray',linewidth=2.0,label=f"{actual_fc_rrc / 1e6:.2f}MHz")
+#plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,label=f"{0.5*BR / 1e6:.2f}MHz")
+#plt.title("Bode - Transmitter Filter ({} taps)".format(len(rrc)))
+#plt.xlabel("Frequency [Hz]")
+#plt.ylabel("Magnitud [dB]")
+#plt.legend(loc="lower left")
+#plt.grid(True)
+##plt.show()
 #
 #
-#
-#
+## Time axis (centered around zero)
+#t = np.linspace(-0.5*(1/(OS*BR))*(len(rrc)-1),
+#                0.5*(1/(OS*BR))*(len(rrc)-1),
+#                len(rrc))
+## Impulse response of the transmitter filter
+#plt.figure(figsize=[7,4])
+#plt.plot(t, rrc, color='darkcyan', marker='o',
+#         linestyle='-', linewidth=2.0, label=f"{len(rrc)} taps")
+#plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
+#plt.title('Transmitter Filter Coefficients')
+#plt.xlabel('Time (s)')
+#plt.ylabel('Magnitud')
+#plt.legend(loc="upper right")
+#plt.grid(True)
+##plt.show()
 #
 #
 ########################### CHANNEL FILTER ##############################
@@ -644,35 +674,35 @@ plt.close()
 ## Get frequencies and magnitudes
 #f_cha, h_cha = signal.freqz(ch_filt_coeff, worN=800, fs=4*BR)
 ## Find the -3 dB point
-#cutoff_idx = np.where(20*np.log10(np.abs(h_cha)) <= -3.01)[0][0]
-#actual_cutoff_fc = f_cha[cutoff_idx]
+#fc_idx_ch = np.where(20*np.log10(np.abs(h_cha)) <= -3.01)[0][0]
+#actual_fc_ch = f_cha[fc_idx_ch]
 ### Frequency response of the channel filter
 #plt.figure(figsize=(8, 5))
 #plt.semilogx(f_cha, 20*np.log10(np.abs(h_cha)), color='fuchsia')
-#plt.axvline(x=actual_cutoff_fc,color='gray',linewidth=2.0,label=f"{actual_cutoff_fc / 1e6:.2f}")
-#plt.axhline(y=-3,color='gray',linewidth=2.0)
-#plt.axvline(x=fc_ch_filter,color='coral',linewidth=2.0,label=f"{fc_ch_filter / 1e6:.2f}")
+#plt.axhline(y=-3,color='black',linestyle='dashed',linewidth=2.0)
+#plt.axvline(x=actual_fc_ch,color='gray',linewidth=2.0,label=f"{actual_fc_ch / 1e6:.2f}MHz")
+#plt.axvline(x=fc_ch_filter,color='coral',linewidth=2.0,label=f"{fc_ch_filter / 1e6:.2f}MHz")
 #plt.title("Bode - Channel Filter ({} taps)".format(len(ch_filt_coeff)))
 #plt.xlabel("Frequency [Hz]")
 #plt.ylabel("Magnitud [dB]")
-#plt.legend()
+#plt.legend(loc="lower left")
 #plt.grid(True)
 ##plt.show()
 #
 #
 ## Time axis (centered around zero)
-#t = np.linspace(-0.5*(1/BR)*(len(ch_filt_coeff)-1),
-#                0.5*(1/BR)*(len(ch_filt_coeff)-1),
+#t = np.linspace(-0.5*(1/(OS*BR))*(len(ch_filt_coeff)-1),
+#                0.5*(1/(OS*BR))*(len(ch_filt_coeff)-1),
 #                len(ch_filt_coeff))
 ## Impulse response of the channel filter
-#plt.figure(figsize=[8, 5])
+#plt.figure(figsize=[7, 4])
 #plt.plot(t, ch_filt_coeff, color='fuchsia', marker='o',
 #         linestyle='-', linewidth=2.0, label=f"{len(ch_filt_coeff)} taps")
 #plt.axvline(0, color='k', linestyle='--', linewidth=1.5)
-#plt.title('Filter Coefficients - Channel Filter')
+#plt.title('Channel Filter Coefficients')
 #plt.xlabel('Time (s)')
 #plt.ylabel('Magnitud')
-#plt.legend()
+#plt.legend(loc="upper right")
 #plt.grid(True)
 ##plt.show()
 #
@@ -683,35 +713,35 @@ plt.close()
 ## Get frequencies and magnitudes
 #f_aaf, h_aaf = signal.freqz(aaf_coeff, worN=800, fs=4*BR)
 ## Find the -3 dB point
-#cutoff_idx = np.where(20*np.log10(np.abs(h_aaf)) <= -3.01)[0][0]
-#actual_cutoff_fc = f_aaf[cutoff_idx]
+#fc_idx_aaf    = np.where(20*np.log10(np.abs(h_aaf)) <= -3.01)[0][0]
+#actual_fc_aaf = f_aaf[fc_idx_aaf]
 ### Frequency response of the channel filter
 #plt.figure(figsize=(8, 5))
 #plt.semilogx(f_aaf, 20*np.log10(np.abs(h_aaf)), color='mediumblue')
-#plt.axvline(x=actual_cutoff_fc,color='gray',linewidth=2.0,label=f"{actual_cutoff_fc / 1e6:.2f}")
-#plt.axhline(y=-3,color='gray',linewidth=2.0)
-#plt.axvline(x=BR,color='coral',linewidth=2.0,label=f"{BR / 1e6:.2f}")
+#plt.axhline(y=-3,color='black',linestyle='dashed',linewidth=2.0)
+#plt.axvline(x=actual_fc_aaf,color='gray',linewidth=2.0,label=f"{actual_fc_aaf / 1e6:.2f}MHz")
+#plt.axvline(x=BR,color='coral',linewidth=2.0,label=f"{BR / 1e6:.2f}MHz")
 #plt.title("Bode - Anti-Alias Filter ({} taps)".format(len(aaf_coeff)))
 #plt.xlabel("Frequency [Hz]")
 #plt.ylabel("Magnitud [dB]")
-#plt.legend()
+#plt.legend(loc="lower left")
 #plt.grid(True)
 ##plt.show()
 #
 #
 ## Time axis (centered around zero)
-#t = np.linspace(-0.5*(1/BR)*(len(aaf_coeff)-1),
-#                0.5*(1/BR)*(len(aaf_coeff)-1),
+#t = np.linspace(-0.5*(1/(OS*BR))*(len(aaf_coeff)-1),
+#                0.5*(1/(OS*BR))*(len(aaf_coeff)-1),
 #                len(aaf_coeff))
 ## Impulse response of the channel filter
-#plt.figure(figsize=[8, 5])
+#plt.figure(figsize=[7, 4])
 #plt.plot(t, aaf_coeff, color='mediumblue', marker='o',
 #         linestyle='-', linewidth=2.0, label=f"{len(aaf_coeff)} taps")
 #plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-#plt.title('Filter Coefficients - Anti-Alias Filter')
+#plt.title('Anti-Alias Filter Coefficients')
 #plt.xlabel('Time (s)')
 #plt.ylabel('Magnitud')
-#plt.legend()
+#plt.legend(loc="upper right")
 #plt.grid(True)
 #plt.show()
 #
