@@ -96,8 +96,8 @@ RX_SYMI_AAF_LOG = np.zeros(OS*NSYMB)
 RX_SYMQ_AAF_LOG = np.zeros(OS*NSYMB)
 
 #### Downsampler (rate 2)
-dw_aaf_shifter_I = np.zeros(OS_DSP)
-dw_aaf_shifter_Q = np.zeros(OS_DSP)
+dw_r2_shftr_I = np.zeros(OS_DSP)
+dw_r2_shftr_Q = np.zeros(OS_DSP)
 RX_SYMI_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 RX_SYMQ_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 
@@ -121,19 +121,21 @@ RX_SYMQ_FSE_LOG = np.zeros(NSYMB*OS_DSP)
 log_step     = 500
 FSE_I_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
+# Downsampler (rate 1)
+dw_r1_shftr_I     = np.zeros(OS_DSP)
+dw_r1_shftr_Q     = np.zeros(OS_DSP)
+RX_SYMI_DW_RATE1_LOG = np.zeros(NSYMB)
+RX_SYMQ_DW_RATE1_LOG = np.zeros(NSYMB)
+
 # FCR variables
 nco_out     = 0
 int_err     = 0 
 rx_symI_fcr = 0.0
 rx_symQ_fcr = 0.0
-RX_SYMI_FCR_LOG = np.zeros(NSYMB*OS_DSP)
-RX_SYMQ_FCR_LOG = np.zeros(NSYMB*OS_DSP)
-NCO_OUT_LOG     = np.zeros(NSYMB*OS_DSP)
-INT_ERR_LOG     = np.zeros(NSYMB*OS_DSP)
-
-# Downsampler (rate 1)
-RX_SYMI_DW_RATE1_LOG = np.zeros(NSYMB)
-RX_SYMQ_DW_RATE1_LOG = np.zeros(NSYMB)
+RX_SYMI_FCR_LOG = np.zeros(NSYMB)
+RX_SYMQ_FCR_LOG = np.zeros(NSYMB)
+NCO_OUT_LOG     = np.zeros(NSYMB)
+INT_ERR_LOG     = np.zeros(NSYMB)
 
 # Slicer variables     np.zeros(NSYMB
 RX_SYMI_SLCR_LOG = np.zeros(NSYMB)
@@ -201,22 +203,22 @@ for i in range(NSYMB*OS):
     RX_SYMQ_AAF_LOG[i] = rx_symQ_aaf
 
     #### Downsamplers (rate 2)
-    dw_aaf_shifter_I    = np.roll(dw_aaf_shifter_I,1)
-    dw_aaf_shifter_Q    = np.roll(dw_aaf_shifter_Q,1)
-    dw_aaf_shifter_I[0] = rx_symI_aaf
-    dw_aaf_shifter_Q[0] = rx_symQ_aaf
+    dw_r2_shftr_I    = np.roll(dw_r2_shftr_I,1)
+    dw_r2_shftr_Q    = np.roll(dw_r2_shftr_Q,1)
+    dw_r2_shftr_I[0] = rx_symI_aaf
+    dw_r2_shftr_Q[0] = rx_symQ_aaf
 
-    rx_symI_dw = dw_aaf_shifter_I[0]
-    rx_symQ_dw = dw_aaf_shifter_Q[0]
+    rx_symI_dw_r2 = dw_r2_shftr_I[0]
+    rx_symQ_dw_r2 = dw_r2_shftr_Q[0]
 
     if( i%OS_DSP ==0 ): # Downsampling to OS_DSP*BR rate
         j = int(i/OS_DSP)
-        RX_SYMI_DW_RATE2_LOG[j] = rx_symI_dw
-        RX_SYMQ_DW_RATE2_LOG[j] = rx_symQ_dw
+        RX_SYMI_DW_RATE2_LOG[j] = rx_symI_dw_r2
+        RX_SYMQ_DW_RATE2_LOG[j] = rx_symQ_dw_r2
         
         #### AGC
-        rx_symI_agc =  rx_symI_dw * agc_gain
-        rx_symQ_agc =  rx_symQ_dw * agc_gain
+        rx_symI_agc =  rx_symI_dw_r2 * agc_gain
+        rx_symQ_agc =  rx_symQ_dw_r2 * agc_gain
         RX_SYMI_AGC_LOG[j] = rx_symI_agc
         RX_SYMQ_AGC_LOG[j] = rx_symQ_agc
         
@@ -228,23 +230,35 @@ for i in range(NSYMB*OS):
         fseQ_buffer[0]  = rx_symQ_agc
         
         # Filter output
-        rx_symI_fse = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
-        rx_symQ_fse = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
+        rx_symI_fse = (np.dot(fseI_buffer,fseI_coeff)-
+                       np.dot(fseQ_buffer,fseQ_coeff))
+        rx_symQ_fse = (np.dot(fseI_buffer,fseQ_coeff)+
+                       np.dot(fseQ_buffer,fseI_coeff))
         RX_SYMI_FSE_LOG[j] = rx_symI_fse 
         RX_SYMQ_FSE_LOG[j] = rx_symQ_fse 
         
-        # FCR output: multiplication by e^{-jnco_out}
-        rx_symI_fcr = rx_symI_fse*np.cos(-nco_out) - rx_symQ_fse*np.sin(-nco_out)
-        rx_symQ_fcr = rx_symI_fse*np.sin(-nco_out) + rx_symQ_fse*np.cos(-nco_out)
-        RX_SYMI_FCR_LOG[j] = rx_symI_fcr 
-        RX_SYMQ_FCR_LOG[j] = rx_symQ_fcr 
-        NCO_OUT_LOG[j]     = nco_out
-        INT_ERR_LOG[j]     = int_err
+        #### Downsamplers (rate 2)
+        dw_r1_shftr_I    = np.roll(dw_r1_shftr_I,1)
+        dw_r1_shftr_Q    = np.roll(dw_r1_shftr_Q,1)
+        dw_r1_shftr_I[0] = rx_symI_fse
+        dw_r1_shftr_Q[0] = rx_symQ_fse
+        
+        rx_symI_dw_r1 = dw_r1_shftr_I[0]
+        rx_symQ_dw_r1 = dw_r1_shftr_Q[0]
         
         if((j+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
             k = int(j/OS_DSP)
-            RX_SYMI_DW_RATE1_LOG[k] = rx_symI_fcr
-            RX_SYMQ_DW_RATE1_LOG[k] = rx_symQ_fcr
+            RX_SYMI_DW_RATE1_LOG[k] = rx_symI_dw_r1
+            RX_SYMQ_DW_RATE1_LOG[k] = rx_symQ_dw_r1
+            
+            # FCR output: multiplication by e^{-jnco_out}
+            rx_symI_fcr = (rx_symI_dw_r1*np.cos(-nco_out) -
+                           rx_symQ_dw_r1*np.sin(-nco_out))
+            rx_symQ_fcr = (rx_symI_dw_r1*np.sin(-nco_out) +
+                           rx_symQ_dw_r1*np.cos(-nco_out))
+            RX_SYMI_FCR_LOG[k] = rx_symI_fcr 
+            RX_SYMQ_FCR_LOG[k] = rx_symQ_fcr 
+          
             # Slicer
             rx_symI_slcr = fn.slicer_pam(rx_symI_fcr)
             rx_symQ_slcr = fn.slicer_pam(rx_symQ_fcr)
@@ -257,6 +271,7 @@ for i in range(NSYMB*OS):
             coeff_err_Q = ((rx_symI_fcr-rx_symI_slcr)*np.sin(nco_out) +
                            (rx_symQ_fcr-rx_symQ_slcr)*np.cos(nco_out))
             
+            # LMS
             fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
                            lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
             fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
@@ -279,6 +294,10 @@ for i in range(NSYMB*OS):
             int_err  = (Ki2 * angle_err) + int_err
             # NCO
             nco_out  = (prop_err+int_err) + nco_out
+            NCO_OUT_LOG[k]     = nco_out
+            INT_ERR_LOG[k]     = int_err
+        ##### DSP end
+            
             
             # Demapper
             rx_bitI_demap = 0 if(rx_symI_slcr==1) else 1
@@ -287,7 +306,7 @@ for i in range(NSYMB*OS):
             RX_BITQ_DEMAP_LOG[k] = rx_bitQ_demap
          
             ######################## BIT-ERROR RATE ########################
-            if( k<START_SYN ): ### Wait for convergence before start synchronization
+            if( k<START_SYN ): ### Wait for converge. before start synchron.
                 ber_IjQ.reset_values()
                 
             elif( k>=START_SYN and k<START_CNT ): ########## Synchronization

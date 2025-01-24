@@ -118,15 +118,15 @@ rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
 #### Downsampler (rate 2)
-rx_symI_dw_rate2 = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
-rx_symQ_dw_rate2 = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
+rx_symI_dw_r2 = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
+rx_symQ_dw_r2 = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 
 #### AGC
 target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
-metric      = np.std(rx_symI_dw_rate2+1j*rx_symQ_dw_rate2)
+metric      = np.std(rx_symI_dw_r2+1j*rx_symQ_dw_r2)
 agc_gain    = target/metric
-rx_symI_agc =  rx_symI_dw_rate2 * agc_gain
-rx_symQ_agc =  rx_symQ_dw_rate2 * agc_gain
+rx_symI_agc =  rx_symI_dw_r2 * agc_gain
+rx_symQ_agc =  rx_symQ_dw_r2 * agc_gain
 
 #### DSP
 # FSE variables
@@ -140,70 +140,74 @@ rx_symQ_fse = np.zeros(NSYMB*OS_DSP)
 log_step    = 500
 fse_coeff  = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
+# Downsampler (rate 1)
+rx_symI_dw_r1 = np.zeros(NSYMB)
+rx_symQ_dw_r1 = np.zeros(NSYMB)
+
 # FCR variables
 nco_out     = 0
 int_err     = 0 
-rx_symI_fcr = np.zeros(NSYMB*OS_DSP)
-rx_symQ_fcr = np.zeros(NSYMB*OS_DSP)
-nco_log     = np.zeros(NSYMB*OS_DSP)
-int_err_log = np.zeros(NSYMB*OS_DSP)
-
-# Downsampler (rate 1)
-rx_symI_dw_rate1 = np.zeros(NSYMB)
-rx_symQ_dw_rate1 = np.zeros(NSYMB)
+rx_symI_fcr = np.zeros(NSYMB)
+rx_symQ_fcr = np.zeros(NSYMB)
+nco_log     = np.zeros(NSYMB)
+int_err_log = np.zeros(NSYMB)
 
 # Slicer variables
 rx_symI_slcr = np.zeros(NSYMB)
 rx_symQ_slcr = np.zeros(NSYMB)
 
 # Loop
-for i in range(NSYMB*OS_DSP):
+for j in range(NSYMB*OS_DSP):
     # Filter buffer
     fseI_buffer[1:] = fseI_buffer[:-1]
-    fseI_buffer[0]  = rx_symI_agc[i]
+    fseI_buffer[0]  = rx_symI_agc[j]
     fseQ_buffer[1:] = fseQ_buffer[:-1]
-    fseQ_buffer[0]  = rx_symQ_agc[i]
+    fseQ_buffer[0]  = rx_symQ_agc[j]
 
     # Filter output
-    rx_symI_fse[i] = np.dot(fseI_buffer,fseI_coeff)-np.dot(fseQ_buffer,fseQ_coeff)
-    rx_symQ_fse[i] = np.dot(fseI_buffer,fseQ_coeff)+np.dot(fseQ_buffer,fseI_coeff)
-    
-    # FCR output: multiplication by e^{-jnco_out}
-    rx_symI_fcr[i] = rx_symI_fse[i]*np.cos(-nco_out) - rx_symQ_fse[i]*np.sin(-nco_out)
-    rx_symQ_fcr[i] = rx_symI_fse[i]*np.sin(-nco_out) + rx_symQ_fse[i]*np.cos(-nco_out)
-    nco_log[i]     = nco_out
-    int_err_log[i] = int_err
+    rx_symI_fse[j] = (np.dot(fseI_buffer,fseI_coeff)-
+                      np.dot(fseQ_buffer,fseQ_coeff))
+    rx_symQ_fse[j] = (np.dot(fseI_buffer,fseQ_coeff)+
+                      np.dot(fseQ_buffer,fseI_coeff))
 
-    if((i+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
-        k = int(i/OS_DSP)
+    if((j+1)%OS_DSP)==0: # Downsampling to BR rate (os=1)
+        k = int(j/OS_DSP)
         # Downsampler (rate 1)
-        rx_symI_dw_rate1[k] = rx_symI_fcr[i]
-        rx_symQ_dw_rate1[k] = rx_symQ_fcr[i]
+        rx_symI_dw_r1[k] = rx_symI_fse[j]
+        rx_symQ_dw_r1[k] = rx_symQ_fse[j]
+        
+        # FCR output: multiplication by e^{-jnco_out}
+        rx_symI_fcr[k] = (rx_symI_dw_r1[k]*np.cos(-nco_out) -
+                          rx_symQ_dw_r1[k]*np.sin(-nco_out))
+        rx_symQ_fcr[k] = (rx_symI_dw_r1[k]*np.sin(-nco_out) + 
+                          rx_symQ_dw_r1[k]*np.cos(-nco_out))
+        
         # Slicer
-        rx_symI_slcr[k] = fn.slicer_pam(rx_symI_dw_rate1[k])
-        rx_symQ_slcr[k] = fn.slicer_pam(rx_symQ_dw_rate1[k])
+        rx_symI_slcr[k] = fn.slicer_pam(rx_symI_fcr[k])
+        rx_symQ_slcr[k] = fn.slicer_pam(rx_symQ_fcr[k])
         
         # Error for LMS
-        coeff_err_I = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.cos(nco_out) -
-                       (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.sin(nco_out))
-        coeff_err_Q = ((rx_symI_fcr[i]-rx_symI_slcr[k])*np.sin(nco_out) +
-                       (rx_symQ_fcr[i]-rx_symQ_slcr[k])*np.cos(nco_out))
-        
-        fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
-                       lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
-        fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
-                       lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
-        if( (((i+1)/OS_DSP)%log_step) == 0 ):
-            fse_coeff[:, int(((i+1)/OS_DSP)/log_step)-1] = fseI_coeff
+        coeff_err_I = ((rx_symI_fcr[k]-rx_symI_slcr[k])*np.cos(nco_out) -
+                       (rx_symQ_fcr[k]-rx_symQ_slcr[k])*np.sin(nco_out))
+        coeff_err_Q = ((rx_symI_fcr[k]-rx_symI_slcr[k])*np.sin(nco_out) +
+                       (rx_symQ_fcr[k]-rx_symQ_slcr[k])*np.cos(nco_out))
         
         # Phase error
-        prod = (rx_symI_fcr[i]+1j*rx_symQ_fcr[i])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
+        prod = (rx_symI_fcr[k]+1j*rx_symQ_fcr[k])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
         if( np.abs(prod)!= 0 ):
             prod_norm = prod/np.abs(prod)
         else:
             prod_norm = 0 + 1j*0
         angle_err = prod_norm.imag
         
+        # LMS
+        fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
+                       lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
+        fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
+                       lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
+        if( (((j+1)/OS_DSP)%log_step) == 0 ):
+            fse_coeff[:, int(((j+1)/OS_DSP)/log_step)-1] = fseI_coeff
+      
         # PI loop filter
         Kp2 = Kp if(i>(NSYMB_CONVERGENCE/2)) else 0
         Ki2 = Ki if(i>(NSYMB_CONVERGENCE/2)) else 0
@@ -211,7 +215,9 @@ for i in range(NSYMB*OS_DSP):
         int_err  = (Ki2 * angle_err) + int_err
         # NCO
         nco_out  = (prop_err+int_err) + nco_out
-    
+        nco_log[k]     = nco_out
+        int_err_log[k] = int_err
+#----- DSP end
 
   
 ############################ BIT-ERROR RATE ############################
@@ -370,11 +376,11 @@ plt.close()
 plt.figure(figsize=[10,6])
 plt.subplot(2,1,1)
 plt.title('FCR Output I')
-plt.plot(rx_symI_fcr[fase:len(rx_symI_fcr)-fase:2],'x')
+plt.plot(rx_symI_fcr,'x')
 plt.grid(True)
 plt.subplot(2,1,2)
 plt.title('FCR Output Q')
-plt.plot(rx_symQ_fcr[fase:len(rx_symQ_fcr)-fase:2],'x')
+plt.plot(rx_symQ_fcr,'x')
 plt.grid(True)
 plt.xlabel('Nº símbolos')
 plt.ylabel('I')
@@ -393,7 +399,6 @@ plt.close()
 #####################################################################################
 #
 ###################### TX BITS AND MAPPED TO SYMB #######################
-#
 ## Generated bits and mapped to symbols 
 #plt.figure(figsize=[10,4])
 #plt.subplot(2,1,1)
@@ -515,15 +520,15 @@ plt.close()
 #
 #
 ################ RX DOWNSAMP. (RATE 2) AND AGC PROCESS ###################
-##Downsamp. symbols and symbols after AGC
+## Downsamp. symbols and symbols after AGC
 #plt.figure(figsize=[10,6])
 #plt.subplot(2,1,1)
-#plt.plot(range(len(rx_symI_dw_rate2)-500,len(rx_symI_dw_rate2)),
-#         rx_symI_dw_rate2[len(rx_symI_dw_rate2)-500:],
+#plt.plot(range(len(rx_symI_dw_r2)-500,len(rx_symI_dw_r2)),
+#         rx_symI_dw_r2[len(rx_symI_dw_r2)-500:],
 #         color='chocolate', linestyle='-', linewidth=2.0)
-#plt.xlim(len(rx_symI_dw_rate2)-500,len(rx_symI_dw_rate2)-1)
+#plt.xlim(len(rx_symI_dw_r2)-500,len(rx_symI_dw_r2)-1)
 #plt.title('Downsampled symbs (rate 2) and symbs after AGC')
-#plt.xlim(len(rx_symI_dw_rate2)-500,len(rx_symI_dw_rate2)-1)
+#plt.xlim(len(rx_symI_dw_r2)-500,len(rx_symI_dw_r2)-1)
 #plt.grid(True)
 ##------------------------------------------------------
 #plt.subplot(2,1,2)
@@ -552,21 +557,21 @@ plt.close()
 #plt.ylabel('Imag (Q)')
 #plt.legend()
 ##-------------------------------------------------------
-#plt.subplot(2,2,2) # FCR Output
-#plt.plot(rx_symI_fcr[len(rx_symI_fcr)-8000:],
-#         rx_symQ_fcr[len(rx_symQ_fcr)-8000:],
-#         color='dodgerblue', marker='.', linestyle='',
-#         label="FCR Output")
+#plt.subplot(2,2,2) # after downsampling to rate 1
+#plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
+#         rx_symQ_dw_r1[len(rx_symQ_dw_r1)-4000:],
+#         color='seagreen', marker='.', linestyle='',
+#         label='dowsamp. (rate 1)')
 #plt.xlim((-2, 2))
 #plt.ylim((-2, 2))
 #plt.grid(True)
 #plt.legend()
 ##-------------------------------------------------------
-#plt.subplot(2,2,3) # after downsampling to rate 1
-#plt.plot(rx_symI_dw_rate1[len(rx_symI_dw_rate1)-4000:],
-#         rx_symQ_dw_rate1[len(rx_symQ_dw_rate1)-4000:],
-#         color='seagreen', marker='.', linestyle='',
-#         label='dowsamp. (rate 1)')
+#plt.subplot(2,2,3) # FCR Output
+#plt.plot(rx_symI_fcr[len(rx_symI_fcr)-4000:],
+#         rx_symQ_fcr[len(rx_symQ_fcr)-4000:],
+#         color='dodgerblue', marker='.', linestyle='',
+#         label="FCR Output")
 #plt.xlim((-2, 2))
 #plt.ylim((-2, 2))
 #plt.grid(True)
@@ -599,7 +604,7 @@ plt.close()
 #plt.legend()
 ##-------------------------------------------------------
 #plt.subplot(2,2,2) # after downsampling to rate 1
-#plt.plot(rx_symI_dw_rate1,
+#plt.plot(rx_symI_dw_r1,
 #         color='seagreen', marker='.', linestyle='',
 #         label='dowsamp. (rate 1)')
 #plt.grid(True)
