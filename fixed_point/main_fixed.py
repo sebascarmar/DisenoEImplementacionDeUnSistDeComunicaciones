@@ -264,12 +264,14 @@ for i in range(NSYMB*OS):
                            (rx_symQ_fcr-rx_symQ_slcr)*np.cos(nco_out))
             
             # LMS
-            fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
-                           lms_step*(coeff_err_I*fseI_buffer + coeff_err_Q*fseQ_buffer))
-            fseQ_coeff = (fseQ_coeff*(1-lms_step*lms_leak) +
-                           lms_step*( coeff_err_I*fseQ_buffer - coeff_err_Q*fseI_buffer))
+            new_taps_I = (fse.get_coeffI()*(1-lms_step*lms_leak) - 
+                          lms_step*(coeff_err_I*fse.get_buffI() + coeff_err_Q*fse.get_buffQ()))
+            new_taps_Q = (fse.get_coeffQ()*(1-lms_step*lms_leak) +
+                          lms_step*(coeff_err_I*fse.get_buffQ() - coeff_err_Q*fse.get_buffI()))
+            fse.set_taps(new_taps_I, new_taps_Q)
             if( (((j+1)/OS_DSP)%log_step) == 0 ):
-                FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fseI_coeff
+                FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
+            
             
             # Phase error
             prod = (rx_symI_fcr+1j*rx_symQ_fcr)*(rx_symI_slcr-1j*rx_symQ_slcr)
