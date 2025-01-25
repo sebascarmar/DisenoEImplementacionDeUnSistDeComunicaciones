@@ -10,6 +10,7 @@ from classes.noise_gen import noise_gen
 from classes.offset_gen import offset_gen
 from classes.fir_filter import fir_filter
 from classes.ber import ber
+from classes.fse_class import fse_class
 
 
 ####################################################################################
@@ -108,10 +109,7 @@ RX_SYMQ_AGC_LOG =  np.zeros(NSYMB*OS_DSP)
 
 #### DSP
 # FSE variables
-fseI_buffer = np.zeros(NTAPS_FSE)
-fseQ_buffer = np.zeros(NTAPS_FSE)
-fseI_coeff  = np.zeros(NTAPS_FSE); fseI_coeff[int(NTAPS_FSE/2)] = 1
-fseQ_coeff  = np.zeros(NTAPS_FSE); fseQ_coeff[int(NTAPS_FSE/2)] = 0
+fse = fse_class(NTAPS_FSE)
 
 rx_symI_fse = 0.0
 rx_symQ_fse = 0.0
@@ -223,17 +221,8 @@ for i in range(NSYMB*OS):
         RX_SYMQ_AGC_LOG[j] = rx_symQ_agc
         
         #### DSP
-        # Filter buffer
-        fseI_buffer[1:] = fseI_buffer[:-1]
-        fseI_buffer[0]  = rx_symI_agc
-        fseQ_buffer[1:] = fseQ_buffer[:-1]
-        fseQ_buffer[0]  = rx_symQ_agc
-        
-        # Filter output
-        rx_symI_fse = (np.dot(fseI_buffer,fseI_coeff)-
-                       np.dot(fseQ_buffer,fseQ_coeff))
-        rx_symQ_fse = (np.dot(fseI_buffer,fseQ_coeff)+
-                       np.dot(fseQ_buffer,fseI_coeff))
+        # FSE output calculation
+        rx_symI_fse, rx_symQ_fse  = fse.filt(rx_symI_agc,rx_symQ_agc)
         RX_SYMI_FSE_LOG[j] = rx_symI_fse 
         RX_SYMQ_FSE_LOG[j] = rx_symQ_fse 
         
@@ -265,6 +254,9 @@ for i in range(NSYMB*OS):
             RX_SYMI_SLCR_LOG[k] = rx_symI_slcr
             RX_SYMQ_SLCR_LOG[k] = rx_symQ_slcr
             
+#    new_taps = lms.update(fse.get_coeffI(),fse.get_coeffQ()
+#                          fse.get_buffI(), fse.get_buffQ(),
+#                          se.buffer, error)
             # Error for LMS
             coeff_err_I = ((rx_symI_fcr-rx_symI_slcr)*np.cos(nco_out) -
                            (rx_symQ_fcr-rx_symQ_slcr)*np.sin(nco_out))
