@@ -11,6 +11,7 @@ from classes.offset_gen import offset_gen
 from classes.fir_filter import fir_filter
 from classes.ber import ber
 from classes.fse_class import fse_class
+from classes.lms_class import lms_class
 
 
 ####################################################################################
@@ -118,6 +119,9 @@ RX_SYMQ_FSE_LOG = np.zeros(NSYMB*OS_DSP)
 
 log_step     = 500
 FSE_I_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
+
+# LMS variables
+lms = lms_class(lms_step, lms_leak)
 
 # Downsampler (rate 1)
 dw_r1_shftr_I     = np.zeros(OS_DSP)
@@ -254,9 +258,6 @@ for i in range(NSYMB*OS):
             RX_SYMI_SLCR_LOG[k] = rx_symI_slcr
             RX_SYMQ_SLCR_LOG[k] = rx_symQ_slcr
             
-#    new_taps = lms.update(fse.get_coeffI(),fse.get_coeffQ()
-#                          fse.get_buffI(), fse.get_buffQ(),
-#                          se.buffer, error)
             # Error for LMS
             coeff_err_I = ((rx_symI_fcr-rx_symI_slcr)*np.cos(nco_out) -
                            (rx_symQ_fcr-rx_symQ_slcr)*np.sin(nco_out))
@@ -264,11 +265,14 @@ for i in range(NSYMB*OS):
                            (rx_symQ_fcr-rx_symQ_slcr)*np.cos(nco_out))
             
             # LMS
-            new_taps_I = (fse.get_coeffI()*(1-lms_step*lms_leak) - 
-                          lms_step*(coeff_err_I*fse.get_buffI() + coeff_err_Q*fse.get_buffQ()))
-            new_taps_Q = (fse.get_coeffQ()*(1-lms_step*lms_leak) +
-                          lms_step*(coeff_err_I*fse.get_buffQ() - coeff_err_Q*fse.get_buffI()))
-            fse.set_taps(new_taps_I, new_taps_Q)
+#            new_taps_I = (fse.get_coeffI()*(1-lms_step*lms_leak) - 
+#                          lms_step*(coeff_err_I*fse.get_buffI() + coeff_err_Q*fse.get_buffQ()))
+#            new_taps_Q = (fse.get_coeffQ()*(1-lms_step*lms_leak) +
+#                          lms_step*(coeff_err_I*fse.get_buffQ() - coeff_err_Q*fse.get_buffI()))
+            coeffI, coeffQ = lms.update(coeff_err_I     , coeff_err_Q    ,
+                                        fse.get_coeffI(), fse.get_buffI(),
+                                        fse.get_coeffQ(), fse.get_buffQ())
+            fse.set_taps(coeffI, coeffQ)
             if( (((j+1)/OS_DSP)%log_step) == 0 ):
                 FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
             
