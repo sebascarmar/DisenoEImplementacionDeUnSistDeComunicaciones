@@ -191,14 +191,9 @@ for j in range(NSYMB*OS_DSP):
                        (rx_symQ_fcr[k]-rx_symQ_slcr[k])*np.sin(nco_out))
         coeff_err_Q = ((rx_symI_fcr[k]-rx_symI_slcr[k])*np.sin(nco_out) +
                        (rx_symQ_fcr[k]-rx_symQ_slcr[k])*np.cos(nco_out))
-        
         # Phase error
-        prod = (rx_symI_fcr[k]+1j*rx_symQ_fcr[k])*(rx_symI_slcr[k]-1j*rx_symQ_slcr[k])
-        if( np.abs(prod)!= 0 ):
-            prod_norm = prod/np.abs(prod)
-        else:
-            prod_norm = 0 + 1j*0
-        angle_err = prod_norm.imag
+        angle_err = ( np.angle(rx_symI_fcr[k]+1j*rx_symQ_fcr[k])
+                     -np.angle(rx_symI_slcr[k]+1j*rx_symQ_slcr[k]) )
         
         # LMS
         fseI_coeff = (fseI_coeff*(1-lms_step*lms_leak) - 
