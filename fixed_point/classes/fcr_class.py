@@ -32,7 +32,7 @@ class fcr_class:
         elif(Q>0):
             QoverI = self.range_atan-1  # For +Q and I=0, the arg. is 90º
         else:
-            QoverI = -self.range_atan-1 # For -Q and I=0, the arg. is -90º
+            QoverI = -self.range_atan+1 # For -Q and I=0, the arg. is -90º
       
         # Index search: map QoverI to an index in the arctan table
         idx = round(np.abs(QoverI) * (self.n_samp-1) / (self.range_atan-1))
@@ -74,12 +74,16 @@ class fcr_class:
       
         
         if( cyc_cnt>self.NSYM_FCR_ON ):
+            # Loop Filter
             self.proport_err  = self.Kp * self.angle_err
             self.integral_err = (self.Ki * self.angle_err) + self.integral_err
+            # NCO out
             self.nco_out = (self.proport_err+self.integral_err)+self.nco_out
         else:
+            # Loop Filter
             self.proport_err  = 0.0
             self.integral_err = 0.0
+            # NCO out
             self.nco_out = 0.0
 
 
