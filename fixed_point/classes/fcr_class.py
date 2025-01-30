@@ -7,7 +7,6 @@ class fcr_class:
         self.Kp = Kp
         self.Ki = Ki
         self.angle_err   = 0.0
-        self.angle_err_aux    = []
         self.proport_err = 0.0
         self.integral_err= 0.0
         self.nco_out = 0.0
@@ -16,13 +15,35 @@ class fcr_class:
         self.errI_unrot = 0.0
         self.errQ_unrot = 0.0
         
-        # Generate 1024 evenly spaced values from 0 to 500 and compute their arctan
-        self.range_atan = 500
-        self.n_samp     = 4096
+        # Generate 2048 evenly spaced values from 0 to 60 and compute their arctan
+        self.range_atan = 60
+        self.n_samp     = 2048
         x_values = np.linspace(0, self.range_atan-1, self.n_samp)
         self.arctan = np.arctan(x_values)
-        self.LOG_RANGE_DIV = []
+        
 
+
+    def __arctg(self, I, Q):
+        # Calculate the ratio of Q to I
+        if(I!=0):
+            QoverI = Q/I                # Normal case
+        elif(Q==0):
+            QoverI = 0                  # For Q=0 and I=0, the arg. is 0º
+        elif(Q>0):
+            QoverI = self.range_atan-1  # For +Q and I=0, the arg. is 90º
+        else:
+            QoverI = -self.range_atan-1 # For -Q and I=0, the arg. is -90º
+      
+        # Index search: map QoverI to an index in the arctan table
+        idx = round(np.abs(QoverI) * (self.n_samp-1) / (self.range_atan-1))
+        
+        # Get the argument value from the table
+        if( idx>(self.n_samp-1) ):
+            tita = np.pi/2 if(QoverI>=0) else -np.pi/2
+        else:
+            tita  = self.arctan[idx] if(QoverI>=0) else -self.arctan[idx]
+        
+        return tita
 
     
     def derot(self, symI, symQ):
@@ -46,33 +67,9 @@ class fcr_class:
 
 
     def pll_loop(self, cyc_cnt, symI_fcr, symQ_fcr, symI_slcr, symQ_slcr):
-        # Calculate arguments
-        if(symI_fcr!=0):
-            QoverI_fcr = symQ_fcr/symI_fcr       
-        elif(symQ_fcr==0):
-            QoverI_fcr = 0 # The complex number 0+j0 has an argument of 0º
-        elif(symQ_fcr>0):
-            QoverI_fcr = self.range_atan-1 
-        else:
-            QoverI_fcr = -self.range_atan-1 
-        QoverI_slcr = symQ_slcr/symI_slcr
-        self.LOG_RANGE_DIV.append(QoverI_fcr)
-        # Index search
-        idx_fcr = round(np.abs(QoverI_fcr) * (self.n_samp-1) / (self.range_atan-1))
-        idx_slcr = round(np.abs(QoverI_slcr) * (self.n_samp-1) / (self.range_atan-1))
-        # Get the argument value from the table
-        if(idx_fcr>1023):
-            tita_fcr = np.pi/2 if(QoverI_fcr>=0) else -np.pi/2
-        else:
-            tita_fcr  = self.arctan[idx_fcr] if(QoverI_fcr>=0) else -self.arctan[idx_fcr]
-        if(idx_slcr>1023):
-            tita_slcr = np.pi/2 if(QoverI_slcr>=0) else -np.pi/2
-        else:
-            tita_slcr  = self.arctan[idx_slcr] if(QoverI_slcr>=0) else -self.arctan[idx_slcr]
         # Phase error
-        self.angle_err = ( np.angle(symI_fcr+1j*symQ_fcr) -
-                           np.angle(symI_slcr+1j*symQ_slcr) )
-        self.angle_err_aux.append((tita_fcr - tita_slcr) - self.angle_err)
+        tita_fcr  = self.__arctg(symI_fcr, symQ_fcr)
+        tita_slcr = self.__arctg(symI_slcr, symQ_slcr)
         self.angle_err = (tita_fcr - tita_slcr)
       
         
@@ -93,10 +90,3 @@ class fcr_class:
     def get_integ_err(self):
         return self.integral_err
 
-
-    def get_log_range_div(self):
-        return self.LOG_RANGE_DIV
-
-
-    def get_log_angle_diff(self):
-        return self.angle_err_aux

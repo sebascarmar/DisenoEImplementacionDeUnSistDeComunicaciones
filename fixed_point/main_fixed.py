@@ -301,20 +301,6 @@ print("BER_Q: ", rate_I)
 print("theo_ber: ", th_ber)
 SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, Kp, fc_ch_filter, rate_I, rate_Q, th_ber]
 
-plt.figure(figsize=[10,6])
-plt.subplot(2,1,1)
-plt.plot(fcr.get_log_range_div(),
-         color='dimgray', marker='o',linestyle='')
-plt.title('Rango de división para argumento del arc.tan')
-plt.grid(True)
-#------------------------------------------------------
-plt.subplot(2,1,2)
-plt.plot(fcr.get_log_angle_diff(),
-         color='black', marker='o', linestyle='')
-plt.title('Diferencia de angulos calculados')
-plt.grid(True)
-plt.xlabel('Time [n]')
-plt.show()
 
 ################################## LOGS ################################
 np.savetxt('./logs/simulation_data.txt' , SIMULATION_DATA      , delimiter=',')
