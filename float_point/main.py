@@ -114,7 +114,7 @@ ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff   = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=OS*BR)
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
