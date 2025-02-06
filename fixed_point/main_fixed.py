@@ -38,12 +38,13 @@ NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
 fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
-OS_DSP    = 2
-NTAPS_FSE = 33
-lms_step  = 0.1e-3
-lms_leak  = 0
-Kp        = 1e-3
-Ki        = Kp/1000
+fc_aa_filter = 1.0*BR # Cut-off frecuency of anti-alias filter [Hz]
+OS_DSP       = 2
+NTAPS_FSE    = 33
+lms_step     = 0.1e-3
+lms_leak     = 0
+Kp           = 1e-3
+Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 450191
@@ -92,7 +93,7 @@ CH_SYMQ_CHFILT_LOG = np.zeros(OS*NSYMB)
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff  = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=OS*BR)
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
 aaf_filt_I = fir_filter(aaf_coeff)
 aaf_filt_Q = fir_filter(aaf_coeff)
 RX_SYMI_AAF_LOG = np.zeros(OS*NSYMB)
@@ -295,12 +296,13 @@ for i in range(NSYMB*OS):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 print("latency:",latency, "| ang:",rot_ang_detec)
-print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
+print("Kp=", Kp, " | Ki=", Ki, " | fc_ch=", fc_ch_filter, " | fc_aaf=",fc_aa_filter, )
 print("BER_I: ", rate_I)
-print("BER_Q: ", rate_I)
+print("BER_Q: ", rate_Q)
 print("theo_ber: ", th_ber)
-SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, Kp, fc_ch_filter, rate_I, rate_Q, th_ber]
-
+SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, lms_leak,
+                   Kp, Ki, fc_ch_filter, fc_aa_filter, rate_I, rate_Q, th_ber]
 
 ################################## LOGS ################################
 np.savetxt('./logs/simulation_data.txt' , SIMULATION_DATA      , delimiter=',')
