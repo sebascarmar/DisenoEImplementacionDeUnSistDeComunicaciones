@@ -12,6 +12,7 @@ from classes.fir_filter import fir_filter
 from classes.ber import ber
 from classes.fse_class import fse_class
 from classes.lms_class import lms_class
+from classes.fcr_class import fcr_class
 
 
 ####################################################################################
@@ -37,12 +38,13 @@ NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
 fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
-OS_DSP    = 2
-NTAPS_FSE = 33
-lms_step  = 0.1e-3
-lms_leak  = 0
-Kp        = 1e-3
-Ki        = Kp/1000
+fc_aa_filter = 1.0*BR # Cut-off frecuency of anti-alias filter [Hz]
+OS_DSP       = 2
+NTAPS_FSE    = 33
+lms_step     = 0.1e-3
+lms_leak     = 0
+Kp           = 1e-3
+Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 450191
@@ -91,7 +93,7 @@ CH_SYMQ_CHFILT_LOG = np.zeros(OS*NSYMB)
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff  = signal.firwin(numtaps=17, cutoff=BR ,window='hamming', fs=OS*BR)
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
 aaf_filt_I = fir_filter(aaf_coeff)
 aaf_filt_Q = fir_filter(aaf_coeff)
 RX_SYMI_AAF_LOG = np.zeros(OS*NSYMB)
@@ -130,8 +132,7 @@ RX_SYMI_DW_RATE1_LOG = np.zeros(NSYMB)
 RX_SYMQ_DW_RATE1_LOG = np.zeros(NSYMB)
 
 # FCR variables
-nco_out     = 0
-int_err     = 0 
+fcr = fcr_class(Kp, Ki, NSYMB_CONVERGENCE/2)
 rx_symI_fcr = 0.0
 rx_symQ_fcr = 0.0
 RX_SYMI_FCR_LOG = np.zeros(NSYMB)
@@ -245,10 +246,7 @@ for i in range(NSYMB*OS):
             RX_SYMQ_DW_RATE1_LOG[k] = rx_symQ_dw_r1
             
             # FCR output: multiplication by e^{-jnco_out}
-            rx_symI_fcr = (rx_symI_dw_r1*np.cos(-nco_out) -
-                           rx_symQ_dw_r1*np.sin(-nco_out))
-            rx_symQ_fcr = (rx_symI_dw_r1*np.sin(-nco_out) +
-                           rx_symQ_dw_r1*np.cos(-nco_out))
+            rx_symI_fcr, rx_symQ_fcr =  fcr.derot(rx_symI_dw_r1, rx_symQ_dw_r1)
             RX_SYMI_FCR_LOG[k] = rx_symI_fcr 
             RX_SYMQ_FCR_LOG[k] = rx_symQ_fcr 
           
@@ -259,16 +257,11 @@ for i in range(NSYMB*OS):
             RX_SYMQ_SLCR_LOG[k] = rx_symQ_slcr
             
             # Error for LMS
-            coeff_err_I = ((rx_symI_fcr-rx_symI_slcr)*np.cos(nco_out) -
-                           (rx_symQ_fcr-rx_symQ_slcr)*np.sin(nco_out))
-            coeff_err_Q = ((rx_symI_fcr-rx_symI_slcr)*np.sin(nco_out) +
-                           (rx_symQ_fcr-rx_symQ_slcr)*np.cos(nco_out))
+            coeff_err_I =(rx_symI_fcr-rx_symI_slcr)
+            coeff_err_Q =(rx_symQ_fcr-rx_symQ_slcr)
+            coeff_err_I, coeff_err_Q =  fcr.rot(coeff_err_I, coeff_err_Q)
             
             # LMS
-#            new_taps_I = (fse.get_coeffI()*(1-lms_step*lms_leak) - 
-#                          lms_step*(coeff_err_I*fse.get_buffI() + coeff_err_Q*fse.get_buffQ()))
-#            new_taps_Q = (fse.get_coeffQ()*(1-lms_step*lms_leak) +
-#                          lms_step*(coeff_err_I*fse.get_buffQ() - coeff_err_Q*fse.get_buffI()))
             coeffI, coeffQ = lms.update(coeff_err_I     , coeff_err_Q    ,
                                         fse.get_coeffI(), fse.get_buffI(),
                                         fse.get_coeffQ(), fse.get_buffQ())
@@ -276,24 +269,10 @@ for i in range(NSYMB*OS):
             if( (((j+1)/OS_DSP)%log_step) == 0 ):
                 FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
             
-            
-            # Phase error
-            prod = (rx_symI_fcr+1j*rx_symQ_fcr)*(rx_symI_slcr-1j*rx_symQ_slcr)
-            if( np.abs(prod)!= 0 ):
-                prod_norm = prod/np.abs(prod)
-            else:
-                prod_norm = 0 + 1j*0
-            angle_err = prod_norm.imag
-            
             # PI loop filter
-            Kp2 = Kp if(j>(NSYMB_CONVERGENCE/2)) else 0
-            Ki2 = Ki if(j>(NSYMB_CONVERGENCE/2)) else 0
-            prop_err =  Kp2 * angle_err
-            int_err  = (Ki2 * angle_err) + int_err
-            # NCO
-            nco_out  = (prop_err+int_err) + nco_out
-            NCO_OUT_LOG[k]     = nco_out
-            INT_ERR_LOG[k]     = int_err
+            fcr.pll_loop(k, rx_symI_fcr, rx_symQ_fcr, rx_symI_slcr, rx_symQ_slcr)
+            NCO_OUT_LOG[k] = fcr.get_nco_out()
+            INT_ERR_LOG[k] = fcr.get_integ_err()
         ##### DSP end
             
             
@@ -317,12 +296,13 @@ for i in range(NSYMB*OS):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 print("latency:",latency, "| ang:",rot_ang_detec)
-print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
+print("Kp=", Kp, " | Ki=", Ki, " | fc_ch=", fc_ch_filter, " | fc_aaf=",fc_aa_filter, )
 print("BER_I: ", rate_I)
-print("BER_Q: ", rate_I)
+print("BER_Q: ", rate_Q)
 print("theo_ber: ", th_ber)
-SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, Kp, fc_ch_filter, rate_I, rate_Q, th_ber]
-
+SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, lms_leak,
+                   Kp, Ki, fc_ch_filter, fc_aa_filter, rate_I, rate_Q, th_ber]
 
 ################################## LOGS ################################
 np.savetxt('./logs/simulation_data.txt' , SIMULATION_DATA      , delimiter=',')

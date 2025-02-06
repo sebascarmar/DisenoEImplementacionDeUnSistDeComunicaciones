@@ -30,12 +30,13 @@ NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
 fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
-OS_DSP    = 2
-NTAPS_FSE = 33
-lms_step  = 0.1e-3
-lms_leak  = 0
-Kp        = 1e-3
-Ki        = Kp/1000
+fc_aa_filter = 1.0*BR # Cut-off frecuency of anti-alias filter [Hz]
+OS_DSP       = 2
+NTAPS_FSE    = 33
+lms_step     = 0.1e-3
+lms_leak     = 0
+Kp           = 1e-3
+Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 450191
@@ -350,6 +351,7 @@ print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, 
 print("BER_I: ", bit_err_I/bit_tot_I)
 print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
+aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
 
 ################  PRINCIPAL GRAPHICS TO ANALYZE CONVERGENCE ISSUE #################
 fase = 1
@@ -635,14 +637,18 @@ plt.close()
 ## Get frequencies and magnitudes
 #f_rrc, h_rrc = signal.freqz(rrc, worN=800, fs=OS*BR)
 ## Find the -3 dB point
-#fc_idx = np.where(20*np.log10(np.abs(h_rrc)) <= -3.01)[0][0]
-#actual_fc_rrc = f_rrc[fc_idx]
+#fc_idx_rrc = np.where(20*np.log10(np.abs(h_rrc)) <= (20*np.log10(np.abs(h_rrc[50]))-3.01))[0][0]
+#actual_fc_rrc = f_rrc[fc_idx_rrc]
 ### Frequency response of the channel filter
 #plt.figure(figsize=(8, 5))
 #plt.semilogx(f_rrc, 20*np.log10(np.abs(h_rrc)), color='darkcyan')
-#plt.axhline(y=-3.01,color='black',linestyle='dashed',linewidth=2.0,label=f"{3.01:.2f}dB")
-#plt.axvline(x=actual_fc_rrc,color='gray',linewidth=2.0,label=f"{actual_fc_rrc / 1e6:.2f}MHz")
-#plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,label=f"{0.5*BR / 1e6:.2f}MHz")
+#plt.axhline(y=20*np.log10(np.abs(h_rrc[50]))-3.01,
+#            color='black',linestyle='dashed',linewidth=2.0,
+#            label=f"{20*np.log10(np.abs(h_rrc[50]))-3.01:.2f}dB")
+#plt.axvline(x=actual_fc_rrc,color='gray',linewidth=2.0,
+#            label=f"{actual_fc_rrc / 1e6:.2f}MHz")
+#plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,
+#            label=f"{0.5*BR / 1e6:.2f}MHz")
 #plt.title("Bode - Transmitter Filter ({} taps)".format(len(rrc)))
 #plt.xlabel("Frequency [Hz]")
 #plt.ylabel("Magnitud [dB]")
@@ -674,14 +680,18 @@ plt.close()
 ## Get frequencies and magnitudes
 #f_cha, h_cha = signal.freqz(ch_filt_coeff, worN=800, fs=4*BR)
 ## Find the -3 dB point
-#fc_idx_ch = np.where(20*np.log10(np.abs(h_cha)) <= -3.01)[0][0]
+#fc_idx_ch = np.where(20*np.log10(np.abs(h_cha)) <= (20*np.log10(np.abs(h_cha[50]))-3.01))[0][0]
 #actual_fc_ch = f_cha[fc_idx_ch]
 ### Frequency response of the channel filter
 #plt.figure(figsize=(8, 5))
 #plt.semilogx(f_cha, 20*np.log10(np.abs(h_cha)), color='fuchsia')
-#plt.axhline(y=-3,color='black',linestyle='dashed',linewidth=2.0)
-#plt.axvline(x=actual_fc_ch,color='gray',linewidth=2.0,label=f"{actual_fc_ch / 1e6:.2f}MHz")
-#plt.axvline(x=fc_ch_filter,color='coral',linewidth=2.0,label=f"{fc_ch_filter / 1e6:.2f}MHz")
+#plt.axhline(y=20*np.log10(np.abs(h_cha[50]))-3.01,
+#            color='black',linestyle='dashed',linewidth=2.0,
+#            label=f"{20*np.log10(np.abs(h_cha[50]))-3.01:.2f}dB")
+#plt.axvline(x=actual_fc_ch,color='gray',linewidth=2.0,
+#            label=f"{actual_fc_ch / 1e6:.2f}MHz")
+#plt.axvline(x=fc_ch_filter,color='coral',linewidth=2.0,
+#            label=f"{fc_ch_filter / 1e6:.2f}MHz")
 #plt.title("Bode - Channel Filter ({} taps)".format(len(ch_filt_coeff)))
 #plt.xlabel("Frequency [Hz]")
 #plt.ylabel("Magnitud [dB]")
@@ -713,14 +723,18 @@ plt.close()
 ## Get frequencies and magnitudes
 #f_aaf, h_aaf = signal.freqz(aaf_coeff, worN=800, fs=4*BR)
 ## Find the -3 dB point
-#fc_idx_aaf    = np.where(20*np.log10(np.abs(h_aaf)) <= -3.01)[0][0]
+#fc_idx_aaf    = np.where(20*np.log10(np.abs(h_aaf)) <= (20*np.log10(np.abs(h_aaf[50]))-3.01))[0][0]
 #actual_fc_aaf = f_aaf[fc_idx_aaf]
 ### Frequency response of the channel filter
 #plt.figure(figsize=(8, 5))
 #plt.semilogx(f_aaf, 20*np.log10(np.abs(h_aaf)), color='mediumblue')
-#plt.axhline(y=-3,color='black',linestyle='dashed',linewidth=2.0)
-#plt.axvline(x=actual_fc_aaf,color='gray',linewidth=2.0,label=f"{actual_fc_aaf / 1e6:.2f}MHz")
-#plt.axvline(x=BR,color='coral',linewidth=2.0,label=f"{BR / 1e6:.2f}MHz")
+#plt.axhline(y=20*np.log10(np.abs(h_aaf[50]))-3.01,
+#            color='black',linestyle='dashed',linewidth=2.0,
+#            label=f"{20*np.log10(np.abs(h_aaf[50]))-3.01:.2f}dB")
+#plt.axvline(x=actual_fc_aaf,color='gray',linewidth=2.0,
+#            label=f"{actual_fc_aaf / 1e6:.2f}MHz")
+#plt.axvline(x=fc_aa_filter,color='coral',linewidth=2.0,
+#            label=f"{fc_aa_filter / 1e6:.2f}MHz")
 #plt.title("Bode - Anti-Alias Filter ({} taps)".format(len(aaf_coeff)))
 #plt.xlabel("Frequency [Hz]")
 #plt.ylabel("Magnitud [dB]")
