@@ -347,11 +347,12 @@ for i in range(START_CNT,len(rx_slcr_Q)-lat_comp):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 
-print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | Kp=", Kp, " | fc_ch=", fc_ch_filter)
+print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
+print("Kp=", Kp, " | Ki=", Ki, " | fc_ch=", fc_ch_filter, " | fc_aaf=",fc_aa_filter, )
 print("BER_I: ", bit_err_I/bit_tot_I)
 print("BER_Q: ", bit_err_Q/bit_tot_Q)
 print("theo_ber: ", th_ber)
-aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
+
 
 ################  PRINCIPAL GRAPHICS TO ANALYZE CONVERGENCE ISSUE #################
 fase = 1
