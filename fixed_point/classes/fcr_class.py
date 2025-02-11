@@ -21,6 +21,10 @@ class fcr_class:
         x_values = np.linspace(0, self.range_atan-1, self.nsamp_atan)
         self.arctan = np.arctan(x_values)
         
+        # Generate a quarter-cycle sine table with 1025 samples points
+        self.nsamp_sin = 1025
+        wt             = np.linspace(0, np.pi/2, self.nsamp_sin)
+        self.sin_val   = np.sin(wt)
 
 
     def __arctg(self, I, Q):
@@ -45,23 +49,81 @@ class fcr_class:
         
         return tita
 
-    
+
+    def __sin(self, tita):
+        # Get absolute value of the angle and set the flag if it's negative
+        if(tita<0):
+            tita_aux = -tita
+            is_neg = True
+        else:
+            tita_aux = tita
+            is_neg = False
+        
+        # Compute the index for table lookup: rule of 3, round to the nearest
+        #integer and ensure overflow handling
+        idx = round(tita_aux*(self.nsamp_sin-1)/(np.pi/2)) & (4*(self.nsamp_sin-1)-1)
+        
+        # Get the value from the table depending on the corresponding quarter 
+        if( idx<=(self.nsamp_sin-1) ):
+            sin_out =  self.sin_val[idx]
+        elif( idx<=2*(self.nsamp_sin-1) ):
+            sin_out =  self.sin_val[2*(self.nsamp_sin-1) - idx]
+        elif( idx<=3*(self.nsamp_sin-1) ):
+            sin_out = -self.sin_val[idx - 2*(self.nsamp_sin-1)]
+        else:
+            sin_out = -self.sin_val[4*(self.nsamp_sin-1) - idx]
+        
+        # Use the odd symmetry of the sine function
+        if( is_neg ): 
+            sin_out = -sin_out
+        else:
+            sin_out =  sin_out
+        
+        # Return value
+        return sin_out
+
+
+    def __cos(self, tita):
+        # Get absolute value of the angle (cosine function has an even symmetry)
+        if(tita<0):
+            tita_aux = -tita
+        else:
+            tita_aux = tita
+        
+        # Compute the index for table lookup: rule of 3, round to the nearest
+        #integer and ensure overflow handling
+        idx = round(tita_aux*(self.nsamp_sin-1)/(np.pi/2)) & (4*(self.nsamp_sin-1)-1)
+        
+        # Get the value from the table depending on the corresponding quarter 
+        if( idx<=(self.nsamp_sin-1) ):
+            cos_out =  self.sin_val[(self.nsamp_sin-1) - idx]
+        elif( idx<=2*(self.nsamp_sin-1) ):
+            cos_out = -self.sin_val[idx - (self.nsamp_sin-1)]
+        elif( idx<=3*(self.nsamp_sin-1) ):
+            cos_out = -self.sin_val[3*(self.nsamp_sin-1) - idx]
+        else:
+            cos_out =  self.sin_val[idx - 3*(self.nsamp_sin-1)]
+        
+        # Return value
+        return cos_out
+
+
     def derot(self, symI, symQ):
         # multiplication by e^{-jnco_out}
-        self.symI_out = (symI*np.cos(-self.nco_out) -
-                         symQ*np.sin(-self.nco_out))
-        self.symQ_out = (symI*np.sin(-self.nco_out) +
-                         symQ*np.cos(-self.nco_out))
+        self.symI_out = (symI*self.__cos(-self.nco_out) -
+                         symQ*self.__sin(-self.nco_out))
+        self.symQ_out = (symI*self.__sin(-self.nco_out) +
+                         symQ*self.__cos(-self.nco_out))
         
         return self.symI_out, self.symQ_out
 
 
     def rot(self, errI, errQ):
         # multiplication by e^{+jnco_out}
-        self.errI_unrot = (errI*np.cos(self.nco_out) -
-                           errQ*np.sin(self.nco_out))
-        self.errQ_unrot = (errI*np.sin(self.nco_out) +
-                           errQ*np.cos(self.nco_out))
+        self.errI_unrot = (errI*self.__cos(self.nco_out) -
+                           errQ*self.__sin(self.nco_out))
+        self.errQ_unrot = (errI*self.__sin(self.nco_out) +
+                           errQ*self.__cos(self.nco_out))
         
         return self.errI_unrot, self.errQ_unrot
 
