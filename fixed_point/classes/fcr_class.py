@@ -17,8 +17,8 @@ class fcr_class:
         
         # Generate 2048 evenly spaced values from 0 to 60 and compute their arctan
         self.range_atan = 60
-        self.n_samp     = 2048
-        x_values = np.linspace(0, self.range_atan-1, self.n_samp)
+        self.nsamp_atan = 2048
+        x_values = np.linspace(0, self.range_atan-1, self.nsamp_atan)
         self.arctan = np.arctan(x_values)
         
 
@@ -35,10 +35,10 @@ class fcr_class:
             QoverI = -self.range_atan+1 # For -Q and I=0, the arg. is -90º
       
         # Index search: map QoverI to an index in the arctan table
-        idx = round(np.abs(QoverI) * (self.n_samp-1) / (self.range_atan-1))
+        idx = round(np.abs(QoverI) * (self.nsamp_atan-1) / (self.range_atan-1))
         
         # Get the argument value from the table
-        if( idx>(self.n_samp-1) ):
+        if( idx>(self.nsamp_atan-1) ):
             tita = np.pi/2 if(QoverI>=0) else -np.pi/2
         else:
             tita  = self.arctan[idx] if(QoverI>=0) else -self.arctan[idx]
