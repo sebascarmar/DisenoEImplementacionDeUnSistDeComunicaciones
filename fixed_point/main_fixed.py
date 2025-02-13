@@ -33,8 +33,8 @@ SEED_Q =  0x1FE
 
 #### Channel
 SNR_db   = 7
-f_offset = 10e3 # Hz
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
+f_offset = 12e3 # Hz (24e3 o 48e3)
 fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
@@ -80,7 +80,7 @@ CH_SYMI_NOISY_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_NOISY_LOG = np.zeros(OS*NSYMB)
 
 #### Frequency Offset
-offset_freq = offset_gen(OS*BR, f_offset)
+offset_freq = offset_gen(f_offset)
 CH_SYMI_ROT_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_ROT_LOG = np.zeros(OS*NSYMB)
 
@@ -140,7 +140,7 @@ RX_SYMQ_FCR_LOG = np.zeros(NSYMB)
 NCO_OUT_LOG     = np.zeros(NSYMB)
 INT_ERR_LOG     = np.zeros(NSYMB)
 
-# Slicer variables     np.zeros(NSYMB
+# Slicer variables
 RX_SYMI_SLCR_LOG = np.zeros(NSYMB)
 RX_SYMQ_SLCR_LOG = np.zeros(NSYMB)
 
