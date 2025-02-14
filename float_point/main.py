@@ -25,8 +25,8 @@ SEED_Q =  0x1FE
 
 #### Channel
 SNR_db   = 7
-f_offset = 10e3 # Hz
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
+f_offset = 12e3 # Hz
 fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
@@ -40,7 +40,7 @@ Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 249879 
-prbs9_cycles = 15  # right value: 511
+prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
 # np.random.seed(2)  # set the seed

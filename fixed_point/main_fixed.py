@@ -22,7 +22,7 @@ from classes.fcr_class import fcr_class
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 1000000 # 1e6
+NSYMB = 300000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -33,8 +33,8 @@ SEED_Q =  0x1FE
 
 #### Channel
 SNR_db   = 7
-NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
-f_offset = 12e3 # Hz (24e3 o 48e3)
+f_offset = 12e3 # Hz (0.0, 12e3, 24e3 o 48e3)
+NSYMB_CONVERGENCE = 0 # FSE and FCR convergence (a half for each)
 fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
@@ -48,7 +48,7 @@ Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 249879 
-prbs9_cycles = 15  # right value: 511
+prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
 np.random.seed(2)  # set the seed
@@ -182,7 +182,10 @@ for i in range(NSYMB*OS):
 
     #### Frequency Offset
     if( i>(NSYMB_CONVERGENCE*OS-1) ):
-        ch_symI_rot, ch_symQ_rot = offset_freq.get_offset(ch_symI_noisy, ch_symQ_noisy)
+        if( f_offset>0.0 ):
+            ch_symI_rot, ch_symQ_rot = offset_freq.get_offset(ch_symI_noisy, ch_symQ_noisy)
+        else:
+            ch_symI_rot, ch_symQ_rot = offset_freq.get_no_offset(ch_symI_noisy, ch_symQ_noisy)
     else:
         ch_symI_rot, ch_symQ_rot = offset_freq.get_no_offset(ch_symI_noisy, ch_symQ_noisy)
     CH_SYMI_ROT_LOG[i] = ch_symI_rot
