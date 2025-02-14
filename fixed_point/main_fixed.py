@@ -41,8 +41,8 @@ fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
 NTAPS_FSE    = 33
-lms_step     = 0.1e-3
-lms_leak     = 0
+lms_step     = 0.5e-3
+lms_leak     = 1e-3
 Kp           = 1e-3
 Ki           = Kp/1000
 
