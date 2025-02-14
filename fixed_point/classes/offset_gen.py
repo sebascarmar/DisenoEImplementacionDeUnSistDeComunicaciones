@@ -13,7 +13,9 @@ class offset_gen:
         wt              = np.linspace(0, np.pi/2, self.nsamp)  
         self.sin_val    = np.sin(wt)
         
-        if( f_offset == 12e3 ):
+        if( f_offset == 0 ):
+            self.step = 0
+        elif( f_offset == 12e3 ):
             self.step = 1
         elif( f_offset == 24e3 ):
             self.step = 2
