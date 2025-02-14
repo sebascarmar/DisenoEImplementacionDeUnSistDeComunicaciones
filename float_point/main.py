@@ -69,10 +69,10 @@ tx_symQ_up = np.zeros(OS*NSYMB); tx_symQ_up[0:len(tx_symQ_up):int(OS)]=tx_symQ_m
 
 
 #### RRC Filter
-(t, rrc, dot) = fn.r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
+(t, txf_coeff, dot) = fn.r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
 
-tx_symI_rrc = signal.lfilter(rrc, [1], tx_symI_up)
-tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
+tx_symI_txf = signal.lfilter(txf_coeff, [1], tx_symI_up)
+tx_symQ_txf = signal.lfilter(txf_coeff, [1], tx_symQ_up)
 
 
 
@@ -80,12 +80,12 @@ tx_symQ_rrc = signal.lfilter(rrc, [1], tx_symQ_up)
 #### AWGN
 SNR_slicer = 10**(SNR_db/10)
 SNR_ch     = SNR_slicer/OS
-noise_var  = np.var(tx_symI_rrc+1j*tx_symQ_rrc)/SNR_ch
-noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_rrc.shape)
-noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_rrc.shape)
+noise_var  = np.var(tx_symI_txf+1j*tx_symQ_txf)/SNR_ch
+noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_txf.shape)
+noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_txf.shape)
 
-ch_symI_noisy = tx_symI_rrc + noise_I
-ch_symQ_noisy = tx_symQ_rrc + noise_Q
+ch_symI_noisy = tx_symI_txf + noise_I
+ch_symQ_noisy = tx_symQ_txf + noise_Q
 
 
 #### Frequency Offset
@@ -424,7 +424,7 @@ plt.show()
 # ####################################################################################
 # #       PROGRESSION OF SIGNAL PROCESSING STAGES IN THE COMMUNICATION SYSTEM        #
 # ####################################################################################
-
+# 
 # ##################### TX BITS AND MAPPED TO SYMB #######################
 # # Generated bits and mapped to symbols 
 # plt.figure(figsize=[10,4])
@@ -446,18 +446,18 @@ plt.show()
 # plt.grid(True)
 # plt.xlabel('Time [n]')
 # #plt.show()
-
-
+# 
+# 
 # ############################### CHANNEL ################################
 # # Group of data vs time: Filtered (Tx), Noisy, Rotated and with ISI symbs
 # plt.figure(figsize=[10,9])
 # #---------------------------------------------------------
 # plt.subplot(4,1,1)
-# plt.plot(range(len(tx_symI_rrc)-500,len(tx_symI_rrc)),
-#         tx_symI_rrc[len(tx_symI_rrc)-500:],
+# plt.plot(range(len(tx_symI_txf)-500,len(tx_symI_txf)),
+#         tx_symI_txf[len(tx_symI_txf)-500:],
 #         color='green', linewidth=2.0)
 # plt.title('Transmited, noisy, rotated and with ISI symbs')
-# plt.xlim(len(tx_symI_rrc)-500,len(tx_symI_rrc)-1)
+# plt.xlim(len(tx_symI_txf)-500,len(tx_symI_txf)-1)
 # plt.grid(True)
 # #---------------------------------------------------------
 # plt.subplot(4,1,2)
@@ -482,14 +482,14 @@ plt.show()
 # plt.grid(True)
 # plt.xlabel('Time [n]')
 # #plt.show()
-
-
+# 
+# 
 # # Group of constellations: Filtered (Tx), Noisy, Rotated, and with ISI symbs
 # plt.figure(figsize=[8,8])
 # plt.suptitle('Constellation Diagrams: Filtered, Noisy, Rotated, and with ISI')
 # plt.subplot(2,2,1)
-# plt.plot(tx_symI_rrc[len(tx_symI_rrc)-1000:],
-#         tx_symQ_rrc[len(tx_symQ_rrc)-1000:],
+# plt.plot(tx_symI_txf[len(tx_symI_txf)-1000:],
+#         tx_symQ_txf[len(tx_symQ_txf)-1000:],
 #         color='green', marker='.', linestyle='',
 #         label="RRC Filt. Output")
 # plt.xlim((-2, 2))
@@ -531,10 +531,10 @@ plt.show()
 # plt.xlabel('Real (I)')
 # plt.legend()
 # #plt.show()
-
-
+# 
+# 
 # ############# RX AA-FILTER AND RX DOWNSAMP. (RATE 2) ##################
-
+# 
 # # Filtered symbols (anti-alias filter) and downsamp. symbols
 # plt.figure(figsize=[10,6])
 # plt.subplot(2,1,1)
@@ -553,8 +553,8 @@ plt.show()
 # plt.grid(True)
 # plt.xlabel('Time [n]')
 # #plt.show()
-
-
+# 
+# 
 # ############################## DSP #################################
 # # Group of constellations: FSE, FCR, Downsampled to rate 1, and Sliced
 # plt.figure(figsize=[8,8])
@@ -603,8 +603,8 @@ plt.show()
 # plt.xlabel('Real (I)')
 # plt.legend()
 # #plt.show()
-
-
+# 
+# 
 # # Group of data vs time: FSE, FCR, Downsampled to rate 1, and Sliced
 # plt.figure(figsize=[12,6])
 # plt.suptitle('FSE, FCR, Downsampled to rate 1, and Sliced vs time')
@@ -640,47 +640,47 @@ plt.show()
 # plt.xlabel('Time [n]')
 # plt.legend()
 # plt.show()
-
-
-
+# 
+# 
+# 
 # ####################################################################################
 # #            FREQUENCY RESPONSE AND COEFFICIENTS OF THE SYSTEM FILTERS             #
 # ####################################################################################
-
+# 
 # ############################# TX FILTER ###############################
 # ## Transmitter Filter graphics: frequency response and time
-
+# 
 # # Get frequencies and magnitudes
-# f_rrc, h_rrc = signal.freqz(rrc, worN=800, fs=OS*BR)
+# f_txf, h_txf = signal.freqz(txf_coeff, worN=800, fs=OS*BR)
 # # Find the -3 dB point
-# fc_idx_rrc = np.where(20*np.log10(np.abs(h_rrc)) <= (20*np.log10(np.abs(h_rrc[50]))-3.01))[0][0]
-# actual_fc_rrc = f_rrc[fc_idx_rrc]
+# fc_idx_txf = np.where(20*np.log10(np.abs(h_txf)) <= (20*np.log10(np.abs(h_txf[50]))-3.01))[0][0]
+# actual_fc_txf = f_txf[fc_idx_txf]
 # ## Frequency response of the channel filter
 # plt.figure(figsize=(8, 5))
-# plt.semilogx(f_rrc, 20*np.log10(np.abs(h_rrc)), color='darkcyan')
-# plt.axhline(y=20*np.log10(np.abs(h_rrc[50]))-3.01,
+# plt.semilogx(f_txf, 20*np.log10(np.abs(h_txf)), color='darkcyan')
+# plt.axhline(y=20*np.log10(np.abs(h_txf[50]))-3.01,
 #            color='black',linestyle='dashed',linewidth=2.0,
-#            label=f"{20*np.log10(np.abs(h_rrc[50]))-3.01:.2f}dB")
-# plt.axvline(x=actual_fc_rrc,color='gray',linewidth=2.0,
-#            label=f"{actual_fc_rrc / 1e6:.2f}MHz")
+#            label=f"{20*np.log10(np.abs(h_txf[50]))-3.01:.2f}dB")
+# plt.axvline(x=actual_fc_txf,color='gray',linewidth=2.0,
+#            label=f"{actual_fc_txf / 1e6:.2f}MHz")
 # plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,
 #            label=f"{0.5*BR / 1e6:.2f}MHz")
-# plt.title("Bode - Transmitter Filter ({} taps)".format(len(rrc)))
+# plt.title("Bode - Transmitter Filter ({} taps)".format(len(txf_coeff)))
 # plt.xlabel("Frequency [Hz]")
 # plt.ylabel("Magnitud [dB]")
 # plt.legend(loc="lower left")
 # plt.grid(True)
 # #plt.show()
-
-
+# 
+# 
 # # Time axis (centered around zero)
-# t = np.linspace(-0.5*(1/(OS*BR))*(len(rrc)-1),
-#                0.5*(1/(OS*BR))*(len(rrc)-1),
-#                len(rrc))
+# t = np.linspace(-0.5*(1/(OS*BR))*(len(txf_coeff)-1),
+#                0.5*(1/(OS*BR))*(len(txf_coeff)-1),
+#                len(txf_coeff))
 # # Impulse response of the transmitter filter
 # plt.figure(figsize=[7,4])
-# plt.plot(t, rrc, color='darkcyan', marker='o',
-#         linestyle='-', linewidth=2.0, label=f"{len(rrc)} taps")
+# plt.plot(t, txf_coeff, color='darkcyan', marker='o',
+#         linestyle='-', linewidth=2.0, label=f"{len(txf_coeff)} taps")
 # plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
 # plt.title('Transmitter Filter Coefficients')
 # plt.xlabel('Time (s)')
@@ -688,11 +688,11 @@ plt.show()
 # plt.legend(loc="upper right")
 # plt.grid(True)
 # #plt.show()
-
-
+# 
+# 
 # ########################## CHANNEL FILTER ##############################
 # ## Channel Filter graphics: frequency response and time
-
+# 
 # # Get frequencies and magnitudes
 # f_cha, h_cha = signal.freqz(ch_filt_coeff, worN=800, fs=4*BR)
 # # Find the -3 dB point
@@ -714,8 +714,8 @@ plt.show()
 # plt.legend(loc="lower left")
 # plt.grid(True)
 # #plt.show()
-
-
+# 
+# 
 # # Time axis (centered around zero)
 # t = np.linspace(-0.5*(1/(OS*BR))*(len(ch_filt_coeff)-1),
 #                0.5*(1/(OS*BR))*(len(ch_filt_coeff)-1),
@@ -731,11 +731,11 @@ plt.show()
 # plt.legend(loc="upper right")
 # plt.grid(True)
 # #plt.show()
-
-
+# 
+# 
 # ########################### RX AA-FILTER ###############################
 # ## Anti Alias Filter graphics: frequency response and time
-
+# 
 # # Get frequencies and magnitudes
 # f_aaf, h_aaf = signal.freqz(aaf_coeff, worN=800, fs=4*BR)
 # # Find the -3 dB point
@@ -757,8 +757,8 @@ plt.show()
 # plt.legend(loc="lower left")
 # plt.grid(True)
 # #plt.show()
-
-
+# 
+# 
 # # Time axis (centered around zero)
 # t = np.linspace(-0.5*(1/(OS*BR))*(len(aaf_coeff)-1),
 #                0.5*(1/(OS*BR))*(len(aaf_coeff)-1),
@@ -774,24 +774,24 @@ plt.show()
 # plt.legend(loc="upper right")
 # plt.grid(True)
 # plt.show()
-
-
-
+# 
+# 
+# 
 # ####################################################################################
 # #                 EVOLUTION OF INTERNAL VARIABLES IN THE DSP SYSTEM                #
 # ####################################################################################
-
+# 
 # #################################  FSE #################################
-
+# 
 # # Evolution of FSE coeffcients over time
 # plt.figure(figsize=[10,6])
 # plt.plot(fse_coeff.T)
 # plt.title('Coeficientes FSE')
 # plt.grid(True)
 # #plt.show()
-
+# 
 # #################################  FCR #################################
-
+# 
 # # NCO (phase) vs time
 # plt.figure(figsize=[10,4])
 # plt.title('NCO Output')
@@ -801,7 +801,7 @@ plt.show()
 # plt.xlabel('Time [n]')
 # plt.ylabel('rad')
 # #plt.show()
-
+# 
 # # Integral error vs time
 # plt.figure(figsize=[10,4])
 # plt.title('Integral error')
@@ -811,5 +811,5 @@ plt.show()
 # plt.xlabel('Time [n]')
 # plt.ylabel('[Hz]')
 # plt.show()
-#
-#
+# 
+# 

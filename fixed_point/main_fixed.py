@@ -67,11 +67,11 @@ TX_SYMI_MAP_LOG = np.zeros(NSYMB)
 TX_SYMQ_MAP_LOG = np.zeros(NSYMB)
 
 #### RRC Filter (also up-sampler)
-(t, rrc, dot) = fn.r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
-tx_filter_I = poly_filter(rrc, NBAUD, OS, NSYMB)
-tx_filter_Q = poly_filter(rrc, NBAUD, OS, NSYMB)
-TX_SYMI_RRC_LOG = np.zeros(OS*NSYMB)
-TX_SYMQ_RRC_LOG = np.zeros(OS*NSYMB)
+(t, txf_coeff, dot) = fn.r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
+tx_filter_I = poly_filter(txf_coeff, NBAUD, OS, NSYMB)
+tx_filter_Q = poly_filter(txf_coeff, NBAUD, OS, NSYMB)
+TX_SYMI_TXFILT_LOG = np.zeros(OS*NSYMB)
+TX_SYMQ_TXFILT_LOG = np.zeros(OS*NSYMB)
 
 ################################ CHANNEL ###############################
 #### AWGN
@@ -168,15 +168,15 @@ for i in range(NSYMB*OS):
         TX_SYMQ_MAP_LOG[n]=tx_symQ_map
 
     #### Up-sampler & Tx Filter
-    tx_symI_rrc = tx_filter_I.convol(i, tx_symI_map) 
-    tx_symQ_rrc = tx_filter_Q.convol(i, tx_symQ_map) 
-    TX_SYMI_RRC_LOG[i] = tx_symI_rrc
-    TX_SYMQ_RRC_LOG[i] = tx_symQ_rrc
+    tx_symI_txf = tx_filter_I.convol(i, tx_symI_map) 
+    tx_symQ_txf = tx_filter_Q.convol(i, tx_symQ_map) 
+    TX_SYMI_TXFILT_LOG[i] = tx_symI_txf
+    TX_SYMQ_TXFILT_LOG[i] = tx_symQ_txf
 
     ################################ CHANNEL ###############################
     #### Noise
-    ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_rrc)
-    ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_rrc)
+    ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_txf)
+    ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_txf)
     CH_SYMI_NOISY_LOG[i] = ch_symI_noisy
     CH_SYMQ_NOISY_LOG[i] = ch_symQ_noisy
 
@@ -303,9 +303,9 @@ np.savetxt('./logs/tx_bitI_prbs.txt'    , TX_BITI_PRBS_LOG     , delimiter=',')
 np.savetxt('./logs/tx_bitQ_prbs.txt'    , TX_BITQ_PRBS_LOG     , delimiter=',')
 np.savetxt('./logs/tx_symI_map.txt'     , TX_SYMI_MAP_LOG      , delimiter=',')
 np.savetxt('./logs/tx_symQ_map.txt'     , TX_SYMQ_MAP_LOG      , delimiter=',')
-np.savetxt('./logs/coeffs_rrc.txt'      , rrc                  , delimiter=',')
-np.savetxt('./logs/tx_symI_rrc.txt'     , TX_SYMI_RRC_LOG      , delimiter=',')
-np.savetxt('./logs/tx_symQ_rrc.txt'     , TX_SYMQ_RRC_LOG      , delimiter=',')
+np.savetxt('./logs/coeffs_txf.txt'      , tx_filter_I.get_quantized_coeffs(), delimiter=',')
+np.savetxt('./logs/tx_symI_txf.txt'     , TX_SYMI_TXFILT_LOG   , delimiter=',')
+np.savetxt('./logs/tx_symQ_txf.txt'     , TX_SYMQ_TXFILT_LOG   , delimiter=',')
 np.savetxt('./logs/ch_symI_noisy.txt'   , CH_SYMI_NOISY_LOG    , delimiter=',')
 np.savetxt('./logs/ch_symQ_noisy.txt'   , CH_SYMQ_NOISY_LOG    , delimiter=',')
 np.savetxt('./logs/ch_symI_rot.txt'     , CH_SYMI_ROT_LOG      , delimiter=',')

@@ -16,9 +16,9 @@ tx_bitQ_prbs = np.loadtxt('./logs/tx_bitQ_prbs.txt', delimiter=',')
 tx_symI_map = np.loadtxt('./logs/tx_symI_map.txt', delimiter=',')
 tx_symQ_map = np.loadtxt('./logs/tx_symQ_map.txt', delimiter=',')
 #### RRC Filter
-rrc         = np.loadtxt('./logs/coeffs_rrc.txt', delimiter=',')
-tx_symI_rrc = np.loadtxt('./logs/tx_symI_rrc.txt', delimiter=',')
-tx_symQ_rrc = np.loadtxt('./logs/tx_symQ_rrc.txt', delimiter=',')
+txf_coeff   = np.loadtxt('./logs/coeffs_txf.txt', delimiter=',')
+tx_symI_txf = np.loadtxt('./logs/tx_symI_txf.txt', delimiter=',')
+tx_symQ_txf = np.loadtxt('./logs/tx_symQ_txf.txt', delimiter=',')
 #### AWGN
 ch_symI_noisy = np.loadtxt('./logs/ch_symI_noisy.txt', delimiter=',')
 ch_symQ_noisy = np.loadtxt('./logs/ch_symQ_noisy.txt', delimiter=',')
@@ -116,11 +116,11 @@ plt.xlabel('Time [n]')
 plt.figure(figsize=[10,9])
 #---------------------------------------------------------
 plt.subplot(4,1,1)
-plt.plot(range(len(tx_symI_rrc)-500,len(tx_symI_rrc)),
-        tx_symI_rrc[len(tx_symI_rrc)-500:],
+plt.plot(range(len(tx_symI_txf)-500,len(tx_symI_txf)),
+        tx_symI_txf[len(tx_symI_txf)-500:],
         color='green', linewidth=2.0)
 plt.title('Transmited, noisy, rotated and with ISI symbs')
-plt.xlim(len(tx_symI_rrc)-500,len(tx_symI_rrc)-1)
+plt.xlim(len(tx_symI_txf)-500,len(tx_symI_txf)-1)
 plt.grid(True)
 #---------------------------------------------------------
 plt.subplot(4,1,2)
@@ -151,8 +151,8 @@ plt.xlabel('Time [n]')
 plt.figure(figsize=[8,8])
 plt.suptitle('Constellation Diagrams: Filtered, Noisy, Rotated, and with ISI')
 plt.subplot(2,2,1)
-plt.plot(tx_symI_rrc[len(tx_symI_rrc)-1000:],
-        tx_symQ_rrc[len(tx_symQ_rrc)-1000:],
+plt.plot(tx_symI_txf[len(tx_symI_txf)-1000:],
+        tx_symQ_txf[len(tx_symQ_txf)-1000:],
         color='green', marker='.', linestyle='',
         label="RRC Filt. Output")
 plt.xlim((-2, 2))
@@ -314,21 +314,21 @@ plt.show()
 ## Transmitter Filter graphics: frequency response and time
 
 # Get frequencies and magnitudes
-f_rrc, h_rrc = signal.freqz(rrc, worN=800, fs=OS*BR)
+f_txf, h_txf = signal.freqz(txf_coeff, worN=800, fs=OS*BR)
 # Find the -3 dB point
-fc_idx_rrc = np.where(20*np.log10(np.abs(h_rrc)) <= (20*np.log10(np.abs(h_rrc[50]))-3.01))[0][0]
-actual_fc_rrc = f_rrc[fc_idx_rrc]
+fc_idx_txf = np.where(20*np.log10(np.abs(h_txf)) <= (20*np.log10(np.abs(h_txf[50]))-3.01))[0][0]
+actual_fc_txf = f_txf[fc_idx_txf]
 ## Frequency response of the channel filter
 plt.figure(figsize=(8, 5))
-plt.semilogx(f_rrc, 20*np.log10(np.abs(h_rrc)), color='darkcyan')
-plt.axhline(y=20*np.log10(np.abs(h_rrc[50]))-3.01,
+plt.semilogx(f_txf, 20*np.log10(np.abs(h_txf)), color='darkcyan')
+plt.axhline(y=20*np.log10(np.abs(h_txf[50]))-3.01,
            color='black',linestyle='dashed',linewidth=2.0,
-           label=f"{20*np.log10(np.abs(h_rrc[50]))-3.01:.2f}dB")
-plt.axvline(x=actual_fc_rrc,color='gray',linewidth=2.0,
-           label=f"{actual_fc_rrc / 1e6:.2f}MHz")
+           label=f"{20*np.log10(np.abs(h_txf[50]))-3.01:.2f}dB")
+plt.axvline(x=actual_fc_txf,color='gray',linewidth=2.0,
+           label=f"{actual_fc_txf / 1e6:.2f}MHz")
 plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,
            label=f"{0.5*BR / 1e6:.2f}MHz")
-plt.title("Bode - Transmitter Filter ({} taps)".format(len(rrc)))
+plt.title("Bode - Transmitter Filter ({} taps)".format(len(txf_coeff)))
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Magnitud [dB]")
 plt.legend(loc="lower left")
@@ -337,13 +337,13 @@ plt.grid(True)
 
 
 # Time axis (centered around zero)
-t = np.linspace(-0.5*(1/(OS*BR))*(len(rrc)-1),
-               0.5*(1/(OS*BR))*(len(rrc)-1),
-               len(rrc))
+t = np.linspace(-0.5*(1/(OS*BR))*(len(txf_coeff)-1),
+               0.5*(1/(OS*BR))*(len(txf_coeff)-1),
+               len(txf_coeff))
 # Impulse response of the transmitter filter
 plt.figure(figsize=[7,4])
-plt.plot(t, rrc, color='darkcyan', marker='o',
-        linestyle='-', linewidth=2.0, label=f"{len(rrc)} taps")
+plt.plot(t, txf_coeff, color='darkcyan', marker='o',
+        linestyle='-', linewidth=2.0, label=f"{len(txf_coeff)} taps")
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
 plt.title('Transmitter Filter Coefficients')
 plt.xlabel('Time (s)')
