@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 1300000 # 1e6
+NSYMB = 2000000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -26,8 +26,8 @@ SEED_Q =  0x1FE
 #### Channel
 SNR_db   = 7
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
-f_offset = 12e3 # Hz
-fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
+f_offset     = 12e3 # Hz
+fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]

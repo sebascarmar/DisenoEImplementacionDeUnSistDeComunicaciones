@@ -33,8 +33,8 @@ SEED_Q =  0x1FE
 
 #### Channel
 SNR_db   = 7
+NSYMB_CONVERGENCE = 20000 # FSE and FCR convergence (a half for each)
 f_offset = 12e3 # Hz (0.0, 12e3, 24e3 o 48e3)
-NSYMB_CONVERGENCE = 0 # FSE and FCR convergence (a half for each)
 fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
