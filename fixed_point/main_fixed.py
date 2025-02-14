@@ -47,8 +47,9 @@ Kp           = 1e-3
 Ki           = Kp/1000
 
 #### BER counter
-START_SYN = 450191
-START_CNT = START_SYN + 511*511
+START_SYN = 249879 
+prbs9_cycles = 15  # right value: 511
+START_CNT = START_SYN + 511*prbs9_cycles
 
 np.random.seed(2)  # set the seed
 

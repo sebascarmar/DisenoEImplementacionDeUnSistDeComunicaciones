@@ -39,8 +39,9 @@ Kp           = 1e-3
 Ki           = Kp/1000
 
 #### BER counter
-START_SYN = 450191
-START_CNT = START_SYN + 511*511
+START_SYN = 249879 
+prbs9_cycles = 15  # right value: 511
+START_CNT = START_SYN + 511*prbs9_cycles
 
 # np.random.seed(2)  # set the seed
 
@@ -238,7 +239,7 @@ latency       = 0
 rot_ang_detec = 0
 
 # Loop
-for BER_IDX in range(len(shifter_ber_I)):
+for BER_IDX in range(prbs9_cycles):
     # Reste accumulators
     err_sym_0   = 0
     err_sym_90  = 0
