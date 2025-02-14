@@ -27,10 +27,10 @@ SEED_Q =  0x1FE
 SNR_db   = 7
 f_offset = 10e3 # Hz
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
-fc_ch_filter      = 0.49*BR # Cut-off frecuency of channel filter [Hz]
+fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
-fc_aa_filter = 1.0*BR # Cut-off frecuency of anti-alias filter [Hz]
+fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
 NTAPS_FSE    = 33
 lms_step     = 0.1e-3
@@ -107,14 +107,14 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
 
 
 #### Channel filter
-ch_filt_coeff   = signal.firwin(numtaps=17, cutoff=fc_ch_filter ,window='hamming', fs=OS*BR)
+(t2, ch_filt_coeff, dot) = fn.r_rcosine(fc=fc_ch_filter, fs=OS*BR, rolloff=BETA, nbauds=4, norm=True)
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
-aaf_coeff  = signal.firwin(numtaps=17, cutoff=fc_aa_filter ,window='hamming', fs=OS*BR)
+(t3, aaf_coeff, dot) = fn.r_rcosine(fc=fc_aa_filter, fs=OS*BR, rolloff=BETA, nbauds=4, norm=True)
 rx_symI_aaf = signal.lfilter(aaf_coeff, [1], ch_symI_ch_filt)
 rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 
