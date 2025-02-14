@@ -105,11 +105,6 @@ dw_r2_shftr_Q = np.zeros(OS_DSP)
 RX_SYMI_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 RX_SYMQ_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 
-#### AGC
-agc_gain    = 1
-RX_SYMI_AGC_LOG =  np.zeros(NSYMB*OS_DSP)
-RX_SYMQ_AGC_LOG =  np.zeros(NSYMB*OS_DSP)
-
 #### DSP
 # FSE variables
 fse = fse_class(NTAPS_FSE)
@@ -219,15 +214,9 @@ for i in range(NSYMB*OS):
         RX_SYMI_DW_RATE2_LOG[j] = rx_symI_dw_r2
         RX_SYMQ_DW_RATE2_LOG[j] = rx_symQ_dw_r2
         
-        #### AGC
-        rx_symI_agc =  rx_symI_dw_r2 * agc_gain
-        rx_symQ_agc =  rx_symQ_dw_r2 * agc_gain
-        RX_SYMI_AGC_LOG[j] = rx_symI_agc
-        RX_SYMQ_AGC_LOG[j] = rx_symQ_agc
-        
         #### DSP
         # FSE output calculation
-        rx_symI_fse, rx_symQ_fse  = fse.filt(rx_symI_agc,rx_symQ_agc)
+        rx_symI_fse, rx_symQ_fse  = fse.filt(rx_symI_dw_r2,rx_symQ_dw_r2)
         RX_SYMI_FSE_LOG[j] = rx_symI_fse 
         RX_SYMQ_FSE_LOG[j] = rx_symQ_fse 
         
@@ -325,8 +314,6 @@ np.savetxt('./logs/rx_symI_aaf.txt'     , RX_SYMI_AAF_LOG      , delimiter=',')
 np.savetxt('./logs/rx_symQ_aaf.txt'     , RX_SYMQ_AAF_LOG      , delimiter=',')
 np.savetxt('./logs/rx_symI_dw_rate2.txt', RX_SYMI_DW_RATE2_LOG , delimiter=',')
 np.savetxt('./logs/rx_symQ_dw_rate2.txt', RX_SYMQ_DW_RATE2_LOG , delimiter=',')
-np.savetxt('./logs/rx_symI_agc.txt'     , RX_SYMI_AGC_LOG      , delimiter=',')
-np.savetxt('./logs/rx_symQ_agc.txt'     , RX_SYMQ_AGC_LOG      , delimiter=',')
 np.savetxt('./logs/coeffs_fse_I.txt'    , FSE_I_COEFFS_LOG     , delimiter=',')
 np.savetxt('./logs/rx_symI_fse.txt'     , RX_SYMI_FSE_LOG      , delimiter=',')
 np.savetxt('./logs/rx_symQ_fse.txt'     , RX_SYMQ_FSE_LOG      , delimiter=',')

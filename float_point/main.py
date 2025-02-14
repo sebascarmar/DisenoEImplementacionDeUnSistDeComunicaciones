@@ -122,12 +122,6 @@ rx_symQ_aaf = signal.lfilter(aaf_coeff, [1], ch_symQ_ch_filt)
 rx_symI_dw_r2 = rx_symI_aaf[0:len(rx_symI_aaf):int(OS_DSP)]
 rx_symQ_dw_r2 = rx_symQ_aaf[0:len(rx_symQ_aaf):int(OS_DSP)]
 
-#### AGC
-target      = 1.4130800626285385# Vrms (EbNo=4 y seed=1)
-metric      = np.std(rx_symI_dw_r2+1j*rx_symQ_dw_r2)
-agc_gain    = target/metric
-rx_symI_agc =  rx_symI_dw_r2 * agc_gain
-rx_symQ_agc =  rx_symQ_dw_r2 * agc_gain
 
 #### DSP
 # FSE variables
@@ -161,9 +155,9 @@ rx_symQ_slcr = np.zeros(NSYMB)
 for j in range(NSYMB*OS_DSP):
     # Filter buffer
     fseI_buffer[1:] = fseI_buffer[:-1]
-    fseI_buffer[0]  = rx_symI_agc[j]
+    fseI_buffer[0]  = rx_symI_dw_r2[j]
     fseQ_buffer[1:] = fseQ_buffer[:-1]
-    fseQ_buffer[0]  = rx_symQ_agc[j]
+    fseQ_buffer[0]  = rx_symQ_dw_r2[j]
 
     # Filter output
     rx_symI_fse[j] = (np.dot(fseI_buffer,fseI_coeff)-
