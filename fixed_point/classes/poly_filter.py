@@ -1,38 +1,45 @@
 import numpy as np
+from tool._fixedInt import *
 
 class poly_filter:
     
-    def __init__(self, filt_coeff, NBAUD, OS, NSYMB):
+    def __init__(self, filt_coeff, NBAUD, OS, NSYMB, NTot, NFra):
         
+        ### Perform quantization of filter coefficients
+        self.coeffs = arrayFixedInt(NTot, NFra, filt_coeff, 'S', 'trunc', 'saturate')
         ### Oversampling: number of phases
         self.OS           = OS
         ### Shift register for input symbols
         self.shifter_filt = np.full(NBAUD+1,0)
         ### Coeffs. of each phase
         self.poly_filter  = []
+        zero = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        zero.value = 0.0
         for phase in range(OS):  # OS phases
             self.poly_filter.append([])
             for j in range(NBAUD+1):
                 if( phase==0 ):
-                    self.poly_filter[phase].append( filt_coeff[phase + j*OS] )
+                    self.poly_filter[phase].append( self.coeffs[phase + j*OS] )
                 else:
                     if(j<NBAUD):
-                        self.poly_filter[phase].append( filt_coeff[phase + j*OS] )
+                        self.poly_filter[phase].append( self.coeffs[phase + j*OS] )
                     else:
-                        self.poly_filter[phase].append(0.0)
+                        self.poly_filter[phase].append( zero )
         ### Partial products of the convolution
-        self.partial_prod = np.zeros(NBAUD+1)
+        partial_prod_aux  = np.zeros(NBAUD+1)
+        self.partial_prod = arrayFixedInt(NTot, NFra, partial_prod_aux, 'S', 'trunc', 'saturate')
         ### Filter out
-        self.sym_out   = 0.0
-        ### Contador. Permite que coincida la fase0 del filtro (coeficientes) con el primer
-        ###símbolo ingresado al filtro (bucle i=1, o segundo clock)
+        self.filt_out       = DeFixedInt(NTot+3, NFra, 'S', 'trunc', 'saturate')
+        self.filt_out.value = 0.0
+        ### Saturate and truncation of filter out
+        self.sym_out       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        self.sym_out.value = 0.0
+        ### Counter. Ensures that the phase 0 of the filter (coefficients)  
+        ###aligns with the first symbol fed into the filter (loop i=1, or second clock cycle)
         self.phase_cntr = self.OS-1
 
 
     def convol(self, i, new_symb):
-        # It's going to be useful for truncation and saturation
-        self.sym_out = 0.0
-        
         # Select the right phase of the filter
         if( self.phase_cntr>=self.OS-1 ):
             self.phase_cntr = 0
@@ -46,43 +53,29 @@ class poly_filter:
             
         # Multiplication of filter coeffs. and symbols
         for j in range(len(self.shifter_filt)):
-            self.partial_prod[j] = self.poly_filter[self.phase_cntr][j]*self.shifter_filt[j]
-            #print(self.partial_prod[j],pol_filter[phase_cntr][j],shifter_filt[j])
+            if( self.shifter_filt[j]==-1.0 ):
+                self.partial_prod[j].value = -1.0 * self.poly_filter[self.phase_cntr][j].fValue
+            elif( self.shifter_filt[j]==0.0 ):
+                self.partial_prod[j].value = 0.0 
+            else:
+                self.partial_prod[j].value =        self.poly_filter[self.phase_cntr][j].fValue
         
         # Sum all the partial products
+        self.filt_out.value = 0.0
         for k in range(0,len(self.partial_prod),2):
-            self.sym_out += self.partial_prod[k]+self.partial_prod[k+1]
+            self.filt_out.value = self.filt_out.fValue + self.partial_prod[k].fValue + self.partial_prod[k+1].fValue
         
-        return self.sym_out
+        # Saturate and truncate the final value
+        self.sym_out.value = self.filt_out.fValue
+        
+        
+        return self.sym_out.fValue
 
 
+    def get_quantized_coeffs(self):
+        out = np.zeros(len(self.coeffs))
+        for i in range(len(out)):
+            out[i] = self.coeffs[i].fValue
+        
+        return out
 
-#   def __init__(self, filt_coeff, NBAUD, OS, NSYMB):
-#        ### Conjunto de coeficientes correspondientes a cada fase del filtro 
-#        self.ph0_coeff = np.zeros(len(self.shifter_filt))
-#        self.ph1_coeff = np.zeros(len(self.shifter_filt))
-#        self.ph2_coeff = np.zeros(len(self.shifter_filt))
-#        self.ph3_coeff = np.zeros(len(self.shifter_filt))
-#        for i in range(1,NBAUD*OS+OS,OS):
-#            if( i<NBAUD*OS ):
-#                self.ph0_coeff[int(i/OS)] = filt_coeff[i-1]
-#                self.ph1_coeff[int(i/OS)] = filt_coeff[i+0]
-#                self.ph2_coeff[int(i/OS)] = filt_coeff[i+1]
-#                self.ph3_coeff[int(i/OS)] = filt_coeff[i+2]
-#            else:
-#                self.ph0_coeff[int(i/OS)] = filt_coeff[i-1]
-#
-#        ### Productos parciales
-#        self.prod_parcial = np.zeros(6)
-#        ### Sumas parciales y final
-#        self.sum_lvl1_a = 0.0
-#        self.sum_lvl1_b = 0.0
-#        self.sum_lvl1_c = 0.0
-#        self.sum_lvl2_a = 0.0
-#        self.sum_lvl2_b = 0.0
-#        self.sum_lvl3   = 0.0
-#        ### Saturación y truncado
-#        self.sym_out   = 0.0
-#        ### Contador. Permite que coincida la fase0 del filtro (coeficientes) con el primer
-#        ###símbolo ingresado al filtro (bucle i=1, o segundo clock)
-#        self.phase_counter = OS-1

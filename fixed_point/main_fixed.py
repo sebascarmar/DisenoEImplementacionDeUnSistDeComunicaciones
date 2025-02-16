@@ -13,6 +13,7 @@ from classes.ber import ber
 from classes.fse_class import fse_class
 from classes.lms_class import lms_class
 from classes.fcr_class import fcr_class
+from tool._fixedInt import *
 
 
 ####################################################################################
@@ -68,8 +69,8 @@ TX_SYMQ_MAP_LOG = np.zeros(NSYMB)
 
 #### RRC Filter (also up-sampler)
 (t, txf_coeff, dot) = fn.r_rcosine(fc=BR/2, fs=OS*BR, rolloff=BETA, nbauds=NBAUD, norm=True)
-tx_filter_I = poly_filter(txf_coeff, NBAUD, OS, NSYMB)
-tx_filter_Q = poly_filter(txf_coeff, NBAUD, OS, NSYMB)
+tx_filter_I = poly_filter(txf_coeff, NBAUD, OS, NSYMB, 8, 7)
+tx_filter_Q = poly_filter(txf_coeff, NBAUD, OS, NSYMB, 8, 7)
 TX_SYMI_TXFILT_LOG = np.zeros(OS*NSYMB)
 TX_SYMQ_TXFILT_LOG = np.zeros(OS*NSYMB)
 
@@ -87,16 +88,16 @@ CH_SYMQ_ROT_LOG = np.zeros(OS*NSYMB)
 
 #### Channel filter
 (t2, ch_filt_coeff, dot2) = fn.r_rcosine(fc=fc_ch_filter, fs=OS*BR, rolloff=BETA, nbauds=4, norm=True)
-chann_filt_I = fir_filter(ch_filt_coeff)
-chann_filt_Q = fir_filter(ch_filt_coeff)
+chann_filt_I = fir_filter(ch_filt_coeff, 8, 7)
+chann_filt_Q = fir_filter(ch_filt_coeff, 8, 7)
 CH_SYMI_CHFILT_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_CHFILT_LOG = np.zeros(OS*NSYMB)
 
 ############################### RECEIVER ###############################
 #### Anti-alias filter
 (t3, aaf_coeff, dot3) = fn.r_rcosine(fc=fc_aa_filter, fs=OS*BR, rolloff=BETA, nbauds=4, norm=True)
-aaf_filt_I = fir_filter(aaf_coeff)
-aaf_filt_Q = fir_filter(aaf_coeff)
+aaf_filt_I = fir_filter(aaf_coeff, 8, 7)
+aaf_filt_Q = fir_filter(aaf_coeff, 8, 7)
 RX_SYMI_AAF_LOG = np.zeros(OS*NSYMB)
 RX_SYMQ_AAF_LOG = np.zeros(OS*NSYMB)
 
@@ -310,10 +311,10 @@ np.savetxt('./logs/ch_symI_noisy.txt'   , CH_SYMI_NOISY_LOG    , delimiter=',')
 np.savetxt('./logs/ch_symQ_noisy.txt'   , CH_SYMQ_NOISY_LOG    , delimiter=',')
 np.savetxt('./logs/ch_symI_rot.txt'     , CH_SYMI_ROT_LOG      , delimiter=',')
 np.savetxt('./logs/ch_symQ_rot.txt'     , CH_SYMQ_ROT_LOG      , delimiter=',')
-np.savetxt('./logs/coeffs_chfilt.txt'   , ch_filt_coeff        , delimiter=',')
+np.savetxt('./logs/coeffs_chfilt.txt'   , chann_filt_I.get_quantized_coeffs(), delimiter=',')
 np.savetxt('./logs/ch_symI_chfilt.txt'  , CH_SYMI_CHFILT_LOG   , delimiter=',')
 np.savetxt('./logs/ch_symQ_chfilt.txt'  , CH_SYMQ_CHFILT_LOG   , delimiter=',')
-np.savetxt('./logs/coeffs_aafilt.txt'   , aaf_coeff            , delimiter=',')
+np.savetxt('./logs/coeffs_aafilt.txt'   , aaf_filt_I.get_quantized_coeffs(), delimiter=',')
 np.savetxt('./logs/rx_symI_aaf.txt'     , RX_SYMI_AAF_LOG      , delimiter=',')
 np.savetxt('./logs/rx_symQ_aaf.txt'     , RX_SYMQ_AAF_LOG      , delimiter=',')
 np.savetxt('./logs/rx_symI_dw_rate2.txt', RX_SYMI_DW_RATE2_LOG , delimiter=',')
