@@ -82,7 +82,7 @@ CH_SYMI_NOISY_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_NOISY_LOG = np.zeros(OS*NSYMB)
 
 #### Frequency Offset
-offset_freq = offset_gen(f_offset)
+offset_freq = offset_gen(f_offset, 8, 7)
 CH_SYMI_ROT_LOG = np.zeros(OS*NSYMB)
 CH_SYMQ_ROT_LOG = np.zeros(OS*NSYMB)
 
