@@ -360,9 +360,10 @@ plt.plot(rx_symI_fse[len(rx_symI_fse)-8000:],
         label="FSE Output")
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
+plt.axis('equal')
 plt.grid(True)
 plt.ylabel('Imag (Q)')
-plt.legend()
+plt.legend(loc="upper left")
 #-------------------------------------------------------
 plt.subplot(2,2,2) # after downsampling to rate 1
 plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
@@ -371,8 +372,9 @@ plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
         label='dowsamp. (rate 1)')
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
+plt.axis('equal')
 plt.grid(True)
-plt.legend()
+plt.legend(loc="upper left")
 #-------------------------------------------------------
 plt.subplot(2,2,3) # FCR Output
 plt.plot(rx_symI_fcr[len(rx_symI_fcr)-4000:],
@@ -381,10 +383,11 @@ plt.plot(rx_symI_fcr[len(rx_symI_fcr)-4000:],
         label="FCR Output")
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
+plt.axis('equal')
 plt.grid(True)
 plt.xlabel('Real (I)')
 plt.ylabel('Imag (Q)')
-plt.legend()
+plt.legend(loc="upper left")
 #-------------------------------------------------------
 plt.subplot(2,2,4) # after the slicer
 plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
@@ -393,16 +396,17 @@ plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
         label="sliced")
 plt.xlim((-2, 2))
 plt.ylim((-2, 2))
+plt.axis('equal')
 plt.grid(True)
 plt.xlabel('Real (I)')
-plt.legend()
+plt.legend(loc="upper left")
 #plt.show()
 
 
 # Evolution of FSE coeffcients over time
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff.T)
-plt.title('Coeficientes FSE (I lane)')
+plt.title('FSE coefficients (I lane) - decimated')
 plt.grid(True)
 #plt.show()
 
@@ -490,9 +494,10 @@ plt.show()
 #         label="RRC Filt. Output")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.ylabel('Imag (Q)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,2) # after adding noise
 # plt.plot(ch_symI_noisy[len(ch_symI_noisy)-2000:],
@@ -501,8 +506,9 @@ plt.show()
 #         label="with noise")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,3) # after adding noise and apply rotation
 # plt.plot(ch_symI_rot[len(ch_symI_rot)-2000:],
@@ -511,10 +517,11 @@ plt.show()
 #         label="with noise and rotated")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.xlabel('Real (I)')
 # plt.ylabel('Imag (Q)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,4) # after noise+rotation+isi
 # plt.plot(ch_symI_ch_filt[len(ch_symI_ch_filt)-2000:],
@@ -523,9 +530,10 @@ plt.show()
 #         label="with noise, rotated and with isi")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.xlabel('Real (I)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #plt.show()
 # 
 # 
@@ -562,6 +570,7 @@ plt.show()
 #         label="FSE Output")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.ylabel('Imag (Q)')
 # plt.legend()
@@ -573,8 +582,9 @@ plt.show()
 #         label='dowsamp. (rate 1)')
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,3) # FCR Output
 # plt.plot(rx_symI_fcr[len(rx_symI_fcr)-4000:],
@@ -583,10 +593,11 @@ plt.show()
 #         label="FCR Output")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.xlabel('Real (I)')
 # plt.ylabel('Imag (Q)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,4) # after the slicer
 # plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
@@ -595,9 +606,10 @@ plt.show()
 #         label="sliced")
 # plt.xlim((-2, 2))
 # plt.ylim((-2, 2))
+# plt.axis('equal')
 # plt.grid(True)
 # plt.xlabel('Real (I)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #plt.show()
 # 
 # 
@@ -610,14 +622,14 @@ plt.show()
 #         label="FSE Output")
 # plt.grid(True)
 # plt.ylabel('Real (I)')
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,2) # after downsampling to rate 1
 # plt.plot(rx_symI_dw_r1,
 #         color='seagreen', marker='.', linestyle='',
 #         label='dowsamp. (rate 1)')
 # plt.grid(True)
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,3) # FCR Output
 # plt.plot(rx_symI_fcr,
@@ -626,7 +638,7 @@ plt.show()
 # plt.ylabel('Real (I)')
 # plt.xlabel('Time [n]')
 # plt.grid(True)
-# plt.legend()
+# plt.legend(loc="upper left")
 # #-------------------------------------------------------
 # plt.subplot(2,2,4) # after the slicer
 # plt.plot(rx_symI_slcr,
@@ -634,7 +646,7 @@ plt.show()
 #         label="sliced")
 # plt.grid(True)
 # plt.xlabel('Time [n]')
-# plt.legend()
+# plt.legend(loc="upper left")
 # plt.show()
 # 
 # 
@@ -653,7 +665,7 @@ plt.show()
 # actual_fc_txf = f_txf[fc_idx_txf]
 # ## Frequency response of the channel filter
 # plt.figure(figsize=(8, 5))
-# plt.semilogx(f_txf, 20*np.log10(np.abs(h_txf)), color='darkcyan')
+# plt.plot(f_txf, 20*np.log10(np.abs(h_txf)), color='darkcyan')
 # plt.axhline(y=20*np.log10(np.abs(h_txf[50]))-3.01,
 #            color='black',linestyle='dashed',linewidth=2.0,
 #            label=f"{20*np.log10(np.abs(h_txf[50]))-3.01:.2f}dB")
@@ -696,7 +708,7 @@ plt.show()
 # actual_fc_ch = f_cha[fc_idx_ch]
 # ## Frequency response of the channel filter
 # plt.figure(figsize=(8, 5))
-# plt.semilogx(f_cha, 20*np.log10(np.abs(h_cha)), color='fuchsia')
+# plt.plot(f_cha, 20*np.log10(np.abs(h_cha)), color='fuchsia')
 # plt.axhline(y=20*np.log10(np.abs(h_cha[50]))-3.01,
 #            color='black',linestyle='dashed',linewidth=2.0,
 #            label=f"{20*np.log10(np.abs(h_cha[50]))-3.01:.2f}dB")
@@ -739,7 +751,7 @@ plt.show()
 # actual_fc_aaf = f_aaf[fc_idx_aaf]
 # ## Frequency response of the channel filter
 # plt.figure(figsize=(8, 5))
-# plt.semilogx(f_aaf, 20*np.log10(np.abs(h_aaf)), color='mediumblue')
+# plt.plot(f_aaf, 20*np.log10(np.abs(h_aaf)), color='mediumblue')
 # plt.axhline(y=20*np.log10(np.abs(h_aaf[50]))-3.01,
 #            color='black',linestyle='dashed',linewidth=2.0,
 #            label=f"{20*np.log10(np.abs(h_aaf[50]))-3.01:.2f}dB")
@@ -769,8 +781,52 @@ plt.show()
 # plt.ylabel('Magnitud')
 # plt.legend(loc="upper right")
 # plt.grid(True)
-# plt.show()
+# #plt.show()
 # 
+# 
+# ################################# FSE ##################################
+# 
+# ## Adapatvie Filter graphics: frequency response and time
+# 
+# # Get frequencies and magnitudes
+# last_fse_taps = fse_coeff[:,len(fse_coeff)-1]
+# 
+# f_fse, h_fse = signal.freqz(last_fse_taps, worN=800, fs=OS_DSP*BR)
+# # Find the -3 dB point
+# fc_idx = np.where(20*np.log10(np.abs(h_fse)) <= (20*np.log10(np.abs(h_fse[50])) - 3.01))[0][0]
+# actual_fc_fse = f_fse[fc_idx]
+# ## Frequency response of the channel filter
+# plt.figure(figsize=(8, 5))
+# plt.plot(f_fse, 20*np.log10(np.abs(h_fse)), color='saddlebrown')
+# plt.axhline(y=20*np.log10(np.abs(h_fse[50]))-3.01,
+#             color='black',linestyle='dashed',linewidth=2.0,
+#             label=f"{20*np.log10(np.abs(h_fse[50]))-3.01:.2f}dB")
+# plt.axvline(x=actual_fc_fse,color='gray',linewidth=2.0,
+#             label=f"{actual_fc_fse / 1e6:.2f}MHz")
+# plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,
+#             label=f"{0.5*BR / 1e6:.2f}MHz")
+# plt.title("Bode - FSE I")
+# plt.xlabel("Frequency [Hz]")
+# plt.ylabel("Magnitud [dB]")
+# plt.legend(loc="lower left")
+# plt.grid(True)
+# #plt.show()
+# 
+# 
+# # Time axis (centered around zero)
+# t = np.linspace(-0.5*(1/(OS_DSP*BR))*(len(last_fse_taps)-1),
+#                 0.5*(1/(OS_DSP*BR))*(len(last_fse_taps)-1),
+#                 len(last_fse_taps))
+# # Impulse response of the transmitter filter
+# plt.figure(figsize=[7,4])
+# plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
+#          linestyle='-', linewidth=2.0)
+# plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
+# plt.title('FSE Coefficients')
+# plt.xlabel('Sample')
+# plt.ylabel('Magnitud')
+# plt.grid(True)
+# plt.show()
 # 
 # 
 # ####################################################################################
@@ -782,7 +838,7 @@ plt.show()
 # # Evolution of FSE coeffcients over time
 # plt.figure(figsize=[10,6])
 # plt.plot(fse_coeff.T)
-# plt.title('Coeficientes FSE')
+# plt.title('FSE coefficients (I lane) - decimated')
 # plt.grid(True)
 # #plt.show()
 # 
