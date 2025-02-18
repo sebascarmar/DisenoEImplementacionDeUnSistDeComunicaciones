@@ -109,7 +109,7 @@ RX_SYMQ_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 
 #### DSP
 # FSE variables
-fse = fse_class(NTAPS_FSE)
+fse = fse_class(NTAPS_FSE, 23, 20) # could be 22,20
 
 rx_symI_fse = 0.0
 rx_symQ_fse = 0.0
