@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 2000000 # 1e6
+NSYMB = 7500000 # 1000000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -43,7 +43,7 @@ START_SYN = 249879
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-# np.random.seed(2)  # set the seed
+# np.random.seed(1)  # set the seed: 3-0-4-1
 
 
 ############################## TRANSMITTER  #############################
@@ -214,22 +214,20 @@ for j in range(NSYMB*OS_DSP):
 ############################ BIT-ERROR RATE ############################
 #### Synchronzation
 # PRBS regster and data
-shifter_ber_I = np.zeros(511)
-shifter_ber_Q = np.zeros(511)
-rx_bitI_prbs = np.where( tx_symI_map[START_SYN-1:START_CNT-1] == -1, 1, 0)
-rx_bitQ_prbs = np.where( tx_symQ_map[START_SYN-1:START_CNT-1] == -1, 1, 0)
+shifter_ber_I = np.full(511,1)
+shifter_ber_Q = np.full(511,1)
+rx_prbs_I     = tx_symI_map[START_SYN-1:START_CNT-1]
+rx_prbs_Q     = tx_symQ_map[START_SYN-1:START_CNT-1]
 
 # Rotate the received data
-rx_bitI_demap = np.where( rx_symI_slcr[START_SYN-1:START_CNT-1] == -1, 1, 0)
-rx_bitQ_demap = np.where( rx_symQ_slcr[START_SYN-1:START_CNT-1] == -1, 1, 0)
-rx_bitI_demap_0   =        rx_bitI_demap
-rx_bitQ_demap_0   =        rx_bitQ_demap
-rx_bitI_demap_90  = fn.inv(rx_bitQ_demap)
-rx_bitQ_demap_90  =        rx_bitI_demap
-rx_bitI_demap_180 = fn.inv(rx_bitI_demap)
-rx_bitQ_demap_180 = fn.inv(rx_bitQ_demap)
-rx_bitI_demap_270 =        rx_bitQ_demap
-rx_bitQ_demap_270 = fn.inv(rx_bitI_demap)
+rx_slcr_I_0   =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_Q_0   =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_I_90  = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_Q_90  =        rx_symI_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_I_180 = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_Q_180 = fn.inv(rx_symQ_slcr[START_SYN-1 : START_CNT-1])
+rx_slcr_I_270 =        rx_symQ_slcr[START_SYN-1 : START_CNT-1]
+rx_slcr_Q_270 = fn.inv(rx_symI_slcr[START_SYN-1 : START_CNT-1])
 
 # Synchro variables
 min_error   = len(shifter_ber_Q)
@@ -252,30 +250,30 @@ for BER_IDX in range(prbs9_cycles):
         # Shift and update register used for PRBS 
         shifter_ber_I = np.roll(shifter_ber_I,1)
         shifter_ber_Q = np.roll(shifter_ber_Q,1)
-        shifter_ber_I[0] = rx_bitI_prbs[i+511*BER_IDX]
-        shifter_ber_Q[0] = rx_bitQ_prbs[i+511*BER_IDX]
+        shifter_ber_I[0] = rx_prbs_I[i+511*BER_IDX]
+        shifter_ber_Q[0] = rx_prbs_Q[i+511*BER_IDX]
         
         # BER_IDX refers to a fixed position during counting
         new_bit_prbs_I = shifter_ber_I[BER_IDX]
         new_bit_prbs_Q = shifter_ber_Q[BER_IDX]
         
         # Compare PRBS with received data (rotated by 0º)
-        if( (new_bit_prbs_I!=rx_bitI_demap_0[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_bitQ_demap_0[i+511*BER_IDX]) ):
+        if( (new_bit_prbs_I!=rx_slcr_I_0[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_0[i+511*BER_IDX]) ):
             err_sym_0 += 1
         else:
             err_sym_0 = err_sym_0
         # Compare PRBS with received data (rotated by 90º)
-        if( (new_bit_prbs_I!=rx_bitI_demap_90[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_bitQ_demap_90[i+511*BER_IDX]) ):
+        if( (new_bit_prbs_I!=rx_slcr_I_90[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_90[i+511*BER_IDX]) ):
             err_sym_90 += 1
         else:
             err_sym_90 = err_sym_90
         # Compare PRBS with received data (rotated by 180º)
-        if( (new_bit_prbs_I!=rx_bitI_demap_180[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_bitQ_demap_180[i+511*BER_IDX]) ):
+        if( (new_bit_prbs_I!=rx_slcr_I_180[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_180[i+511*BER_IDX]) ):
             err_sym_180 += 1
         else:
             err_sym_180 = err_sym_180
         # Compare PRBS with received data (rotated by 270º)
-        if( (new_bit_prbs_I!=rx_bitI_demap_270[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_bitQ_demap_270[i+511*BER_IDX]) ):
+        if( (new_bit_prbs_I!=rx_slcr_I_270[i+511*BER_IDX]) or (new_bit_prbs_Q!=rx_slcr_Q_270[i+511*BER_IDX]) ):
             err_sym_270 += 1
         else:
             err_sym_270 = err_sym_270
@@ -307,39 +305,37 @@ for BER_IDX in range(prbs9_cycles):
 
 #### Counting
 print("latency:",latency, "| ang:",rot_ang_detec)
-rx_bitI_prbs = np.where( tx_symI_map == -1, 1, 0)
-rx_bitQ_prbs = np.where( tx_symQ_map == -1, 1, 0)
+rx_prbs_I = tx_symI_map
+rx_prbs_Q = tx_symQ_map
 
 # Select the detected rotation
-rx_bitI_demap = np.where( rx_symI_slcr == -1, 1, 0)
-rx_bitQ_demap = np.where( rx_symQ_slcr == -1, 1, 0)
 if( rot_ang_detec == 0 ):
-    rx_bitI_demap =     rx_bitI_demap
-    rx_bitQ_demap =     rx_bitQ_demap
+    rx_slcr_I =     rx_symI_slcr
+    rx_slcr_Q =     rx_symQ_slcr
 elif( rot_ang_detec == 90 ):
-    rx_bitI_demap = fn.inv(rx_bitQ_demap)
-    rx_bitQ_demap =     rx_bitI_demap
+    rx_slcr_I = fn.inv(rx_symQ_slcr)
+    rx_slcr_Q =     rx_symI_slcr
 elif( rot_ang_detec == 180 ):
-    rx_bitI_demap = fn.inv(rx_bitI_demap)
-    rx_bitQ_demap = fn.inv(rx_bitQ_demap)
+    rx_slcr_I = fn.inv(rx_symI_slcr)
+    rx_slcr_Q = fn.inv(rx_symQ_slcr)
 else: # rot_ang_detec=270
-    rx_bitI_demap =     rx_bitQ_demap
-    rx_bitQ_demap = fn.inv(rx_bitI_demap)
+    rx_slcr_I =     rx_symQ_slcr
+    rx_slcr_Q = fn.inv(rx_symI_slcr)
 
 lat_comp = 511-latency
 # BER (Lane I)
 bit_err_I = 0
 bit_tot_I = 0
-for i in range(START_CNT,len(rx_bitI_demap)-lat_comp):
-    if( rx_bitI_prbs[lat_comp+i] != rx_bitI_demap[i] ):
+for i in range(START_CNT,len(rx_slcr_I)-lat_comp):
+    if( rx_prbs_I[lat_comp+i] != rx_slcr_I[i] ):
         bit_err_I +=1
     bit_tot_I += 1
 
 # BER (Lane Q)
 bit_err_Q = 0
 bit_tot_Q = 0
-for i in range(START_CNT,len(rx_bitQ_demap)-lat_comp):
-    if( rx_bitQ_prbs[lat_comp+i] != rx_bitQ_demap[i] ):
+for i in range(START_CNT,len(rx_slcr_Q)-lat_comp):
+    if( rx_prbs_Q[lat_comp+i] != rx_slcr_Q[i] ):
         bit_err_Q +=1
     bit_tot_Q += 1
 
