@@ -1,59 +1,62 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+import os
 
 
 ####################################################################################
 #                                   LOAD DATA                                      #
 ####################################################################################
+logs_absPath = os.path.join(os.path.dirname(__file__), 'logs')
+
 
 #### Simulation data
-sim_data   = np.loadtxt('./logs/simulation_data.txt', delimiter=',')
+sim_data   = np.loadtxt(os.path.join(logs_absPath, 'simulation_data.txt'), delimiter=',')
 #### Bits generated
-tx_bitI_prbs = np.loadtxt('./logs/tx_bitI_prbs.txt', delimiter=',')
-tx_bitQ_prbs = np.loadtxt('./logs/tx_bitQ_prbs.txt', delimiter=',')
+tx_bitI_prbs = np.loadtxt(os.path.join(logs_absPath, 'tx_bitI_prbs.txt'), delimiter=',')
+tx_bitQ_prbs = np.loadtxt(os.path.join(logs_absPath, 'tx_bitQ_prbs.txt'), delimiter=',')
 #### Mapper
-tx_symI_map = np.loadtxt('./logs/tx_symI_map.txt', delimiter=',')
-tx_symQ_map = np.loadtxt('./logs/tx_symQ_map.txt', delimiter=',')
+tx_symI_map = np.loadtxt(os.path.join(logs_absPath, 'tx_symI_map.txt'), delimiter=',')
+tx_symQ_map = np.loadtxt(os.path.join(logs_absPath, 'tx_symQ_map.txt'), delimiter=',')
 #### RRC Filter
-txf_coeff   = np.loadtxt('./logs/coeffs_txf.txt', delimiter=',')
-tx_symI_txf = np.loadtxt('./logs/tx_symI_txf.txt', delimiter=',')
-tx_symQ_txf = np.loadtxt('./logs/tx_symQ_txf.txt', delimiter=',')
+txf_coeff   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_txf.txt'), delimiter=',')
+tx_symI_txf = np.loadtxt(os.path.join(logs_absPath, 'tx_symI_txf.txt'), delimiter=',')
+tx_symQ_txf = np.loadtxt(os.path.join(logs_absPath, 'tx_symQ_txf.txt'), delimiter=',')
 #### AWGN
-ch_symI_noisy = np.loadtxt('./logs/ch_symI_noisy.txt', delimiter=',')
-ch_symQ_noisy = np.loadtxt('./logs/ch_symQ_noisy.txt', delimiter=',')
+ch_symI_noisy = np.loadtxt(os.path.join(logs_absPath, 'ch_symI_noisy.txt'), delimiter=',')
+ch_symQ_noisy = np.loadtxt(os.path.join(logs_absPath, 'ch_symQ_noisy.txt'), delimiter=',')
 #### Frecuency Offset
-ch_symI_rot = np.loadtxt('./logs/ch_symI_rot.txt', delimiter=',')
-ch_symQ_rot = np.loadtxt('./logs/ch_symQ_rot.txt', delimiter=',')
+ch_symI_rot = np.loadtxt(os.path.join(logs_absPath, 'ch_symI_rot.txt'), delimiter=',')
+ch_symQ_rot = np.loadtxt(os.path.join(logs_absPath, 'ch_symQ_rot.txt'), delimiter=',')
 #### Channel filter
-ch_filt_coeff   = np.loadtxt('./logs/coeffs_chfilt.txt', delimiter=',')
-ch_symI_ch_filt = np.loadtxt('./logs/ch_symI_chfilt.txt', delimiter=',')
-ch_symQ_ch_filt = np.loadtxt('./logs/ch_symQ_chfilt.txt', delimiter=',')
+ch_filt_coeff   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_chfilt.txt'), delimiter=',')
+ch_symI_ch_filt = np.loadtxt(os.path.join(logs_absPath, 'ch_symI_chfilt.txt'), delimiter=',')
+ch_symQ_ch_filt = np.loadtxt(os.path.join(logs_absPath, 'ch_symQ_chfilt.txt'), delimiter=',')
 ##### Anti-alias filter
-aaf_coeff   = np.loadtxt('./logs/coeffs_aafilt.txt', delimiter=',')
-rx_symI_aaf = np.loadtxt('./logs/rx_symI_aaf.txt', delimiter=',')
-rx_symQ_aaf = np.loadtxt('./logs/rx_symQ_aaf.txt', delimiter=',')
+aaf_coeff   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_aafilt.txt'), delimiter=',')
+rx_symI_aaf = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_aaf.txt'), delimiter=',')
+rx_symQ_aaf = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_aaf.txt'), delimiter=',')
 ##### Downsampler (rate 2)
-rx_symI_dw_r2 = np.loadtxt('./logs/rx_symI_dw_rate2.txt', delimiter=',')
-rx_symQ_dw_r2 = np.loadtxt('./logs/rx_symQ_dw_rate2.txt', delimiter=',')
+rx_symI_dw_r2 = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_dw_rate2.txt'), delimiter=',')
+rx_symQ_dw_r2 = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_dw_rate2.txt'), delimiter=',')
 #### FSE
-fse_coeff   = np.loadtxt('./logs/coeffs_fse_I.txt', delimiter=',')
-rx_symI_fse = np.loadtxt('./logs/rx_symI_fse.txt' , delimiter=',')
-rx_symQ_fse = np.loadtxt('./logs/rx_symQ_fse.txt' , delimiter=',')
+fse_coeff   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_I.txt'), delimiter=',')
+rx_symI_fse = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_fse.txt'), delimiter=',')
+rx_symQ_fse = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_fse.txt'), delimiter=',')
 #### FCR
-rx_symI_fcr = np.loadtxt('./logs/rx_symI_fcr.txt', delimiter=',')
-rx_symQ_fcr = np.loadtxt('./logs/rx_symQ_fcr.txt', delimiter=',')
-nco_log     = np.loadtxt('./logs/nco_out.txt'    , delimiter=',')
-int_err_log = np.loadtxt('./logs/int_error.txt'  , delimiter=',')
+rx_symI_fcr = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_fcr.txt'), delimiter=',')
+rx_symQ_fcr = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_fcr.txt'), delimiter=',')
+nco_log     = np.loadtxt(os.path.join(logs_absPath, 'nco_out.txt'), delimiter=',')
+int_err_log = np.loadtxt(os.path.join(logs_absPath, 'int_error.txt'), delimiter=',')
 ##### Downsampler (rate 1)
-rx_symI_dw_r1 = np.loadtxt('./logs/rx_symI_dw_rate1.txt', delimiter=',')
-rx_symQ_dw_r1 = np.loadtxt('./logs/rx_symQ_dw_rate1.txt', delimiter=',')
+rx_symI_dw_r1 = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_dw_rate1.txt'), delimiter=',')
+rx_symQ_dw_r1 = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_dw_rate1.txt'), delimiter=',')
 ##### Slicer
-rx_symI_slcr = np.loadtxt('./logs/rx_symI_slcr.txt'   , delimiter=',')
-rx_symQ_slcr = np.loadtxt('./logs/rx_symQ_slcr.txt'   , delimiter=',')
+rx_symI_slcr = np.loadtxt(os.path.join(logs_absPath, 'rx_symI_slcr.txt'), delimiter=',')
+rx_symQ_slcr = np.loadtxt(os.path.join(logs_absPath, 'rx_symQ_slcr.txt'), delimiter=',')
 ##### Demapper
-rx_bitI_demap = np.loadtxt('./logs/rx_bitI_demap.txt'  , delimiter=',')
-rx_bitQ_demap = np.loadtxt('./logs/rx_bitQ_demap.txt'  , delimiter=',')
+rx_bitI_demap = np.loadtxt(os.path.join(logs_absPath, 'rx_bitI_demap.txt'), delimiter=',')
+rx_bitQ_demap = np.loadtxt(os.path.join(logs_absPath, 'rx_bitQ_demap.txt'), delimiter=',')
 
 
 ####################################################################################

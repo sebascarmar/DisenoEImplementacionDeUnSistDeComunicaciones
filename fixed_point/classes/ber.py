@@ -1,7 +1,12 @@
 import numpy as np
+
+# Add class/ absolute path to sys.path to allow module imports
+import os
 import sys
-sys.path.append('/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/classes')
-from prbs9 import prbs9
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from classes.prbs9 import prbs9
+
+
 
 ### It's used for rotate the input constelation post slicer
 def inv(bit):
