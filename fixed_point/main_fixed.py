@@ -120,7 +120,7 @@ log_step     = 500
 FSE_I_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
 # LMS variables
-lms = lms_class(lms_step, lms_leak)
+lms = lms_class(lms_step, lms_leak, 23, 20)
 
 # Downsampler (rate 1)
 dw_r1_shftr_I     = np.zeros(OS_DSP)
