@@ -1,11 +1,20 @@
 import numpy as np
+from tool._fixedInt import *
+
 
 class fcr_class:
 
     def __init__(self, Kp, Ki, NSYM_FCR_ON):
+        NTot = 8
+        NFra = 7
+
         self.NSYM_FCR_ON = NSYM_FCR_ON
-        self.Kp = Kp
-        self.Ki = Ki
+        
+        self.Kp       = DeFixedInt(22, 20, 'S', 'trunc', 'saturate')
+        self.Kp.value = Kp
+        self.Ki       = DeFixedInt(22, 20, 'S', 'trunc', 'saturate')
+        self.Ki.value = Ki
+        
         self.angle_err   = 0.0
         self.proport_err = 0.0
         self.integral_err= 0.0
@@ -18,13 +27,15 @@ class fcr_class:
         # Generate 2048 evenly spaced values from 0 to 60 and compute their arctan
         self.range_atan = 60
         self.nsamp_atan = 2048
-        x_values = np.linspace(0, self.range_atan-1, self.nsamp_atan)
-        self.arctan = np.arctan(x_values)
+        x_values        = np.linspace(0, self.range_atan-1, self.nsamp_atan)
+        arctan          = np.arctan(x_values)
+        self.arctan     = arrayFixedInt(NTot, NFra-1, arctan, 'S', 'trunc', 'saturate')
         
         # Generate a quarter-cycle sine table with 1025 samples points
         self.nsamp_sin = 1025
         wt             = np.linspace(0, np.pi/2, self.nsamp_sin)
-        self.sin_val   = np.sin(wt)
+        sin_val        = np.sin(wt)
+        self.sin_val   = arrayFixedInt(NTot, NFra, sin_val, 'S', 'trunc', 'saturate')
 
 
     def __arctg(self, I, Q):
@@ -45,7 +56,7 @@ class fcr_class:
         if( idx>(self.nsamp_atan-1) ):
             tita = np.pi/2 if(QoverI>=0) else -np.pi/2
         else:
-            tita  = self.arctan[idx] if(QoverI>=0) else -self.arctan[idx]
+            tita  = self.arctan[idx].fValue if(QoverI>=0) else -self.arctan[idx].fValue
         
         return tita
 
@@ -65,13 +76,13 @@ class fcr_class:
         
         # Get the value from the table depending on the corresponding quarter 
         if( idx<=(self.nsamp_sin-1) ):
-            sin_out =  self.sin_val[idx]
+            sin_out =  self.sin_val[idx].fValue
         elif( idx<=2*(self.nsamp_sin-1) ):
-            sin_out =  self.sin_val[2*(self.nsamp_sin-1) - idx]
+            sin_out =  self.sin_val[2*(self.nsamp_sin-1) - idx].fValue
         elif( idx<=3*(self.nsamp_sin-1) ):
-            sin_out = -self.sin_val[idx - 2*(self.nsamp_sin-1)]
+            sin_out = -self.sin_val[idx - 2*(self.nsamp_sin-1)].fValue
         else:
-            sin_out = -self.sin_val[4*(self.nsamp_sin-1) - idx]
+            sin_out = -self.sin_val[4*(self.nsamp_sin-1) - idx].fValue
         
         # Use the odd symmetry of the sine function
         if( is_neg ): 
@@ -96,13 +107,13 @@ class fcr_class:
         
         # Get the value from the table depending on the corresponding quarter 
         if( idx<=(self.nsamp_sin-1) ):
-            cos_out =  self.sin_val[(self.nsamp_sin-1) - idx]
+            cos_out =  self.sin_val[(self.nsamp_sin-1) - idx].fValue
         elif( idx<=2*(self.nsamp_sin-1) ):
-            cos_out = -self.sin_val[idx - (self.nsamp_sin-1)]
+            cos_out = -self.sin_val[idx - (self.nsamp_sin-1)].fValue
         elif( idx<=3*(self.nsamp_sin-1) ):
-            cos_out = -self.sin_val[3*(self.nsamp_sin-1) - idx]
+            cos_out = -self.sin_val[3*(self.nsamp_sin-1) - idx].fValue
         else:
-            cos_out =  self.sin_val[idx - 3*(self.nsamp_sin-1)]
+            cos_out =  self.sin_val[idx - 3*(self.nsamp_sin-1)].fValue
         
         # Return value
         return cos_out
@@ -137,8 +148,8 @@ class fcr_class:
         
         if( cyc_cnt>self.NSYM_FCR_ON ):
             # Loop Filter
-            self.proport_err  = self.Kp * self.angle_err
-            self.integral_err = (self.Ki * self.angle_err) + self.integral_err
+            self.proport_err  = self.Kp.fValue * self.angle_err
+            self.integral_err = (self.Ki.fValue * self.angle_err) + self.integral_err
             # NCO out
             self.nco_out = (self.proport_err+self.integral_err)+self.nco_out
         else:
