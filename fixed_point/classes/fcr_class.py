@@ -15,14 +15,16 @@ class fcr_class:
         self.Ki       = DeFixedInt(21, 20, 'S', 'trunc', 'saturate')
         self.Ki.value = Ki
         
-        self.angle_err       = DeFixedInt(8, 7, 'S', 'trunc', 'saturate') # Puede ser S(7,6)
+        self.angle_err       = DeFixedInt(7, 6, 'S', 'trunc', 'saturate') # Puede ser S(7,6)
         self.angle_err.value = 0.0
         self.proport_err       = DeFixedInt(13, 12, 'S', 'trunc', 'saturate') #14ok; 13ok ; 12ok ; 11no ; 10no
         self.proport_err.value = 0.0
         self.integral_err       = DeFixedInt(27, 26, 'S', 'trunc', 'saturate') #28ok ; 27ok ; 26ok ; 25no
         self.integral_err.value = 0.0
-        self.nco_out       = DeFixedInt(29, 26, 'U', 'trunc', 'wrap')  # Wrap no es usado, pero es menos hardware que sat. 25?
-        self.nco_out.value = 0.0
+        self.nco_out           = DeFixedInt(29, 26, 'U', 'trunc', 'wrap') #Wrap no es usado, pero es menos hardware que sat. 25?
+        self.nco_out.value     = 0.0
+        self.nco_out_aux       = DeFixedInt(30, 26, 'S', 'trunc', 'wrap')
+        self.nco_out_aux.value = 0.0
         
         # Va a depender de la cuantización del error en LMS/FSE
         self.symI_out       = DeFixedInt(32, 29, 'S', 'trunc', 'saturate')
@@ -185,13 +187,13 @@ class fcr_class:
             self.proport_err.value  = self.Kp.fValue * self.angle_err.fValue
             self.integral_err.value = (self.Ki.fValue * self.angle_err.fValue) + self.integral_err.fValue
             # NCO out
-            nco_out_aux = (self.proport_err.fValue+self.integral_err.fValue)+self.nco_out.fValue
-            if(nco_out_aux < 0):
+            self.nco_out_aux.value = (self.proport_err.fValue+self.integral_err.fValue)+self.nco_out.fValue
+            if(self.nco_out_aux.fValue < 0):
                 self.nco_out.value = 0.0
-            elif(nco_out_aux >= 6.283185303211212):
+            elif(self.nco_out_aux.fValue >= 6.283185303211212): # 2pi in S(30,26): 0b011001001000011111101101010100
                 self.nco_out.value = 0.0
             else:
-                self.nco_out.value = nco_out_aux
+                self.nco_out.value = self.nco_out_aux.fValue
             
         else:
             # Loop Filter
