@@ -4,53 +4,55 @@ from tool._fixedInt import *
 
 class lms_class:
 
-    def __init__(self, step, leak, NTot, NFra):
+    def __init__(self, step, leak, NTOT_TAPS, NFRA_TAPS):
+        NTOT_STEP = 12
+        NFRA_STEP = 11
+        NTOT_LEAK = 11
+        NFRA_LEAK = 10
+        NTOT_SYMB = 8
+        NFRA_SYMB = 7
+        NTOT_ERR = 27 # TO REVIEW
+        NFRA_ERR = 24 # TO REVIEW
         
         ### Variables for the step and leakage of the adaptive filter
-        self.step       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        self.step       = DeFixedInt(NTOT_STEP, NFRA_STEP, 'S', 'trunc', 'saturate')
         self.step.value = step
-        self.leak       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        self.leak       = DeFixedInt(NTOT_LEAK, NFRA_LEAK, 'S', 'trunc', 'saturate')
         self.leak.value = leak
         
         ### Variables for the internal operation of the LMS algorithm
-        self.k       = DeFixedInt(2*NTot+1, 2*NFra, 'S', 'trunc', 'saturate')
-        self.k.value = 1 - self.step.fValue*self.leak.fValue  
-        
         ##I taps
-        self.ItapXk       = DeFixedInt(3*NTot+1, 3*NFra, 'S', 'trunc', 'saturate')
-        self.ItapXk.value = 0.0
-        
-        self.IerXIsh  = DeFixedInt(2*NTot, 2*NFra, 'S', 'trunc', 'saturate')
-        self.QerXQsh  = DeFixedInt(2*NTot, 2*NFra, 'S', 'trunc', 'saturate')
-        self.add1     = DeFixedInt(2*NTot+1, 2*NFra, 'S', 'trunc', 'saturate')
-        self.stpXadd1 = DeFixedInt(3*NTot+1, 3*NFra, 'S', 'trunc', 'saturate')
-        self.IerXIsh.value  = 0.0
-        self.QerXQsh.value  = 0.0
-        self.add1.value     = 0.0
-        self.stpXadd1.value = 0.0
-        
-        self.add2       = DeFixedInt(3*NTot+2, 3*NFra, 'S', 'trunc', 'saturate')
-        self.add2.value = 0.0 
+        self.term1_I       = DeFixedInt(NTOT_TAPS+(NTOT_STEP+NTOT_LEAK), NFRA_TAPS+(NFRA_STEP+NFRA_LEAK),
+                                       'S', 'trunc', 'saturate')
+        self.term2_I = DeFixedInt(NTOT_STEP+(NTOT_ERR+NTOT_SYMB+1), NFRA_STEP+(NFRA_ERR+NFRA_SYMB),
+                                   'S', 'trunc', 'saturate')
+        self.term1_I.value = 0.0
+        self.term2_I.value = 0.0
+        # Estas dos opciones dependen de las cuantizaciones de mayor bits
+        self.add_I       = DeFixedInt(NTOT_STEP+(NTOT_ERR+NTOT_SYMB+1)+1, NFRA_STEP+(NFRA_ERR+NFRA_SYMB),
+                                   'S', 'trunc', 'saturate')
+        #self.add_I       = DeFixedInt(NTOT_TAPS+(NTOT_STEP+NTOT_LEAK)+1, NFRA_TAPS+(NFRA_STEP+NFRA_LEAK),
+        #                               'S', 'trunc', 'saturate')
+        self.add_I.value = 0.0 
         
         ##Q taps
-        self.QtapXk       = DeFixedInt(3*NTot+1, 3*NFra, 'S', 'trunc', 'saturate')
-        self.QtapXk.value = 0.0
+        self.term1_Q       = DeFixedInt(NTOT_TAPS+(NTOT_STEP+NTOT_LEAK), NFRA_TAPS+(NFRA_STEP+NFRA_LEAK),
+                                       'S', 'trunc', 'saturate')
+        self.term2_Q = DeFixedInt(NTOT_STEP+(NTOT_ERR+NTOT_SYMB+1), NFRA_STEP+(NFRA_ERR+NFRA_SYMB),
+                                   'S', 'trunc', 'saturate')
+        self.term1_Q.value = 0.0
+        self.term2_Q.value = 0.0
         
-        self.IerXQsh  = DeFixedInt(2*NTot, 2*NFra, 'S', 'trunc', 'saturate')
-        self.QerXIsh  = DeFixedInt(2*NTot, 2*NFra, 'S', 'trunc', 'saturate')
-        self.add3     = DeFixedInt(2*NTot+1, 2*NFra, 'S', 'trunc', 'saturate')
-        self.stpXadd3 = DeFixedInt(3*NTot+1, 3*NFra, 'S', 'trunc', 'saturate')
-        self.IerXQsh.value  = 0.0
-        self.QerXIsh.value  = 0.0
-        self.add3.value     = 0.0
-        self.stpXadd3.value = 0.0
-        
-        self.add4       = DeFixedInt(3*NTot+2, 3*NFra, 'S', 'trunc', 'saturate')
-        self.add4.value = 0.0 
+        # Estas dos opciones dependen de las cuantizaciones de mayor bits
+        self.add_Q       = DeFixedInt(NTOT_STEP+(NTOT_ERR+NTOT_SYMB+1)+1, NFRA_STEP+(NFRA_ERR+NFRA_SYMB),
+                                   'S', 'trunc', 'saturate')
+        #self.add_Q       = DeFixedInt(NTOT_TAPS+(NTOT_STEP+NTOT_LEAK)+1, NFRA_TAPS+(NFRA_STEP+NFRA_LEAK),
+        #                               'S', 'trunc', 'saturate')
+        self.add_Q.value = 0.0 
         
         ### Saturate and truncation of new taps
-        self.tapI_quan       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
-        self.tapQ_quan       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        self.tapI_quan       = DeFixedInt(NTOT_TAPS, NFRA_TAPS, 'S', 'trunc', 'saturate')
+        self.tapQ_quan       = DeFixedInt(NTOT_TAPS, NFRA_TAPS, 'S', 'trunc', 'saturate')
         self.tapI_quan.value = 0.0
         self.tapQ_quan.value = 0.0
 
@@ -67,26 +69,20 @@ class lms_class:
         new_tapsQ = np.zeros(len(tapsQ))
         for i in range(len(tapsI)):
             # Compute new I taps
-            self.ItapXk.value   = tapsI[i] * self.k.fValue
-            self.IerXIsh.value  = errI * shftrI[i]
-            self.QerXQsh.value  = errQ * shftrQ[i]
-            self.add1.value     = self.IerXIsh.fValue + self.QerXQsh.fValue
-            self.stpXadd1.value = self.step.fValue * self.add1.fValue
-            self.add2.value     = self.ItapXk.fValue - self.stpXadd1.fValue
+            self.term1_I.value = tapsI[i] * (1 - self.step.fValue*self.leak.fValue)
+            self.term2_I.value = self.step.fValue * (errI*shftrI[i] + errQ*shftrQ[i])
+            self.add_I.value   = self.term1_I.fValue - self.term2_I.fValue
             # Apply quantization to the new tap
-            self.tapI_quan.value = self.add2.fValue
+            self.tapI_quan.value = self.add_I.fValue
             
             new_tapsI[i] = self.tapI_quan.fValue
             
             # Compute new Q taps
-            self.QtapXk.value   = tapsQ[i] * self.k.fValue
-            self.IerXQsh.value  = errI * shftrQ[i]
-            self.QerXIsh.value  = errQ * shftrI[i]
-            self.add3.value     = self.IerXQsh.fValue - self.QerXIsh.fValue
-            self.stpXadd3.value = self.step.fValue * self.add3.fValue
-            self.add4.value     = self.QtapXk.fValue + self.stpXadd3.fValue
+            self.term1_Q.value = tapsQ[i] * (1 - self.step.fValue*self.leak.fValue)
+            self.term2_Q.value = self.step.fValue * (errI*shftrQ[i] - errQ*shftrI[i])
+            self.add_Q.value   = self.term1_Q.fValue + self.term2_Q.fValue
             # Apply quantization to the new tap
-            self.tapQ_quan.value = self.add4.fValue
+            self.tapQ_quan.value = self.add_Q.fValue
             
             new_tapsQ[i] = self.tapQ_quan.fValue
             
