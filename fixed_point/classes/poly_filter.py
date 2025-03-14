@@ -3,17 +3,17 @@ from tool._fixedInt import *
 
 class poly_filter:
     
-    def __init__(self, filt_coeff, NBAUD, OS, NSYMB, NTot, NFra):
+    def __init__(self, filt_coeff, NBAUD, OS, NSYMB, NTOT, NFRA):
         
         ### Perform quantization of filter coefficients
-        self.coeffs = arrayFixedInt(NTot, NFra, filt_coeff, 'S', 'trunc', 'saturate')
+        self.coeffs = arrayFixedInt(NTOT, NFRA, filt_coeff, 'S', 'trunc', 'saturate')
         ### Oversampling: number of phases
         self.OS           = OS
         ### Shift register for input symbols
         self.shifter_filt = np.full(NBAUD+1,0)
         ### Coeffs. of each phase
         self.poly_filter  = []
-        zero = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        zero = DeFixedInt(NTOT, NFRA, 'S', 'trunc', 'saturate')
         zero.value = 0.0
         for phase in range(OS):  # OS phases
             self.poly_filter.append([])
@@ -27,12 +27,12 @@ class poly_filter:
                         self.poly_filter[phase].append( zero )
         ### Partial products of the convolution
         partial_prod_aux  = np.zeros(NBAUD+1)
-        self.partial_prod = arrayFixedInt(NTot, NFra, partial_prod_aux, 'S', 'trunc', 'saturate')
+        self.partial_prod = arrayFixedInt(NTOT, NFRA, partial_prod_aux, 'S', 'trunc', 'saturate')
         ### Filter out
-        self.filt_out       = DeFixedInt(NTot+3, NFra, 'S', 'trunc', 'saturate')
+        self.filt_out       = DeFixedInt(NTOT+3, NFRA, 'S', 'trunc', 'saturate')
         self.filt_out.value = 0.0
         ### Saturate and truncation of filter out
-        self.sym_out       = DeFixedInt(NTot, NFra, 'S', 'trunc', 'saturate')
+        self.sym_out       = DeFixedInt(NTOT, NFRA, 'S', 'trunc', 'saturate')
         self.sym_out.value = 0.0
         ### Counter. Ensures that the phase 0 of the filter (coefficients)  
         ###aligns with the first symbol fed into the filter (loop i=1, or second clock cycle)
