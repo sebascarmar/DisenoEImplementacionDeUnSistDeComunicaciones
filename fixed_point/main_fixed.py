@@ -25,7 +25,7 @@ import os
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 300000 # 1e6
+NSYMB = 400000 # 1e6
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -50,11 +50,13 @@ Kp           = 1e-3
 Ki           = Kp/1000
 
 #### BER counter
-START_SYN = 249879 
+START_SYN = 352590
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-np.random.seed(2)  # set the seed
+seedddd=2
+np.random.seed(seedddd)  # set the seed: 11,12,14,16,17 - 1,3,4,6,7,8 - 0,2,5,9,13 - 10,15
+print("seeeeed:", seedddd)
 
 ############################## TRANSMITTER  #############################
 
@@ -111,7 +113,10 @@ RX_SYMQ_DW_RATE2_LOG = np.zeros(NSYMB*OS_DSP)
 
 #### DSP
 # FSE variables
-fse = fse_class(NTAPS_FSE, 23, 20) # could be 22,20
+# fse = fse_class(NTAPS_FSE)
+#fse = fse_class(NTAPS_FSE, 32, 29) # OK
+fse = fse_class(NTAPS_FSE, 28, 25) # could be 22,20
+
 
 rx_symI_fse = 0.0
 rx_symQ_fse = 0.0
@@ -122,7 +127,15 @@ log_step     = 500
 FSE_I_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 
 # LMS variables
-lms = lms_class(lms_step, lms_leak, 23, 20)
+# lms = lms_class(lms_step, lms_leak)
+# lms = lms_class(lms_step, lms_leak, 32, 29) #OK
+# coeff_err_I       = DeFixedInt(32, 29, 'S', 'trunc', 'saturate') # OK
+# coeff_err_Q       = DeFixedInt(32, 29, 'S', 'trunc', 'saturate') 
+lms = lms_class(lms_step, lms_leak, 28, 25)
+coeff_err_I       = DeFixedInt(12, 9, 'S', 'trunc', 'saturate') # 1M y S(9,7) se vio bien. idem S(8,6)
+coeff_err_Q       = DeFixedInt(12, 9, 'S', 'trunc', 'saturate')
+coeff_err_I.value = 0.0
+coeff_err_Q.value = 0.0
 
 # Downsampler (rate 1)
 dw_r1_shftr_I     = np.zeros(OS_DSP)
@@ -253,14 +266,14 @@ for i in range(NSYMB*OS):
             RX_SYMQ_SLCR_LOG[k] = rx_symQ_slcr
             
             # Error for LMS
-            coeff_err_I =(rx_symI_fcr-rx_symI_slcr)
-            coeff_err_Q =(rx_symQ_fcr-rx_symQ_slcr)
-            coeff_err_I, coeff_err_Q =  fcr.rot(coeff_err_I, coeff_err_Q)
+            coeff_err_I.value =(rx_symI_fcr-rx_symI_slcr)
+            coeff_err_Q.value =(rx_symQ_fcr-rx_symQ_slcr)
+            coeff_err_I.value, coeff_err_Q.value =  fcr.rot(coeff_err_I.fValue, coeff_err_Q.fValue)
             
             # LMS
-            coeffI, coeffQ = lms.update(coeff_err_I     , coeff_err_Q    ,
-                                        fse.get_coeffI(), fse.get_buffI(),
-                                        fse.get_coeffQ(), fse.get_buffQ())
+            coeffI, coeffQ = lms.update(coeff_err_I.fValue, coeff_err_Q.fValue,
+                                        fse.get_coeffI()  , fse.get_buffI()   ,
+                                        fse.get_coeffQ()  , fse.get_buffQ()   )
             fse.set_taps(coeffI, coeffQ)
             if( (((j+1)/OS_DSP)%log_step) == 0 ):
                 FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
@@ -306,38 +319,35 @@ os.makedirs(logs_absPath, exist_ok=True) # Create logs/ if it doesn't exist
 
 
 np.savetxt(os.path.join(logs_absPath,'simulation_data.txt' ), SIMULATION_DATA      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_bitI_prbs.txt'    ), TX_BITI_PRBS_LOG     , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_bitQ_prbs.txt'    ), TX_BITQ_PRBS_LOG     , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_symI_map.txt'     ), TX_SYMI_MAP_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_symQ_map.txt'     ), TX_SYMQ_MAP_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_txf.txt'      ), tx_filter_I.get_quantized_coeffs(), delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_symI_txf.txt'     ), TX_SYMI_TXFILT_LOG   , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'tx_symQ_txf.txt'     ), TX_SYMQ_TXFILT_LOG   , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symI_noisy.txt'   ), CH_SYMI_NOISY_LOG    , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symQ_noisy.txt'   ), CH_SYMQ_NOISY_LOG    , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symI_rot.txt'     ), CH_SYMI_ROT_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symQ_rot.txt'     ), CH_SYMQ_ROT_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_chfilt.txt'   ), chann_filt_I.get_quantized_coeffs(), delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symI_chfilt.txt'  ), CH_SYMI_CHFILT_LOG   , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'ch_symQ_chfilt.txt'  ), CH_SYMQ_CHFILT_LOG   , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_aafilt.txt'   ), aaf_filt_I.get_quantized_coeffs(), delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_aaf.txt'     ), RX_SYMI_AAF_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_aaf.txt'     ), RX_SYMQ_AAF_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate2.txt'), RX_SYMI_DW_RATE2_LOG , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate2.txt'), RX_SYMQ_DW_RATE2_LOG , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_bitI_prbs.txt'    ), TX_BITI_PRBS_LOG     , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_bitQ_prbs.txt'    ), TX_BITQ_PRBS_LOG     , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_symI_map.txt'     ), TX_SYMI_MAP_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_symQ_map.txt'     ), TX_SYMQ_MAP_LOG      , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_txf.txt'      ), txf_coeff, delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_symI_txf.txt'     ), TX_SYMI_TXFILT_LOG   , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'tx_symQ_txf.txt'     ), TX_SYMQ_TXFILT_LOG   , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symI_noisy.txt'   ), CH_SYMI_NOISY_LOG    , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symQ_noisy.txt'   ), CH_SYMQ_NOISY_LOG    , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symI_rot.txt'     ), CH_SYMI_ROT_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symQ_rot.txt'     ), CH_SYMQ_ROT_LOG      , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_chfilt.txt'   ), ch_filt_coeff, delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symI_chfilt.txt'  ), CH_SYMI_CHFILT_LOG   , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'ch_symQ_chfilt.txt'  ), CH_SYMQ_CHFILT_LOG   , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_aafilt.txt'   ), aaf_coeff  , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_aaf.txt'     ), RX_SYMI_AAF_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_aaf.txt'     ), RX_SYMQ_AAF_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate2.txt'), RX_SYMI_DW_RATE2_LOG , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate2.txt'), RX_SYMQ_DW_RATE2_LOG , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'coeffs_fse_I.txt'    ), FSE_I_COEFFS_LOG     , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_fse.txt'     ), RX_SYMI_FSE_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_fse.txt'     ), RX_SYMQ_FSE_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_fcr.txt'     ), RX_SYMI_FCR_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_fcr.txt'     ), RX_SYMQ_FCR_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_fse.txt'     ), RX_SYMI_FSE_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_fse.txt'     ), RX_SYMQ_FSE_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_fcr.txt'     ), RX_SYMI_FCR_LOG      , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_fcr.txt'     ), RX_SYMQ_FCR_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'nco_out.txt'         ), NCO_OUT_LOG          , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'int_error.txt'       ), INT_ERR_LOG          , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate1.txt'), RX_SYMI_DW_RATE1_LOG , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate1.txt'), RX_SYMQ_DW_RATE1_LOG , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symI_slcr.txt'    ), RX_SYMI_SLCR_LOG     , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_symQ_slcr.txt'    ), RX_SYMQ_SLCR_LOG     , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_bitI_demap.txt'   ), RX_BITI_DEMAP_LOG    , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'rx_bitQ_demap.txt'   ), RX_BITQ_DEMAP_LOG    , delimiter=',')
-
-
-
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate1.txt'), RX_SYMI_DW_RATE1_LOG , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate1.txt'), RX_SYMQ_DW_RATE1_LOG , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symI_slcr.txt'    ), RX_SYMI_SLCR_LOG     , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_symQ_slcr.txt'    ), RX_SYMQ_SLCR_LOG     , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_bitI_demap.txt'   ), RX_BITI_DEMAP_LOG    , delimiter=',')
+# np.savetxt(os.path.join(logs_absPath,'rx_bitQ_demap.txt'   ), RX_BITQ_DEMAP_LOG    , delimiter=',')

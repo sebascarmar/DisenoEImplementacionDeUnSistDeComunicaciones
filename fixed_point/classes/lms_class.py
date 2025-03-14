@@ -11,8 +11,8 @@ class lms_class:
         NFRA_LEAK = 10
         NTOT_SYMB = 8
         NFRA_SYMB = 7
-        NTOT_ERR = 27 # TO REVIEW
-        NFRA_ERR = 24 # TO REVIEW
+        NTOT_ERR = 12 # TO REVIEW
+        NFRA_ERR = 9 # TO REVIEW
         
         ### Variables for the step and leakage of the adaptive filter
         self.step       = DeFixedInt(NTOT_STEP, NFRA_STEP, 'S', 'trunc', 'saturate')
@@ -89,3 +89,80 @@ class lms_class:
             
         return new_tapsI, new_tapsQ
 
+
+
+
+
+
+
+
+# import numpy as np
+# from tool._fixedInt import *
+
+
+# class lms_class:
+
+#     def __init__(self, step, leak):
+        
+#         ### Variables for the step and leakage of the adaptive filter
+#         self.step       = DeFixedInt(12, 11, 'S', 'trunc', 'saturate')
+#         self.step.value = step
+#         self.leak       = DeFixedInt(11, 10, 'S', 'trunc', 'saturate')
+#         self.leak.value = leak
+
+
+    
+#     def update(self, errI, errQ, tapsI, shftrI, tapsQ, shftrQ):
+#         new_tapsI = (tapsI*(1-self.step.fValue*self.leak.fValue) - 
+#                       self.step.fValue*(errI*shftrI + errQ*shftrQ))
+#         new_tapsQ = (tapsQ*(1-self.step.fValue*self.leak.fValue) +
+#                       self.step.fValue*(errI*shftrQ - errQ*shftrI))
+        
+#         return new_tapsI, new_tapsQ
+    
+
+
+
+
+
+# import numpy as np
+# from tool._fixedInt import *
+
+
+# class lms_class:
+
+#     def __init__(self, step, leak, NTot, NFra):
+        
+#         ### Variables for the step and leakage of the adaptive filter
+#         self.step       = DeFixedInt(12, 11, 'S', 'trunc', 'saturate')
+#         self.step.value = step
+#         self.leak       = DeFixedInt(11, 10, 'S', 'trunc', 'saturate')
+#         self.leak.value = leak
+        
+#         ### Saturate and truncation of new taps
+#         tapI = np.zeros(33)
+#         tapQ = np.zeros(33)
+#         self.tapI = arrayFixedInt(NTot, NFra, tapI, 'S', 'trunc', 'saturate')
+#         self.tapQ = arrayFixedInt(NTot, NFra, tapQ, 'S', 'trunc', 'saturate')
+
+
+    
+#     def update(self, errI, errQ, tapsI, shftrI, tapsQ, shftrQ):
+
+#         for i in range(len(tapsI)):
+#             self.tapI[i].value = tapsI[i]
+#             self.tapQ[i].value = tapsQ[i]
+        
+#         for i in range(len(tapsI)):
+#             self.tapI[i].value = (self.tapI[i].fValue*(1-self.step.fValue*self.leak.fValue) - 
+#                           self.step.fValue*(errI*shftrI[i] + errQ*shftrQ[i]))
+#             self.tapQ[i].value = (self.tapQ[i].fValue*(1-self.step.fValue*self.leak.fValue) +
+#                           self.step.fValue*(errI*shftrQ[i] - errQ*shftrI[i]))
+
+#         new_tapsI = np.zeros(len(tapsI))
+#         new_tapsQ = np.zeros(len(tapsQ))
+#         for i in range(len(tapsI)):
+#             new_tapsI[i] = self.tapI[i].fValue
+#             new_tapsQ[i] = self.tapQ[i].fValue
+
+#         return new_tapsI, new_tapsQ
