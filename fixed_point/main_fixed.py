@@ -46,7 +46,7 @@ OS_DSP       = 2
 NTAPS_FSE    = 33
 lms_step     = 0.5e-3
 lms_leak     = 1e-3
-Kp           = 1e-3
+Kp           = 0 if(f_offset==0) else 1e-3
 Ki           = Kp/1000
 
 #### BER counter
@@ -54,9 +54,9 @@ START_SYN = 352590
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-seedddd=2
+seedddd=5
 np.random.seed(seedddd)  # set the seed: 11,12,14,16,17 - 1,3,4,6,7,8 - 0,2,5,9,13 - 10,15
-                         # set the seed: X - 2 - X - X
+                         # set the seed: 3,4 - 2 - 0,1 - 5
 print("seeeeed:", seedddd)
 
 #### Fixed Point formats
