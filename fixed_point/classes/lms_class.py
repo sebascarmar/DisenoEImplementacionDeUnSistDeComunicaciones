@@ -6,14 +6,6 @@ class lms_class:
 
     def __init__(self, step, leak, NTOT_STEP, NFRA_STEP, NTOT_LEAK, NFRA_LEAK,
                  NTOT_TAP, NFRA_TAP, NTOT_SHI, NFRA_SHI, NTOT_ERR, NFRA_ERR):
-        NTOT_STEP = 12
-        NFRA_STEP = 11
-        NTOT_LEAK = 11
-        NFRA_LEAK = 10
-        NTOT_SHI = 8
-        NFRA_SHI = 7
-        NTOT_ERR = 12 # TO REVIEW
-        NFRA_ERR = 9 # TO REVIEW
         
         ### Variables for the step and leakage of the adaptive filter
         self.step       = DeFixedInt(NTOT_STEP, NFRA_STEP, 'S', 'trunc', 'saturate')
