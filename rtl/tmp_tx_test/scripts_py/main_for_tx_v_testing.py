@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 10000000 
+NSYMB = 1000000 
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -91,7 +91,7 @@ print(tx_symI_txf[19:29])
 tx_symI_txf_from_fixed = np.loadtxt('tx_symI_txf.txt', delimiter=',')
 print(tx_symI_txf_from_fixed[17:27])
 
-for i in range(len(tx_symI_txf_from_fixed)-17):
+for i in range(len(tx_symI_txf_from_fixed)-19):
     if( tx_symI_txf_from_fixed[i+17] != tx_symI_txf[19+i]):
         print(i, tx_symI_txf_from_fixed[i+17], tx_symI_txf[19+i])
         input()
