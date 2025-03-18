@@ -25,7 +25,7 @@ import os
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 400000 
+NSYMB = 400000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -337,23 +337,48 @@ SIMULATION_DATA = [latency, rot_ang_detec, SNR_db, f_offset, lms_step, lms_leak,
 logs_absPath = os.path.join(os.path.dirname(__file__), 'logs')
 os.makedirs(logs_absPath, exist_ok=True) # Create logs/ if it doesn't exist
 
+# Transmitter filter taps in a format used for Verilog
+txf_coeff_quan = tx_filter_I.get_quantized_coeffs()
+with open(os.path.join(logs_absPath,'coeffs_txf.dat'), 'w') as binString:
+    for i in range(len(txf_coeff_quan)):
+        binString.write((format(int(txf_coeff_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:] 
+                         if(txf_coeff_quan[i]>0.0) else 
+                         format((1 << NTOT) + int(txf_coeff_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:])
+                         + '\n')
+# Channel filter taps in a format used for Verilog
+chann_filt_I_quan = chann_filt_I.get_quantized_coeffs()
+with open(os.path.join(logs_absPath,'coeffs_chfilt.dat'), 'w') as binString:
+    for i in range(len(chann_filt_I_quan)):
+        binString.write((format(int(chann_filt_I_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:] 
+                         if(chann_filt_I_quan[i]>0.0) else 
+                         format((1 << NTOT) + int(chann_filt_I_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:])
+                         + '\n')
+# Channel filter taps in a format used for Verilog
+aaf_filt_I_quan = aaf_filt_I.get_quantized_coeffs()
+with open(os.path.join(logs_absPath,'coeffs_aafilt.dat'), 'w') as binString:
+    for i in range(len(aaf_filt_I_quan)):
+        binString.write((format(int(aaf_filt_I_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:] 
+                         if(aaf_filt_I_quan[i]>0.0) else 
+                         format((1 << NTOT) + int(aaf_filt_I_quan[i]*(2**NFRA)), '0{}b'.format(NTOT))[-NTOT:])
+                         + '\n')
+
 
 np.savetxt(os.path.join(logs_absPath,'simulation_data.txt' ), SIMULATION_DATA      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_bitI_prbs.txt'    ), TX_BITI_PRBS_LOG     , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_bitQ_prbs.txt'    ), TX_BITQ_PRBS_LOG     , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_symI_map.txt'     ), TX_SYMI_MAP_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_symQ_map.txt'     ), TX_SYMQ_MAP_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_txf.txt'      ), txf_coeff, delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_txf.txt'      ), tx_filter_I.get_quantized_coeffs(), delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_symI_txf.txt'     ), TX_SYMI_TXFILT_LOG   , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'tx_symQ_txf.txt'     ), TX_SYMQ_TXFILT_LOG   , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symI_noisy.txt'   ), CH_SYMI_NOISY_LOG    , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symQ_noisy.txt'   ), CH_SYMQ_NOISY_LOG    , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symI_rot.txt'     ), CH_SYMI_ROT_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symQ_rot.txt'     ), CH_SYMQ_ROT_LOG      , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_chfilt.txt'   ), ch_filt_coeff, delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_chfilt.txt'   ), chann_filt_I.get_quantized_coeffs(), delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symI_chfilt.txt'  ), CH_SYMI_CHFILT_LOG   , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'ch_symQ_chfilt.txt'  ), CH_SYMQ_CHFILT_LOG   , delimiter=',')
-np.savetxt(os.path.join(logs_absPath,'coeffs_aafilt.txt'   ), aaf_coeff  , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_aafilt.txt'   ), aaf_filt_I.get_quantized_coeffs(), delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symI_aaf.txt'     ), RX_SYMI_AAF_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symQ_aaf.txt'     ), RX_SYMQ_AAF_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate2.txt'), RX_SYMI_DW_RATE2_LOG , delimiter=',')
