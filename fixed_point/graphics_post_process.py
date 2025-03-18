@@ -326,7 +326,7 @@ plt.show()
 ## Transmitter Filter graphics: frequency response and time
 
 # Get frequencies and magnitudes
-f_txf, h_txf = signal.freqz(txf_coeff, worN=800, fs=OS*BR)
+f_txf, h_txf = signal.freqz(txf_coeff[:-3], worN=800, fs=OS*BR)
 # Find the -3 dB point
 fc_idx_txf = np.where(20*np.log10(np.abs(h_txf)) <= (20*np.log10(np.abs(h_txf[50]))-3.01))[0][0]
 actual_fc_txf = f_txf[fc_idx_txf]
@@ -340,7 +340,7 @@ plt.axvline(x=actual_fc_txf,color='gray',linewidth=2.0,
            label=f"{actual_fc_txf / 1e6:.2f}MHz")
 plt.axvline(x=0.5*BR,color='coral',linewidth=2.0,
            label=f"{0.5*BR / 1e6:.2f}MHz")
-plt.title("Bode - Transmitter Filter ({} taps)".format(len(txf_coeff)))
+plt.title("Bode - Transmitter Filter ({} taps)".format(len(txf_coeff[:-3])))
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Magnitud [dB]")
 plt.legend(loc="lower left")
@@ -349,13 +349,13 @@ plt.grid(True)
 
 
 # Time axis (centered around zero)
-t = np.linspace(-0.5*(1/(OS*BR))*(len(txf_coeff)-1),
-               0.5*(1/(OS*BR))*(len(txf_coeff)-1),
-               len(txf_coeff))
+t = np.linspace(-0.5*(1/(OS*BR))*(len(txf_coeff[:-3])-1),
+                0.5*(1/(OS*BR))*(len(txf_coeff[:-3])-1),
+                len(txf_coeff[:-3]))
 # Impulse response of the transmitter filter
 plt.figure(figsize=[7,4])
-plt.plot(t, txf_coeff, color='darkcyan', marker='o',
-        linestyle='-', linewidth=2.0, label=f"{len(txf_coeff)} taps")
+plt.plot(t, txf_coeff[:-3], color='darkcyan', marker='o',
+         linestyle='-', linewidth=2.0, label=f"{len(txf_coeff[:-3])} taps")
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
 plt.title('Transmitter Filter Coefficients')
 plt.xlabel('Time (s)')
