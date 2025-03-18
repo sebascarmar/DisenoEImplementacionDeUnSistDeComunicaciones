@@ -11,6 +11,7 @@ class poly_filter:
         self.OS           = OS
         ### Shift register for input symbols
         self.shifter_filt = np.full(NBAUD+1,0)
+        
         ### Coeffs. of each phase
         self.poly_filter  = []
         zero = DeFixedInt(NTOT, NFRA, 'S', 'trunc', 'saturate')
@@ -31,6 +32,7 @@ class poly_filter:
         ### Filter out
         self.filt_out       = DeFixedInt(NTOT+3, NFRA, 'S', 'trunc', 'saturate')
         self.filt_out.value = 0.0
+        
         ### Saturate and truncation of filter out
         self.sym_out       = DeFixedInt(NTOT, NFRA, 'S', 'trunc', 'saturate')
         self.sym_out.value = 0.0
@@ -73,9 +75,11 @@ class poly_filter:
 
 
     def get_quantized_coeffs(self):
-        out = np.zeros(len(self.coeffs))
-        for i in range(len(out)):
-            out[i] = self.coeffs[i].fValue
+        out = np.zeros(len(self.poly_filter[0])*len(self.poly_filter))
+        
+        for i in range(len(self.poly_filter[0])):
+            for j in range(len(self.poly_filter)):
+                out[4*i+j] = self.poly_filter[j][i].fValue
         
         return out
 
