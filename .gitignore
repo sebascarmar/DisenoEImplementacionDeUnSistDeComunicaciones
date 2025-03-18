@@ -1,3 +1,9 @@
+# Verilog projects
+*build
+*.jou
+*.log
+*.str
+
 logs/
 *.swp
 # Byte-compiled / optimized / DLL files
