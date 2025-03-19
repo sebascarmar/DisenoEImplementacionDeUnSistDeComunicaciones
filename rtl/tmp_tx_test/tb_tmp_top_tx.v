@@ -39,8 +39,15 @@ module tb_tmp_top_tx;
 
   integer file_tx_symI_txf   ;
   integer file_tx_symQ_txf   ;
+  integer file_tx_bitI_prbs  ;
+  integer file_tx_bitQ_prbs  ;
   integer i               ;
   integer n_logs = 4*1000000;
+
+  wire prbsI_new_bit;
+  wire prbsQ_new_bit;
+  assign prbsI_new_bit = dut.u_prbs9I_tx.o_new_bit;
+  assign prbsQ_new_bit = dut.u_prbs9Q_tx.o_new_bit;
 
   // Generación del clock
   always #5 clk = ~clk;
@@ -48,8 +55,10 @@ module tb_tmp_top_tx;
   // Proceso de test
   initial begin
     // Inicialización
-    file_tx_symI_txf = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_symI_txf.txt", "wb");
-    file_tx_symQ_txf = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_symQ_txf.txt", "wb");
+    file_tx_symI_txf  = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_symI_txf.txt", "wb");
+    file_tx_symQ_txf  = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_symQ_txf.txt", "wb");
+    file_tx_bitI_prbs = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_bitI_prbs.txt", "wb");
+    file_tx_bitQ_prbs = $fopen("./../../../../../../tmp_tx_test/scripts_py/file_tx_bitQ_prbs.txt", "wb");
     clk     = 0;
     i_reset = 0;
     
@@ -61,6 +70,10 @@ module tb_tmp_top_tx;
     for (i = 0; i < n_logs; i = i + 1) begin
       $fwrite(file_tx_symI_txf , "%d\n", out_from_tx_filtI_to_noiseI);
       $fwrite(file_tx_symQ_txf , "%d\n", out_from_tx_filtQ_to_noiseQ);
+      if (i%4 == 0 ) begin
+        $fwrite(file_tx_bitI_prbs , "%d\n",  prbsI_new_bit);
+        $fwrite(file_tx_bitQ_prbs , "%d\n",  prbsQ_new_bit);
+      end
       #10; 
     end 
     
