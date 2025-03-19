@@ -40,7 +40,7 @@ Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 249879 
-prbs9_cycles = 16  # right value: 511
+prbs9_cycles = 511  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
 # np.random.seed(1)  # set the seed: 3-0-4-1
@@ -49,15 +49,17 @@ START_CNT = START_SYN + 511*prbs9_cycles
 ############################## TRANSMITTER  #############################
 
 ##### Bits generation
-tx_bitI_prbs = np.zeros(NSYMB)
-tx_bitQ_prbs = np.zeros(NSYMB)
-
-prbs9I = prbs9(SEED_I) 
-prbs9Q = prbs9(SEED_Q)
-
-for i in range(NSYMB):
-    tx_bitI_prbs[i] = prbs9I.get_new_bit()
-    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
+#tx_bitI_prbs = np.zeros(NSYMB)
+#tx_bitQ_prbs = np.zeros(NSYMB)
+#
+#prbs9I = prbs9(SEED_I) 
+#prbs9Q = prbs9(SEED_Q)
+#
+#for i in range(NSYMB):
+#    tx_bitI_prbs[i] = prbs9I.get_new_bit()
+#    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
+tx_bitI_prbs = np.loadtxt("file_tx_bitI_prbs.txt", dtype=np.intp)
+tx_bitQ_prbs = np.loadtxt("file_tx_bitQ_prbs.txt", dtype=np.intp)
 
 #### Mapper
 tx_symI_map = 2*(tx_bitI_prbs != 1)-1
@@ -96,7 +98,7 @@ for i in range(len(tx_symI_txf_from_fixed)-19):
         print(i, tx_symI_txf_from_fixed[i+17], tx_symI_txf[19+i])
         input()
 
-print("fin de la comparación verilog-fixed")
+print("fin de la comparación verilog-fixed ({} elementos)".format(len(tx_symI_txf_from_fixed)-19))
 #---------------------------------------------------------------------------------------------
 
 
@@ -889,4 +891,5 @@ plt.show()
 # plt.show()
 # 
 # 
+
 
