@@ -2,44 +2,44 @@
 
 module tb_tmp_top_tx_noise;
     // Parámetros
-    parameter SEED_I        = 9'h1AA;
-    parameter SEED_Q        = 9'h1FE;
-    parameter NBT_OUT       = 8;
-    parameter NBF_OUT       = 6;
-    parameter NBT_COEF_TX   = 8;
-    parameter NBF_COEF_TX   = 6;
-    parameter NBTOT_DAT     = 8;
-    parameter NBAUD         = 6;
-    parameter OVERSAMP      = 4;
-    parameter NOISE_SEED1_I = 64'd5030521883283424767;
-    parameter NOISE_SEED2_I = 64'd18445829279364155008;
-    parameter NOISE_SEED3_I = 64'd18436106298727503359;
-    parameter NOISE_SEED1_Q = 64'd14533118196545751551;
-    parameter NOISE_SEED2_Q = 64'd18444914485018758400;
-    parameter NOISE_SEED3_Q = 64'd18425749998705519615;
-    parameter SIGMA         = 8'sh1c;
-    parameter NBT_SIGMA     = 8;
-    parameter NBF_SIGMA     = 7;
-    parameter NBT_NOISE     = 8;
-    parameter NBF_NOISE     = 7;
+    parameter PRBS_SEED_I     = 9'h1AA;
+    parameter PRBS_SEED_Q     = 9'h1FE;
+    parameter NBAUD           = 6;  // 5+1
+    parameter OVERSAMP        = 4;
+    parameter NBT_TXFILT_COEF = 8;
+    parameter NBF_TXFILT_COEF = 7;
+    parameter NBT_TXFILT_OUT  = 8;
+    parameter NBF_TXFILT_OUT  = 7;
+    parameter NOISE_SEED1_I   = 64'd5030521883283424767;
+    parameter NOISE_SEED2_I   = 64'd18445829279364155008;
+    parameter NOISE_SEED3_I   = 64'd18436106298727503359;
+    parameter NOISE_SEED1_Q   = 64'd14533118196545751551;
+    parameter NOISE_SEED2_Q   = 64'd18444914485018758400;
+    parameter NOISE_SEED3_Q   = 64'd18425749998705519615;
+    parameter SIGMA           = 8'sh1c;
+    parameter NBT_SIGMA       = 8;
+    parameter NBF_SIGMA       = 7;
+    parameter NBT_NOISE       = 8;
+    parameter NBF_NOISE       = 7;
+    parameter NBT_NOISY_SYM   = 8;
+    parameter NBF_NOISY_SYM   = 7;
 
     // Señales
     reg clk;
     reg i_reset;
-    wire signed [NBT_OUT-1:0] symI_noisy;
-    wire signed [NBT_OUT-1:0] symQ_noisy;
+    wire signed [NBT_NOISY_SYM-1:0] symI_noisy;
+    wire signed [NBT_NOISY_SYM-1:0] symQ_noisy;
     
     // Instancia del módulo DUT
     tmp_top_tx_noise #(
-        .SEED_I(SEED_I),
-        .SEED_Q(SEED_Q),
-        .NBT_OUT(NBT_OUT),
-        .NBF_OUT(NBF_OUT),
-        .NBT_COEF_TX(NBT_COEF_TX),
-        .NBF_COEF_TX(NBF_COEF_TX),
-        .NBTOT_DAT(NBTOT_DAT),
+        .PRBS_SEED_I(PRBS_SEED_I),
+        .PRBS_SEED_Q(PRBS_SEED_Q),
         .NBAUD(NBAUD),
         .OVERSAMP(OVERSAMP),
+        .NBT_TXFILT_COEF(NBT_TXFILT_COEF),
+        .NBF_TXFILT_COEF(NBF_TXFILT_COEF),
+        .NBT_TXFILT_OUT(NBT_TXFILT_OUT),
+        .NBF_TXFILT_OUT(NBF_TXFILT_OUT),
         .NOISE_SEED1_I(NOISE_SEED1_I),
         .NOISE_SEED2_I(NOISE_SEED2_I),
         .NOISE_SEED3_I(NOISE_SEED3_I),
@@ -50,7 +50,9 @@ module tb_tmp_top_tx_noise;
         .NBT_SIGMA(NBT_SIGMA),
         .NBF_SIGMA(NBF_SIGMA),
         .NBT_NOISE(NBT_NOISE),
-        .NBF_NOISE(NBF_NOISE)
+        .NBF_NOISE(NBF_NOISE),
+        .NBT_NOISY_SYM(NBT_NOISY_SYM),
+        .NBF_NOISY_SYM(NBF_NOISY_SYM)
     ) dut (
         .symI_noisy(symI_noisy),
         .symQ_noisy(symQ_noisy),

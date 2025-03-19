@@ -2,12 +2,12 @@
 
 
 module polyph_filter #(
-    parameter NBT_OUT     = 8  ,
-    parameter NBF_OUT     = 7  ,
-    parameter NBT_COEF_TX = 8  ,
-    parameter NBF_COEF_TX = 7  , 
-    parameter NBAUD       = 5+1,
-    parameter OS          = 4
+    parameter NBT_OUT  = 8  ,
+    parameter NBF_OUT  = 7  ,
+    parameter NBT_COEF = 8  ,
+    parameter NBF_COEF = 7  , 
+    parameter NBAUD    = 5+1,
+    parameter OS       = 4
 )
 (
     output signed [   NBT_OUT-1:0] o_os_data           , 
@@ -20,16 +20,16 @@ module polyph_filter #(
 );
   
   // Local parameters for internal operations and output saturation
-  localparam NBT_ADD = NBT_COEF_TX+$clog2(NBAUD);
-  localparam NBI_ADD = NBT_ADD - NBF_COEF_TX    ;
-  localparam NBI_OUT = NBT_OUT - NBF_OUT        ;
-  localparam NB_SAT  = NBI_ADD - NBI_OUT        ; 
+  localparam NBT_ADD = NBT_COEF+$clog2(NBAUD);
+  localparam NBI_ADD = NBT_ADD - NBF_COEF    ;
+  localparam NBI_OUT = NBT_OUT - NBF_OUT     ;
+  localparam NB_SAT  = NBI_ADD - NBI_OUT     ; 
   
   // Internal registers and wires
-  reg         [            NBAUD:1] shiftreg               ; 
-  reg  signed [    NBT_COEF_TX-1:0] coeff    [NBAUD*OS-1:0];
-  wire signed [    NBT_COEF_TX-1:0] part_prod[     NBAUD:1];
-  wire signed [NBT_ADD-1:0]         add                    ;
+  reg         [     NBAUD:1] shiftreg               ; 
+  reg  signed [NBT_COEF-1:0] coeff    [NBAUD*OS-1:0];
+  wire signed [NBT_COEF-1:0] part_prod[     NBAUD:1]; // it's because optimization due QPSK mod.
+  wire signed [ NBT_ADD-1:0] add                    ;
   
   // Load the filter coefficient values
   localparam INIT_FILE_COEFF    = "./../../../../../../../fixed_point/logs/coeffs_txf.dat";
