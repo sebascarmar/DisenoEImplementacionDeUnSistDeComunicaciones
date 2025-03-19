@@ -51,25 +51,35 @@ module tb_tmp_top_tx_noise;
         .NBF_SIGMA(NBF_SIGMA),
         .NBT_NOISE(NBT_NOISE),
         .NBF_NOISE(NBF_NOISE)
-    ) DUT (
+    ) dut (
         .symI_noisy(symI_noisy),
         .symQ_noisy(symQ_noisy),
         .i_reset(i_reset),
         .clk(clk)
     );
 
-  integer file_ch_symI_noisy;
-  integer file_ch_symQ_noisy;
-  integer i                 ;
-  integer n_logs = 4*1000000;
-
+    integer file_ch_symI_noisy  ;
+    integer file_ch_symQ_noisy  ;
+    integer file_tx_bitI_prbs ;
+    integer file_tx_bitQ_prbs ;
+    integer i                 ;
+    integer n_logs = 4*1000000;
+    
+    
+    wire prbsI_new_bit;
+    wire prbsQ_new_bit;
+    assign prbsI_new_bit = dut.u_prbs9I_tx.o_new_bit;
+    assign prbsQ_new_bit = dut.u_prbs9Q_tx.o_new_bit;
+    
     // Generación de reloj
     always #5 clk = ~clk;
-
+    
     // Estímulos
     initial begin
         file_ch_symI_noisy = $fopen("./../../../../../../tmp_tx_noise_test/scripts_py/file_ch_symI_noisy.txt", "wb");
         file_ch_symQ_noisy = $fopen("./../../../../../../tmp_tx_noise_test/scripts_py/file_ch_symQ_noisy.txt", "wb");
+        file_tx_bitI_prbs  = $fopen("./../../../../../../tmp_tx_noise_test/scripts_py/file_tx_bitI_prbs.txt", "wb");
+        file_tx_bitQ_prbs  = $fopen("./../../../../../../tmp_tx_noise_test/scripts_py/file_tx_bitQ_prbs.txt", "wb");
         clk = 0;
         i_reset = 0;
        
@@ -79,12 +89,18 @@ module tb_tmp_top_tx_noise;
         for (i = 0; i < n_logs; i = i + 1) begin
           $fwrite(file_ch_symI_noisy , "%d\n", symI_noisy);
           $fwrite(file_ch_symQ_noisy , "%d\n", symQ_noisy);
+          if (i%4 == 0 ) begin
+            $fwrite(file_tx_bitI_prbs , "%d\n",  prbsI_new_bit);
+            $fwrite(file_tx_bitQ_prbs , "%d\n",  prbsQ_new_bit);
+          end
           #10; 
         end 
         
         $fclose(file_ch_symI_noisy);
         $fclose(file_ch_symQ_noisy);
-
+        $fclose(file_tx_bitI_prbs);
+        $fclose(file_tx_bitQ_prbs);
+        
         $finish;
     end
     

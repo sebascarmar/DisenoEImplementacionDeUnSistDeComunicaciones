@@ -40,7 +40,7 @@ Ki           = Kp/1000
 
 #### BER counter
 START_SYN = 249879 
-prbs9_cycles = 16  # right value: 511
+prbs9_cycles = 511  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
 # np.random.seed(1)  # set the seed: 3-0-4-1
@@ -49,15 +49,17 @@ START_CNT = START_SYN + 511*prbs9_cycles
 ############################## TRANSMITTER  #############################
 
 ##### Bits generation
-tx_bitI_prbs = np.zeros(NSYMB)
-tx_bitQ_prbs = np.zeros(NSYMB)
-
-prbs9I = prbs9(SEED_I) 
-prbs9Q = prbs9(SEED_Q)
-
-for i in range(NSYMB):
-    tx_bitI_prbs[i] = prbs9I.get_new_bit()
-    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
+#tx_bitI_prbs = np.zeros(NSYMB)
+#tx_bitQ_prbs = np.zeros(NSYMB)
+#
+#prbs9I = prbs9(SEED_I) 
+#prbs9Q = prbs9(SEED_Q)
+#
+#for i in range(NSYMB):
+#    tx_bitI_prbs[i] = prbs9I.get_new_bit()
+#    tx_bitQ_prbs[i] = prbs9Q.get_new_bit()
+tx_bitI_prbs = np.loadtxt("file_tx_bitI_prbs.txt", dtype=np.intp)
+tx_bitQ_prbs = np.loadtxt("file_tx_bitQ_prbs.txt", dtype=np.intp)
 
 #### Mapper
 tx_symI_map = 2*(tx_bitI_prbs != 1)-1
@@ -76,38 +78,15 @@ tx_symQ_txf = signal.lfilter(txf_coeff, [1], tx_symQ_up)
 
 
 
-##---------------------------------------------------------------------------------------------
-## INYECCION DE DATOS GENERADOS EN EL TX DE VERILOG
-##levanta archivos en formato entero equivalente
-#tx_symI_txf_from_ver = np.loadtxt("file_tx_symI_txf.txt", dtype=np.intp)
-#tx_symQ_txf_from_ver = np.loadtxt("file_tx_symQ_txf.txt", dtype=np.intp)
-##convierte al valor correspondiente al formato de punto fijo S(8.7)
-#frac_bits = 7
-#tx_symI_txf = tx_symI_txf_from_ver / (2**frac_bits)
-#tx_symQ_txf = tx_symQ_txf_from_ver / (2**frac_bits)
-#print(tx_symI_txf[19:29])
-#
-##comparació de datos entre verilog y fixed point
-#tx_symI_txf_from_fixed = np.loadtxt('tx_symI_txf.txt', delimiter=',')
-#print(tx_symI_txf_from_fixed[17:27])
-#
-#for i in range(len(tx_symI_txf_from_fixed)-19):
-#    if( tx_symI_txf_from_fixed[i+17] != tx_symI_txf[19+i]):
-#        print(i, tx_symI_txf_from_fixed[i+17], tx_symI_txf[19+i])
-#        input()
-#
-#print("fin de la comparación verilog-fixed")
-##---------------------------------------------------------------------------------------------
-
 
 ################################ CHANNEL ###############################
-#### AWGN
-SNR_slicer = 10**(SNR_db/10)
-SNR_ch     = SNR_slicer/OS
-noise_var  = np.var(tx_symI_txf+1j*tx_symQ_txf)/SNR_ch
-noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_txf.shape)
-noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_txf.shape)
-
+##### AWGN
+#SNR_slicer = 10**(SNR_db/10)
+#SNR_ch     = SNR_slicer/OS
+#noise_var  = np.var(tx_symI_txf+1j*tx_symQ_txf)/SNR_ch
+#noise_I    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symI_txf.shape)
+#noise_Q    = np.sqrt(noise_var/2)*np.random.normal(loc=0, scale=1, size=tx_symQ_txf.shape)
+#
 #ch_symI_noisy = tx_symI_txf + noise_I
 #ch_symQ_noisy = tx_symQ_txf + noise_Q
 
@@ -120,10 +99,12 @@ ch_symQ_noisy_from_ver = np.loadtxt("file_ch_symQ_noisy.txt", dtype=np.intp)
 frac_bits = 7
 ch_symI_noisy = ch_symI_noisy_from_ver / (2**frac_bits)
 ch_symQ_noisy = ch_symQ_noisy_from_ver / (2**frac_bits)
-print(tx_symI_txf[19:29])
+print("Fragmento de I y Q")
+print(ch_symI_noisy[19:29])
+print(ch_symQ_noisy[19:29])
 
+print("Fin de la toma de datos inyectados")
 #---------------------------------------------------------------------------------------------
-
 
 #### Frequency Offset
 Ts = 1/(OS*BR)
@@ -902,4 +883,6 @@ plt.show()
 # plt.show()
 # 
 # 
+
+
 
