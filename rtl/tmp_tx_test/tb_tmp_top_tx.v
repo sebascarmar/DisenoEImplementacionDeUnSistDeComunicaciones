@@ -79,7 +79,8 @@ module tb_tmp_top_tx;
     
     $fclose(file_tx_symI_txf     );
     $fclose(file_tx_symQ_txf     );
-    // Simulación durante 1000 ns
+    $fclose(file_tx_symI_txf);
+    $fclose(file_tx_symQ_txf);
     
     $finish;
   end
