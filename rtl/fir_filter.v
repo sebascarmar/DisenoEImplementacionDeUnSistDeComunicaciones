@@ -1,16 +1,16 @@
 `timescale 1ns/1ps
 
 
-module fir
+module fir_filter
 #(
+    parameter NUM_COEFF  = 17, 
+    parameter INIT_FILE  = "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat",
     parameter NBT_IN     =  8, 
     parameter NBF_IN     =  7, 
-    parameter NBT_OUT    =  8, 
-    parameter NBF_OUT    =  7, 
     parameter NBT_COEFF  =  8, 
     parameter NBF_COEFF  =  7, 
-    parameter NUM_COEFF  = 17, 
-    parameter INIT_FILE  = "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
+    parameter NBT_OUT    =  8, 
+    parameter NBF_OUT    =  7 
 
 )
 (
