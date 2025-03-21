@@ -63,40 +63,19 @@ module polyph_filter #(
   
   
   // Compute partial products based on filter phase and stored symbols (1 or -1)
-  assign w_part_prod[1] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[1] == 1'b1) ? -r_coeff[ 0] : r_coeff[ 0])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[1] == 1'b1) ? -r_coeff[ 1] : r_coeff[ 1])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[1] == 1'b1) ? -r_coeff[ 2] : r_coeff[ 2])
-                          :                               ((r_shifter[1] == 1'b1) ? -r_coeff[ 3] : r_coeff[ 3]);
-  
-  assign w_part_prod[2] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[2] == 1'b1) ? -r_coeff[ 4] : r_coeff[ 4])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[2] == 1'b1) ? -r_coeff[ 5] : r_coeff[ 5])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[2] == 1'b1) ? -r_coeff[ 6] : r_coeff[ 6])
-                          :                               ((r_shifter[2] == 1'b1) ? -r_coeff[ 7] : r_coeff[ 7]);
-  
-  assign w_part_prod[3] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[3] == 1'b1) ? -r_coeff[ 8] : r_coeff[ 8])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[3] == 1'b1) ? -r_coeff[ 9] : r_coeff[ 9])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[3] == 1'b1) ? -r_coeff[10] : r_coeff[10])
-                          :                               ((r_shifter[3] == 1'b1) ? -r_coeff[11] : r_coeff[11]);
-  
-  assign w_part_prod[4] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[4] == 1'b1) ? -r_coeff[12] : r_coeff[12])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[4] == 1'b1) ? -r_coeff[13] : r_coeff[13])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[4] == 1'b1) ? -r_coeff[14] : r_coeff[14])
-                          :                               ((r_shifter[4] == 1'b1) ? -r_coeff[15] : r_coeff[15]);
-  
-  assign w_part_prod[5] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[5] == 1'b1) ? -r_coeff[16] : r_coeff[16])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[5] == 1'b1) ? -r_coeff[17] : r_coeff[17])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[5] == 1'b1) ? -r_coeff[18] : r_coeff[18])
-                          :                               ((r_shifter[5] == 1'b1) ? -r_coeff[19] : r_coeff[19]);
-  
-  assign w_part_prod[6] =   i_phase_num_of_coeff==2'b00 ? ((r_shifter[6] == 1'b1) ? -r_coeff[20] : r_coeff[20])
-                          : i_phase_num_of_coeff==2'b01 ? ((r_shifter[6] == 1'b1) ? -r_coeff[21] : r_coeff[21])
-                          : i_phase_num_of_coeff==2'b10 ? ((r_shifter[6] == 1'b1) ? -r_coeff[22] : r_coeff[22])
-                          :                               ((r_shifter[6] == 1'b1) ? -r_coeff[23] : r_coeff[23]);
-  
+  genvar j;
+  generate
+      for (j=1; j<=NBAUD ; j=j+1) begin
+          assign w_part_prod[j] = (r_shifter[j] == 1'b1) 
+                                   ? -r_coeff[(j-1)*OS + i_phase_num_of_coeff]
+                                   :  r_coeff[(j-1)*OS + i_phase_num_of_coeff];
+      end
+  endgenerate
   
   // Add all the partial products
   assign w_add = w_part_prod[6] + w_part_prod[5] + w_part_prod[4] + w_part_prod[3] + w_part_prod[2] + w_part_prod[1];
     
+
   // Output assignment: Apply saturation and truncation to S(8,7) format
   assign o_os_data  = ( ~|w_add[(NBT_ADD-1) -: NBI_ADD] || &w_add[(NBT_ADD-1) -: NBI_ADD])
                         ? w_add[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
