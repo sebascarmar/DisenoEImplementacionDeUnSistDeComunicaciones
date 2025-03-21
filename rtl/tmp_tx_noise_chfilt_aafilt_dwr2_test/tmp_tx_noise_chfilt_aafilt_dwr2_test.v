@@ -6,12 +6,13 @@
 `define PRBS_SEED_I     9'h1AA
 `define PRBS_SEED_Q     9'h1FE
 // TRANSMITTER FILTER
-`define NBAUD           5+1
-`define OVERSAMP        4
-`define NBT_TXFILT_COEF 8
-`define NBF_TXFILT_COEF 7
-`define NBT_TXFILT_OUT  8
-`define NBF_TXFILT_OUT  7
+`define TXFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_txf.dat"
+`define NBT_TXFILT_COEF   8
+`define NBF_TXFILT_COEF   7
+`define NBT_TXFILT_OUT    8
+`define NBF_TXFILT_OUT    7
+`define NBAUD             5+1
+`define OVERSAMP          4
 
 // NOISE
 `define NOISE_SEED1_I 64'd5030521883283424767 
@@ -47,39 +48,40 @@
 
 module tmp_top_tx_noise_chfil_aafilt
 #(
-  parameter PRBS_SEED_I      = `PRBS_SEED_I     ,
-  parameter PRBS_SEED_Q      = `PRBS_SEED_Q     ,
-  parameter NBAUD            = `NBAUD           ,
-  parameter OVERSAMP         = `OVERSAMP        ,
-  parameter NBT_TXFILT_COEF  = `NBT_TXFILT_COEF ,
-  parameter NBF_TXFILT_COEF  = `NBF_TXFILT_COEF ,
-  parameter NBT_TXFILT_OUT   = `NBT_TXFILT_OUT  ,
-  parameter NBF_TXFILT_OUT   = `NBF_TXFILT_OUT  ,
-  parameter NOISE_SEED1_I    = `NOISE_SEED1_I   ,
-  parameter NOISE_SEED2_I    = `NOISE_SEED2_I   ,
-  parameter NOISE_SEED3_I    = `NOISE_SEED3_I   ,
-  parameter NOISE_SEED1_Q    = `NOISE_SEED1_Q   ,
-  parameter NOISE_SEED2_Q    = `NOISE_SEED2_Q   ,
-  parameter NOISE_SEED3_Q    = `NOISE_SEED3_Q   ,
-  parameter SIGMA            = `SIGMA           ,
-  parameter NBT_SIGMA        = `NBT_SIGMA       , 
-  parameter NBF_SIGMA        = `NBF_SIGMA       , 
-  parameter NBT_NOISE        = `NBT_NOISE       , 
-  parameter NBF_NOISE        = `NBF_NOISE       ,
-  parameter NBT_NOISY_SYM    = `NBT_NOISY_SYM   ,
-  parameter NBF_NOISY_SYM    = `NBF_NOISY_SYM   ,
-  parameter NUM_CHFILT_COEF  = `NUM_CHFILT_COEF , 
-  parameter CHFILT_INIT_FILE = `CHFILT_INIT_FILE, 
-  parameter NBT_CHFILT_COEF  = `NBT_CHFILT_COEF , 
-  parameter NBF_CHFILT_COEF  = `NBF_CHFILT_COEF , 
-  parameter NBT_CHFILT_OUT   = `NBT_CHFILT_OUT  , 
-  parameter NBF_CHFILT_OUT   = `NBF_CHFILT_OUT  , 
-  parameter NUM_AAFILT_COEF  = `NUM_AAFILT_COEF ,
-  parameter AAFILT_INIT_FILE = `AAFILT_INIT_FILE,
-  parameter NBT_AAFILT_COEF  = `NBT_AAFILT_COEF ,
-  parameter NBF_AAFILT_COEF  = `NBF_AAFILT_COEF ,
-  parameter NBT_AAFILT_OUT   = `NBT_AAFILT_OUT  ,
-  parameter NBF_AAFILT_OUT   = `NBF_AAFILT_OUT   
+  parameter PRBS_SEED_I       = `PRBS_SEED_I      ,
+  parameter PRBS_SEED_Q       = `PRBS_SEED_Q      ,
+  parameter NBAUD             = `NBAUD            ,
+  parameter OVERSAMP          = `OVERSAMP         ,
+  parameter TXFILT_COEFF_FILE = `TXFILT_COEFF_FILE,
+  parameter NBT_TXFILT_COEF   = `NBT_TXFILT_COEF  ,
+  parameter NBF_TXFILT_COEF   = `NBF_TXFILT_COEF  ,
+  parameter NBT_TXFILT_OUT    = `NBT_TXFILT_OUT   ,
+  parameter NBF_TXFILT_OUT    = `NBF_TXFILT_OUT   ,
+  parameter NOISE_SEED1_I     = `NOISE_SEED1_I    ,
+  parameter NOISE_SEED2_I     = `NOISE_SEED2_I    ,
+  parameter NOISE_SEED3_I     = `NOISE_SEED3_I    ,
+  parameter NOISE_SEED1_Q     = `NOISE_SEED1_Q    ,
+  parameter NOISE_SEED2_Q     = `NOISE_SEED2_Q    ,
+  parameter NOISE_SEED3_Q     = `NOISE_SEED3_Q    ,
+  parameter SIGMA             = `SIGMA            ,
+  parameter NBT_SIGMA         = `NBT_SIGMA        , 
+  parameter NBF_SIGMA         = `NBF_SIGMA        , 
+  parameter NBT_NOISE         = `NBT_NOISE        , 
+  parameter NBF_NOISE         = `NBF_NOISE        ,
+  parameter NBT_NOISY_SYM     = `NBT_NOISY_SYM    ,
+  parameter NBF_NOISY_SYM     = `NBF_NOISY_SYM    ,
+  parameter NUM_CHFILT_COEF   = `NUM_CHFILT_COEF  , 
+  parameter CHFILT_COEFF_FILE = `CHFILT_COEFF_FILE, 
+  parameter NBT_CHFILT_COEF   = `NBT_CHFILT_COEF  , 
+  parameter NBF_CHFILT_COEF   = `NBF_CHFILT_COEF  , 
+  parameter NBT_CHFILT_OUT    = `NBT_CHFILT_OUT   , 
+  parameter NBF_CHFILT_OUT    = `NBF_CHFILT_OUT   , 
+  parameter NUM_AAFILT_COEF   = `NUM_AAFILT_COEF  ,
+  parameter AAFILT_COEFF_FILE = `AAFILT_COEFF_FILE,
+  parameter NBT_AAFILT_COEF   = `NBT_AAFILT_COEF  ,
+  parameter NBF_AAFILT_COEF   = `NBF_AAFILT_COEF  ,
+  parameter NBT_AAFILT_OUT    = `NBT_AAFILT_OUT   ,
+  parameter NBF_AAFILT_OUT    = `NBF_AAFILT_OUT   
  )
  (
   //output        [          3:0] o_normal_led               ,
@@ -136,7 +138,7 @@ module tmp_top_tx_noise_chfil_aafilt
   /////////////////////////////////////////////////////////////
   // Instanciación de las prbs del tx
   prbs9 #(
-    .SEED (PRBS_SEED_I)
+    .SEED(PRBS_SEED_I)
   ) u_tx_prbs9_I (
     .o_new_bit(new_bit_from_prbsI_tx_to_filter),
     .i_ctrl   (w_control_for_rate_1           ),
@@ -145,7 +147,7 @@ module tmp_top_tx_noise_chfil_aafilt
   );
   
   prbs9#(
-    .SEED (PRBS_SEED_Q)
+    .SEED(PRBS_SEED_Q)
   ) u_tx_prbs9_Q (
     .o_new_bit(new_bit_from_prbsQ_tx_to_filter),
     .i_ctrl   (w_control_for_rate_1           ),
@@ -156,12 +158,13 @@ module tmp_top_tx_noise_chfil_aafilt
 
   // Instanciación de los filtros para i y q
   polyph_filter #(
-    .NBT_OUT  (NBT_TXFILT_OUT ),
-    .NBF_OUT  (NBF_TXFILT_OUT ),
-    .NBT_COEF (NBT_TXFILT_COEF),
-    .NBF_COEF (NBF_TXFILT_COEF),
-    .NBAUD    (NBAUD          ),
-    .OS       (OVERSAMP       )
+    .FILE_COEFF(TXFILT_COEFF_FILE),
+    .NBT_COEF  (NBT_TXFILT_COEF  ),
+    .NBF_COEF  (NBF_TXFILT_COEF  ),
+    .NBT_OUT   (NBT_TXFILT_OUT   ),
+    .NBF_OUT   (NBF_TXFILT_OUT   ),
+    .NBAUD     (NBAUD            ),
+    .OS        (OVERSAMP         )
   ) u_tx_filter_I (
     .o_os_data           (w_out_from_tx_filtI_to_noiseI  ),
     .i_is_data           (new_bit_from_prbsI_tx_to_filter),
@@ -172,12 +175,13 @@ module tmp_top_tx_noise_chfil_aafilt
   );
   
   polyph_filter #(
-    .NBT_OUT  (NBT_TXFILT_OUT ),
-    .NBF_OUT  (NBF_TXFILT_OUT ),
-    .NBT_COEF (NBT_TXFILT_COEF),
-    .NBF_COEF (NBF_TXFILT_COEF),
-    .NBAUD    (NBAUD          ),
-    .OS       (OVERSAMP       )
+    .FILE_COEFF(TXFILT_COEFF_FILE),
+    .NBT_COEF  (NBT_TXFILT_COEF  ),
+    .NBF_COEF  (NBF_TXFILT_COEF  ),
+    .NBT_OUT   (NBT_TXFILT_OUT   ),
+    .NBF_OUT   (NBF_TXFILT_OUT   ),
+    .NBAUD     (NBAUD            ),
+    .OS        (OVERSAMP         )
   ) u_tx_filter_Q (
     .o_os_data           (w_out_from_tx_filtQ_to_noiseQ  ),
     .i_is_data           (new_bit_from_prbsQ_tx_to_filter),
@@ -218,7 +222,7 @@ module tmp_top_tx_noise_chfil_aafilt
   // Channel filter: ISI model
   fir_filter #(
     .NUM_COEFF (NUM_CHFILT_COEF ), 
-    .INIT_FILE (CHFILT_INIT_FILE),
+    .FILE_COEFF(CHFILT_COEFF_FILE),
     .NBT_IN    (NBT_NOISY_SYM   ), 
     .NBF_IN    (NBF_NOISY_SYM   ), 
     .NBT_COEFF (NBT_CHFILT_COEF ),
@@ -234,7 +238,7 @@ module tmp_top_tx_noise_chfil_aafilt
 
   fir_filter #(
     .NUM_COEFF (NUM_CHFILT_COEF ), 
-    .INIT_FILE (CHFILT_INIT_FILE),
+    .FILE_COEFF(CHFILT_COEFF_FILE),
     .NBT_IN    (NBT_NOISY_SYM   ), 
     .NBF_IN    (NBF_NOISY_SYM   ), 
     .NBT_COEFF (NBT_CHFILT_COEF ),
@@ -256,7 +260,7 @@ module tmp_top_tx_noise_chfil_aafilt
   // Anti-alias filter
   fir_filter #(
     .NUM_COEFF (NUM_AAFILT_COEF ), 
-    .INIT_FILE (AAFILT_INIT_FILE),
+    .FILE_COEFF(AAFILT_COEFF_FILE),
     .NBT_IN    (NBT_CHFILT_OUT  ), 
     .NBF_IN    (NBF_CHFILT_OUT  ), 
     .NBT_COEFF (NBT_AAFILT_COEF ),
@@ -272,7 +276,7 @@ module tmp_top_tx_noise_chfil_aafilt
 
   fir_filter #(
     .NUM_COEFF (NUM_AAFILT_COEF ), 
-    .INIT_FILE (AAFILT_INIT_FILE),
+    .FILE_COEFF(AAFILT_COEFF_FILE),
     .NBT_IN    (NBT_CHFILT_OUT  ), 
     .NBF_IN    (NBF_CHFILT_OUT  ), 
     .NBT_COEFF (NBT_AAFILT_COEF ),
@@ -288,8 +292,8 @@ module tmp_top_tx_noise_chfil_aafilt
 
 
   downsamp #(
-    .NBT_IN_OUT (NBT_AAFILT_OUT), 
-    .NBF_IN_OUT (NBT_AAFILT_OUT)
+    .NBT_IN_OUT(NBT_AAFILT_OUT), 
+    .NBF_IN_OUT(NBT_AAFILT_OUT)
   ) u_dwsamp_r2_I (
     .o_os_data(w_dw_r2I_to_fse         ) ,  // Output sample
     .i_is_data(w_aa_filtI_out_to_dw_r2I), // Input sample
