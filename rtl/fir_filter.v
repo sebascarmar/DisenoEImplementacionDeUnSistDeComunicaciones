@@ -23,6 +23,7 @@ module fir_filter
   // Local parameters for internal operations and output saturation
   localparam NBT_PROD = NBT_IN + NBT_COEFF          ;
   localparam NBF_PROD = NBF_IN + NBF_COEFF          ;
+
   localparam NBT_ADD  = NBT_PROD + $clog2(NUM_COEFF);
   localparam NBF_ADD  = NBF_PROD                    ;
   localparam NBI_ADD  = NBT_ADD - NBF_PROD          ;
@@ -82,7 +83,7 @@ module fir_filter
                         ? w_add[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
                         :( (w_add[NBT_ADD-1])
                            ? { 1'b1, {(NBT_OUT-1){1'b0}} }
-                           : { 1'b1, {(NBT_OUT-1){1'b0}} } );
+                           : { 1'b0, {(NBT_OUT-1){1'b1}} } );
 
 endmodule
 

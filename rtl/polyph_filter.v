@@ -81,7 +81,7 @@ module polyph_filter #(
                         ? w_add[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
                         :( (w_add[NBT_ADD-1])
                            ? { 1'b1, {(NBT_OUT-1){1'b0}} }
-                           : { 1'b1, {(NBT_OUT-1){1'b0}} } );
+                           : { 1'b0, {(NBT_OUT-1){1'b1}} } );
 
 
 endmodule
