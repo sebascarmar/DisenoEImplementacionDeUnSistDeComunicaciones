@@ -27,8 +27,22 @@ module tb_lms;
   reg i_reset;
   reg clk;
 
-  wire [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I;
-  wire [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q;
+  wire signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I;
+  wire signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q;
+
+  wire  signed [NBT_TAPS-1:0] w_taps_I      [NUM_TAPS-1:0];
+  wire  signed [NBT_TAPS-1:0] w_taps_Q      [NUM_TAPS-1:0];
+  genvar m;
+  generate
+      for (m = 0; m < NUM_TAPS; m = m + 1) begin : assign_taps
+          // Copying data from bidimensional o_taps_I and o_taps_Q to r_taps_I and r_taps_Q
+          assign w_taps_I[m] = o_taps_I[(m+1)*NBT_TAPS-1 : m*NBT_TAPS];
+          assign w_taps_Q[m] = o_taps_Q[(m+1)*NBT_TAPS-1 : m*NBT_TAPS];
+      end
+  endgenerate
+
+
+
 
   // Instancia del DUT
   lms #(

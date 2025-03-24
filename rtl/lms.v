@@ -9,26 +9,26 @@ module lms #(
   parameter NBT_LEAK = 11      ,
   parameter NBF_LEAK = 10      ,
   
-  parameter NUM_TAPS = 11      ,
-  parameter NBT_IN   =  8      ,
-  parameter NBF_IN   =  7      ,
-  parameter NBT_TAPS = 28      ,
-  parameter NBF_TAPS = 25      ,
-  parameter NBT_ERR  = 12      ,
+  parameter NUM_TAPS = 11,
+  parameter NBT_IN   =  8,
+  parameter NBF_IN   =  7,
+  parameter NBT_TAPS = 28,
+  parameter NBF_TAPS = 25,
+  parameter NBT_ERR  = 12,
   parameter NBF_ERR  =  9
 )
 (
-  output wire  [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
-  output wire  [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
 
-  input signed [             NBT_IN-1:0] i_is_data_I, // S(8,7)
-  input signed [             NBT_IN-1:0] i_is_data_Q, // S(8,7)
-  input signed [            NBT_ERR-1:0] i_err_I    , // S(27,24)
-  input signed [            NBT_ERR-1:0] i_err_Q    , // S(27,24)
-  input                                  i_en_shtr  ,
-  input                                  i_en_taps  ,
-  input                                  i_reset    ,
-  input                                  clk       
+  input signed  [             NBT_IN-1:0] i_is_data_I, // S(8,7)
+  input signed  [             NBT_IN-1:0] i_is_data_Q, // S(8,7)
+  input signed  [            NBT_ERR-1:0] i_err_I    , // S(27,24)
+  input signed  [            NBT_ERR-1:0] i_err_Q    , // S(27,24)
+  input                                   i_en_shtr  ,
+  input                                   i_en_taps  ,
+  input                                   i_reset    ,
+  input                                   clk       
 );
 
   // Local parameters for internal operations and output saturation
