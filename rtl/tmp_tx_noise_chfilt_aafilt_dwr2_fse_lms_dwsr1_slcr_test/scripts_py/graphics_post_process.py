@@ -49,7 +49,8 @@ sim_data   = np.loadtxt(os.path.join(logs_absPath, 'simulation_data.txt'), delim
 ##print(rx_symI_dw_r2[0:50])
 #print(rx_symQ_dw_r2[0:50])
 ##### FSE
-#fse_coeff   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_I.txt'), delimiter=',')
+fse_coeff_I   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_I.txt'), delimiter=',')
+fse_coeff_Q   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_Q.txt'), delimiter=',')
 rx_symI_fse_from_ver = np.loadtxt('file_rx_symI_fse.txt', delimiter=',')
 rx_symQ_fse_from_ver = np.loadtxt('file_rx_symQ_fse.txt', delimiter=',')
 frac_bits=9
@@ -491,7 +492,7 @@ plt.show()
 ## Adapatvie Filter graphics: frequency response and time
 
 # Get frequencies and magnitudes
-last_fse_taps = fse_coeff[:,len(fse_coeff)-1]
+last_fse_taps = fse_coeff_I[:,len(fse_coeff_I)-1]
 
 f_fse, h_fse = signal.freqz(last_fse_taps, worN=800, fs=OS_DSP*BR)
 # Find the -3 dB point
@@ -537,12 +538,20 @@ plt.show()
 
 #################################  FSE #################################
 
-## Evolution of FSE coeffcients over time
-#plt.figure(figsize=[10,6])
-#plt.plot(fse_coeff.T)
-#plt.title('FSE coefficients (I lane) - decimated')
-#plt.grid(True)
-#plt.show()
+
+
+
+# Evolution of FSE coeffcients over time
+plt.figure(figsize=[10,6])
+plt.plot(fse_coeff_I.T)
+plt.title('FSE coefficients (I lane) - decimated')
+plt.grid(True)
+
+plt.figure(figsize=[10,6])
+plt.plot(fse_coeff_Q.T)
+plt.title('FSE coefficients (Q lane) - decimated')
+plt.grid(True)
+plt.show()
 
 #################################  FCR #################################
 

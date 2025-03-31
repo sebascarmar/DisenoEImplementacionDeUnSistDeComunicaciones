@@ -25,7 +25,7 @@ import os
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 750000
+NSYMB = 1000000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -146,6 +146,20 @@ RX_SYMQ_FSE_LOG = np.zeros(NSYMB*OS_DSP)
 
 log_step     = 500
 FSE_I_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
+FSE_Q_COEFFS_LOG = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
+
+fseI_taps_from_ver = np.loadtxt("file_fse_taps_I.txt", dtype=np.intp)
+fseQ_taps_from_ver = np.loadtxt("file_fse_taps_Q.txt", dtype=np.intp)
+frac_bits = NFRA_TAP
+fseI_taps = fseI_taps_from_ver/(2**frac_bits)
+fseQ_taps = fseQ_taps_from_ver/(2**frac_bits)
+print(len(fseI_taps)/500)
+#input()
+for i in range(NTAPS_FSE):
+    for j in range(int(int(NSYMB/log_step))):
+        FSE_I_COEFFS_LOG[i][j] = fseI_taps[i + j*NTAPS_FSE]
+        FSE_Q_COEFFS_LOG[i][j] = fseQ_taps[i + j*NTAPS_FSE]
+
 
 # LMS variables
 lms = lms_class(lms_step, lms_leak,  NTOT_STEP, NFRA_STEP, NTOT_LEAK, NFRA_LEAK,
@@ -326,19 +340,19 @@ for i in range(NSYMB*OS):
             RX_SYMI_SLCR_LOG[k] = rx_symI_slcr
             RX_SYMQ_SLCR_LOG[k] = rx_symQ_slcr
             
-            # Error for LMS
-            coeff_err_I.value =(rx_symI_fcr-rx_symI_slcr)
-            coeff_err_Q.value =(rx_symQ_fcr-rx_symQ_slcr)
-            coeff_err_I.value, coeff_err_Q.value =  fcr.rot(coeff_err_I.fValue, coeff_err_Q.fValue)
-            
-            # LMS
-            coeffI, coeffQ = lms.update(coeff_err_I.fValue, coeff_err_Q.fValue,
-                                        fse.get_coeffI()  , fse.get_buffI()   ,
-                                        fse.get_coeffQ()  , fse.get_buffQ()   )
-            #input()
-            fse.set_taps(coeffI, coeffQ)
-            if( (((j+1)/OS_DSP)%log_step) == 0 ):
-                FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
+#            # Error for LMS
+#            coeff_err_I.value =(rx_symI_fcr-rx_symI_slcr)
+#            coeff_err_Q.value =(rx_symQ_fcr-rx_symQ_slcr)
+#            coeff_err_I.value, coeff_err_Q.value =  fcr.rot(coeff_err_I.fValue, coeff_err_Q.fValue)
+#            
+#            # LMS
+#            coeffI, coeffQ = lms.update(coeff_err_I.fValue, coeff_err_Q.fValue,
+#                                        fse.get_coeffI()  , fse.get_buffI()   ,
+#                                        fse.get_coeffQ()  , fse.get_buffQ()   )
+#            
+#            fse.set_taps(coeffI, coeffQ)
+#            if( (((j+1)/OS_DSP)%log_step) == 0 ):
+#                FSE_I_COEFFS_LOG[:, int(((j+1)/OS_DSP)/log_step)-1] = fse.get_coeffI()
             
             # PI loop filter
             fcr.pll_loop(k, rx_symI_fcr, rx_symQ_fcr, rx_symI_slcr, rx_symQ_slcr)
@@ -418,6 +432,7 @@ np.savetxt(os.path.join(logs_absPath,'tx_bitQ_prbs.txt'    ), TX_BITQ_PRBS_LOG  
 np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate2.txt'), RX_SYMI_DW_RATE2_LOG , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate2.txt'), RX_SYMQ_DW_RATE2_LOG , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'coeffs_fse_I.txt'    ), FSE_I_COEFFS_LOG     , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'coeffs_fse_Q.txt'    ), FSE_Q_COEFFS_LOG     , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symI_fse.txt'     ), RX_SYMI_FSE_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symQ_fse.txt'     ), RX_SYMQ_FSE_LOG      , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symI_fcr.txt'     ), RX_SYMI_FCR_LOG      , delimiter=',')
