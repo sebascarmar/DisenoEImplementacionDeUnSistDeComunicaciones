@@ -14,7 +14,7 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### General
-NSYMB = 1000000 
+NSYMB = 10000000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -32,7 +32,7 @@ fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 #### Receiver
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
-NTAPS_FSE    = 33
+NTAPS_FSE    = 15
 lms_step     = 0.5e-3
 lms_leak     = 1e-3
 Kp           = 1e-3
@@ -137,8 +137,8 @@ frac_bits = 7
 rx_symI_dw_r2 = rx_symI_dw_r2_from_ver / (2**frac_bits)
 rx_symQ_dw_r2 = rx_symQ_dw_r2_from_ver / (2**frac_bits)
 print("Fragmento de salidas del dwsamp tasa2 I y Q")
-print(rx_symI_dw_r2[19:29])
-print(rx_symQ_dw_r2[19:29])
+print(rx_symI_dw_r2[0:50])
+print(rx_symQ_dw_r2[0:50])
 
 print("Fin de la toma de datos inyectados")
 
@@ -229,7 +229,10 @@ for j in range(NSYMB*OS_DSP):
         nco_out  = (prop_err+int_err) + nco_out
         nco_log[k]     = nco_out
         int_err_log[k] = int_err
-#----- DSP end
+    
+    if(j==50):
+        print(rx_symI_fse[0:50])
+        print(rx_symI_dw_r1[0:50])
 
   
 ############################ BIT-ERROR RATE ############################

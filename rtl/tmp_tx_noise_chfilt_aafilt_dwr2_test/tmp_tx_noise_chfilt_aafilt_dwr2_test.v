@@ -6,7 +6,8 @@
 `define PRBS_SEED_I     9'h1AA
 `define PRBS_SEED_Q     9'h1FE
 // TRANSMITTER FILTER
-`define TXFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_txf.dat"
+//`define TXFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_txf.dat"
+`define TXFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_txf.dat"
 `define NBT_TXFILT_COEF   8
 `define NBF_TXFILT_COEF   7
 `define NBT_TXFILT_OUT    8
@@ -30,7 +31,8 @@
 `define NBF_NOISY_SYM 7
 // Channel Filter
 `define NUM_CHFILT_COEF  17
-`define CHFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
+//`define CHFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
+`define CHFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_chfilt.dat"
 `define NBT_CHFILT_COEF   8
 `define NBF_CHFILT_COEF   7
 `define NBT_CHFILT_OUT    8
@@ -39,7 +41,8 @@
 
 // Anti-alias Filter
 `define NUM_AAFILT_COEF  17
-`define AAFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat"
+//`define AAFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat"
+`define AAFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_aafilt.dat"
 `define NBT_AAFILT_COEF   8
 `define NBF_AAFILT_COEF   7
 `define NBT_AAFILT_OUT    8
