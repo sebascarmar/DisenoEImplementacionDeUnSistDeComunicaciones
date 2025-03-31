@@ -110,7 +110,11 @@ module tb_tmp_top_tx_noise;
     integer file_rx_symQ_slcr ;
     integer file_tx_bitI_prbs ;
     integer file_tx_bitQ_prbs ;
+    integer file_fse_taps_I;
+    integer file_fse_taps_Q;
+
     integer i                 ;
+    integer k                 ;
     integer n_logs = 4*750000;
     
     
@@ -120,6 +124,8 @@ module tb_tmp_top_tx_noise;
     wire signed [NBT_FSE_OUT-1:0]  symQ_fse;
     wire signed [NBT_FSE_OUT-1:0]  dwI_r1;
     wire signed [NBT_FSE_OUT-1:0]  dwQ_r1;
+    wire signed [NBT_FSE_TAPS-1:0] taps_I         [NUM_FSE_TAPS-1:0];
+    wire signed [NBT_FSE_TAPS-1:0] taps_Q         [NUM_FSE_TAPS-1:0];
     assign prbsI_new_bit = dut.u_tx_prbs9_I.o_new_bit;
     assign prbsQ_new_bit = dut.u_tx_prbs9_Q.o_new_bit;
     assign symI_fse = dut.u_adaptive_filter.u_fse.o_os_data_I;
@@ -127,6 +133,28 @@ module tb_tmp_top_tx_noise;
     assign dwI_r1 = dut.u_adaptive_filter.u_dwsamp_r1_I.r_dwsamp;
     assign dwQ_r1 = dut.u_adaptive_filter.u_dwsamp_r1_Q.r_dwsamp;
 
+    assign taps_I[0] = dut.u_adaptive_filter.u_lms.r_taps_I[0];
+    assign taps_I[1] = dut.u_adaptive_filter.u_lms.r_taps_I[1];
+    assign taps_I[2] = dut.u_adaptive_filter.u_lms.r_taps_I[2];
+    assign taps_I[3] = dut.u_adaptive_filter.u_lms.r_taps_I[3];
+    assign taps_I[4] = dut.u_adaptive_filter.u_lms.r_taps_I[4];
+    assign taps_I[5] = dut.u_adaptive_filter.u_lms.r_taps_I[5];
+    assign taps_I[6] = dut.u_adaptive_filter.u_lms.r_taps_I[6];
+    assign taps_I[7] = dut.u_adaptive_filter.u_lms.r_taps_I[7];
+    assign taps_I[8] = dut.u_adaptive_filter.u_lms.r_taps_I[8];
+    assign taps_I[9] = dut.u_adaptive_filter.u_lms.r_taps_I[9];
+    assign taps_I[10] = dut.u_adaptive_filter.u_lms.r_taps_I[10];
+    assign taps_Q[0] = dut.u_adaptive_filter.u_lms.r_taps_Q[0];
+    assign taps_Q[1] = dut.u_adaptive_filter.u_lms.r_taps_Q[1];
+    assign taps_Q[2] = dut.u_adaptive_filter.u_lms.r_taps_Q[2];
+    assign taps_Q[3] = dut.u_adaptive_filter.u_lms.r_taps_Q[3];
+    assign taps_Q[4] = dut.u_adaptive_filter.u_lms.r_taps_Q[4];
+    assign taps_Q[5] = dut.u_adaptive_filter.u_lms.r_taps_Q[5];
+    assign taps_Q[6] = dut.u_adaptive_filter.u_lms.r_taps_Q[6];
+    assign taps_Q[7] = dut.u_adaptive_filter.u_lms.r_taps_Q[7];
+    assign taps_Q[8] = dut.u_adaptive_filter.u_lms.r_taps_Q[8];
+    assign taps_Q[9] = dut.u_adaptive_filter.u_lms.r_taps_Q[9];
+    assign taps_Q[10] = dut.u_adaptive_filter.u_lms.r_taps_Q[10];
 
 
 
@@ -143,6 +171,8 @@ module tb_tmp_top_tx_noise;
         file_rx_symQ_slcr = $fopen("./../../../../../../tmp_tx_noise_chfilt_aafilt_dwr2_fse_lms_dwsr1_slcr_test/scripts_py/file_rx_symQ_slcr.txt", "wb");
         file_tx_bitI_prbs   = $fopen("./../../../../../../tmp_tx_noise_chfilt_aafilt_dwr2_fse_lms_dwsr1_slcr_test/scripts_py/file_tx_bitI_prbs.txt", "wb");
         file_tx_bitQ_prbs   = $fopen("./../../../../../../tmp_tx_noise_chfilt_aafilt_dwr2_fse_lms_dwsr1_slcr_test/scripts_py/file_tx_bitQ_prbs.txt", "wb");
+        file_fse_taps_I   = $fopen("./../../../../../../tmp_tx_noise_chfilt_aafilt_dwr2_fse_lms_dwsr1_slcr_test/scripts_py/file_fse_taps_I.txt", "wb");
+        file_fse_taps_Q   = $fopen("./../../../../../../tmp_tx_noise_chfilt_aafilt_dwr2_fse_lms_dwsr1_slcr_test/scripts_py/file_fse_taps_Q.txt", "wb");
         // Inicialización
         clk = 0;
         i_reset = 0;
@@ -164,6 +194,12 @@ module tb_tmp_top_tx_noise;
             $fwrite(file_tx_bitI_prbs , "%d\n",  prbsI_new_bit);
             $fwrite(file_tx_bitQ_prbs , "%d\n",  prbsQ_new_bit);
           end
+          if (i%(500*4) == 0) begin
+              for (k = 0; k < NUM_FSE_TAPS; k = k + 1) begin
+                  $fwrite(file_fse_taps_I , "%d\n",  taps_I[k]);
+                  $fwrite(file_fse_taps_Q , "%d\n",  taps_Q[k]);
+              end
+          end  
           #10; 
         end 
         
@@ -175,6 +211,8 @@ module tb_tmp_top_tx_noise;
         $fclose(file_rx_symQ_slcr);
         $fclose(file_tx_bitI_prbs);
         $fclose(file_tx_bitQ_prbs);
+        $fclose(file_fse_taps_I);
+        $fclose(file_fse_taps_Q);
 
         #600;
         // Finalizar simulación

@@ -128,9 +128,8 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
   // SEÑALES Y REGISTROS
   wire       w_reset                        ;
   wire [1:0] w_control_phase_select         ;
-  wire       w_control_poly_filt           ;
-  wire       w_control_for_rate_2           ;
   wire       w_control_for_rate_1           ;
+  wire       w_control_for_rate_2           ;
   wire       w_save_fse_shifters;
   wire       new_bit_from_prbsI_tx_to_filter;
   wire       new_bit_from_prbsQ_tx_to_filter;
@@ -157,10 +156,9 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
   control
     u_control (
       .o_counter          (w_control_phase_select),
-      .o_count_max        (w_control_poly_filt  ),
+      .o_count_max        (w_control_for_rate_1  ),
       .o_count_half_or_max(w_control_for_rate_2  ),
-      .o_count_max_rate1  (w_control_for_rate_1),
-      .o_save_fse_shifters(w_save_fse_shifters),
+      .o_save_fse_shifters(w_save_fse_shifters   ),
       .i_reset            (w_reset               ),
       .clk                (clk                   )
     );
@@ -175,7 +173,7 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
     .SEED(PRBS_SEED_I)
   ) u_tx_prbs9_I (
     .o_new_bit(new_bit_from_prbsI_tx_to_filter),
-    .i_ctrl   (w_control_poly_filt           ),
+    .i_ctrl   (w_control_for_rate_1           ),
     .i_reset  (w_reset                        ),  
     .clk      (clk                            )            
   );
@@ -184,7 +182,7 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
     .SEED(PRBS_SEED_Q)
   ) u_tx_prbs9_Q (
     .o_new_bit(new_bit_from_prbsQ_tx_to_filter),
-    .i_ctrl   (w_control_poly_filt           ),
+    .i_ctrl   (w_control_for_rate_1           ),
     .i_reset  (w_reset                        ),  
     .clk      (clk                            )            
   );
@@ -203,7 +201,7 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
     .o_os_data           (w_out_from_tx_filtI_to_noiseI  ),
     .i_is_data           (new_bit_from_prbsI_tx_to_filter),
     .i_phase_num_of_coeff(w_control_phase_select         ),
-    .i_ctrl              (w_control_poly_filt           ),
+    .i_ctrl              (w_control_for_rate_1           ),
     .i_reset             (w_reset                        ),            
     .clk                 (clk                            )
   );
@@ -220,7 +218,7 @@ module tmp_top_tx_noise_chfil_aafilt_dwr2_fse_lms_dwr1_slc
     .o_os_data           (w_out_from_tx_filtQ_to_noiseQ  ),
     .i_is_data           (new_bit_from_prbsQ_tx_to_filter),
     .i_phase_num_of_coeff(w_control_phase_select         ),
-    .i_ctrl              (w_control_poly_filt           ),
+    .i_ctrl              (w_control_for_rate_1           ),
     .i_reset             (w_reset                        ),            
     .clk                 (clk                            )
   );

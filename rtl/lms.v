@@ -166,7 +166,6 @@ module lms #(
           //  new_tap_I = term1_I - term2_I
           assign w_term1_I[k] = r_taps_I[k]*(one-STEP*LEAK);
           assign w_term2_I[k] = STEP*(i_err_I*r_shftr_buf_r1_I[k] + i_err_Q*r_shftr_buf_r1_Q[k]);
-          //assign w_add_I[k] = { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} ,w_term1_I[k] } - (w_term2_I[k]<<ALIGN_LSB);
           assign w_add_I[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
                              ?   w_term1_I[k] - { {ALIGN_SIG{w_term2_I[k][NBT_TERM2-1]}} , (w_term2_I[k]<<ALIGN_LSB ) } 
                              :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
@@ -189,7 +188,6 @@ module lms #(
           //  new_tap_Q = term1_Q - term2_Q
           assign w_term1_Q[k] = r_taps_Q[k]*(one-STEP*LEAK);
           assign w_term2_Q[k] = STEP*(i_err_I*r_shftr_buf_r1_Q[k] - i_err_Q*r_shftr_buf_r1_I[k]);
-          //assign w_add_Q[k] = { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} ,w_term1_Q[k] } + (w_term2_Q[k]<<ALIGN_LSB);
           assign w_add_Q[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
                              ?    w_term1_Q[k] + { {ALIGN_SIG{w_term2_Q[k][NBT_TERM2-1]}} , (w_term2_Q[k]<<ALIGN_LSB ) } 
                              :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
