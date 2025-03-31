@@ -18,16 +18,17 @@ module lms #(
   parameter NBF_ERR  =  9
 )
 (
-  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
-  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I     , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q     , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
 
-  input signed  [             NBT_IN-1:0] i_is_data_I, // S(8,7)
-  input signed  [             NBT_IN-1:0] i_is_data_Q, // S(8,7)
-  input signed  [            NBT_ERR-1:0] i_err_I    , // S(27,24)
-  input signed  [            NBT_ERR-1:0] i_err_Q    , // S(27,24)
-  input                                   i_en_shtr  ,
-  input                                   i_en_taps  ,
-  input                                   i_reset    ,
+  input signed  [             NBT_IN-1:0] i_is_data_I  , // S(8,7)
+  input signed  [             NBT_IN-1:0] i_is_data_Q  , // S(8,7)
+  input signed  [            NBT_ERR-1:0] i_err_I      , // S(27,24)
+  input signed  [            NBT_ERR-1:0] i_err_Q      , // S(27,24)
+  input                                   i_en_shtr    ,
+  input                                   i_en_taps    ,
+  input                                   i_save_shftrs,
+  input                                   i_reset      ,
   input                                   clk       
 );
 
@@ -51,10 +52,12 @@ module lms #(
 
 
   // Internal registers and wires
-  reg  signed [  NBT_IN-1:0] r_shifter_I   [NUM_TAPS-1:0]; 
-  reg  signed [  NBT_IN-1:0] r_shifter_Q   [NUM_TAPS-1:0]; 
-  reg  signed [NBT_TAPS-1:0] r_taps_I      [NUM_TAPS-1:0];
-  reg  signed [NBT_TAPS-1:0] r_taps_Q      [NUM_TAPS-1:0];
+  reg  signed [  NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
+  reg  signed [  NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
+  reg  signed [  NBT_IN-1:0] r_shftr_buf_r1_I [NUM_TAPS-1:0]; 
+  reg  signed [  NBT_IN-1:0] r_shftr_buf_r1_Q [NUM_TAPS-1:0]; 
+  reg  signed [NBT_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
+  reg  signed [NBT_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
 
   wire signed [NBT_STEP+NBT_LEAK-1:0] one                ;
   assign one = (1'b1 << (NBF_STEP+NBF_LEAK))             ;
@@ -99,8 +102,34 @@ module lms #(
         end
     end
   end
+  
+  // Shifter buffers: updated at rate 1, after taps update 
+  integer n  ;
+  always @(posedge clk) begin
+    if (i_reset==1'b1) begin 
+        for (n=0 ; n<NUM_TAPS ; n=n+1) begin
+            r_shftr_buf_r1_I[n] <= {NBT_IN{1'b0}};
+            r_shftr_buf_r1_Q[n] <= {NBT_IN{1'b0}};
+        end
+    end
+    else begin
+        if (i_save_shftrs==1'b1) begin
+            for (n=0 ; n<NUM_TAPS ; n=n+1) begin
+                r_shftr_buf_r1_I[n] <= r_shifter_I[n];
+                r_shftr_buf_r1_Q[n] <= r_shifter_Q[n];
+            end
+        end
+        else begin
+            for (n=0 ; n<NUM_TAPS ; n=n+1) begin
+                r_shftr_buf_r1_I[n] <= r_shftr_buf_r1_I[n];
+                r_shftr_buf_r1_Q[n] <= r_shftr_buf_r1_Q[n];
+            end
+        end
+    end
+  end
 
-  // FSE coefficient registers: initialized to 1+j0 and updated at rate 4  
+
+  // FSE coefficient registers: initialized to 1+j0 and updated at rate 1 (BR)
   integer j  ;
   localparam MID_IDX = NUM_TAPS/2;
   always @(posedge clk) begin
@@ -111,7 +140,7 @@ module lms #(
         end
     end
     else begin
-        if (i_en_taps==1'b1) begin // Update taps at rate 4
+        if (i_en_taps==1'b1) begin // Update taps at rate 1 (BR)
             for (j=0 ; j<NUM_TAPS ; j=j+1) begin
                 r_taps_I[j] <= w_new_taps_I[j];
                 r_taps_Q[j] <= w_new_taps_Q[j];
@@ -136,7 +165,8 @@ module lms #(
           //  new_tap_I = tap_I*(1-step*leak) - step*(err_I*shi_I + err_Q*shi_Q)
           //  new_tap_I = term1_I - term2_I
           assign w_term1_I[k] = r_taps_I[k]*(one-STEP*LEAK);
-          assign w_term2_I[k] = STEP*(i_err_I*r_shifter_I[k] + i_err_Q*r_shifter_Q[k]);
+          assign w_term2_I[k] = STEP*(i_err_I*r_shftr_buf_r1_I[k] + i_err_Q*r_shftr_buf_r1_Q[k]);
+          //assign w_add_I[k] = { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} ,w_term1_I[k] } - (w_term2_I[k]<<ALIGN_LSB);
           assign w_add_I[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
                              ?   w_term1_I[k] - { {ALIGN_SIG{w_term2_I[k][NBT_TERM2-1]}} , (w_term2_I[k]<<ALIGN_LSB ) } 
                              :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
@@ -158,7 +188,8 @@ module lms #(
           //  new_tap_Q = tap_Q*(1-step*leak) + step*(err_I*shi_Q - err_Q*shi_I)
           //  new_tap_Q = term1_Q - term2_Q
           assign w_term1_Q[k] = r_taps_Q[k]*(one-STEP*LEAK);
-          assign w_term2_Q[k] = STEP*(i_err_I*r_shifter_Q[k] - i_err_Q*r_shifter_I[k]);
+          assign w_term2_Q[k] = STEP*(i_err_I*r_shftr_buf_r1_Q[k] - i_err_Q*r_shftr_buf_r1_I[k]);
+          //assign w_add_Q[k] = { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} ,w_term1_Q[k] } + (w_term2_Q[k]<<ALIGN_LSB);
           assign w_add_Q[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
                              ?    w_term1_Q[k] + { {ALIGN_SIG{w_term2_Q[k][NBT_TERM2-1]}} , (w_term2_Q[k]<<ALIGN_LSB ) } 
                              :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
