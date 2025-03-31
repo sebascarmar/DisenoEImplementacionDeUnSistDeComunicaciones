@@ -43,7 +43,7 @@ fc_ch_filter      = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 #### Receiver
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
-NTAPS_FSE    = 33
+NTAPS_FSE    = 11
 lms_step     = 0.5e-3
 lms_leak     = 1e-3
 Kp           = 0 if(f_offset==0) else 1e-3
