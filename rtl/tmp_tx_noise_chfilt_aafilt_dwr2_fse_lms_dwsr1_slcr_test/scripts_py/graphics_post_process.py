@@ -51,6 +51,8 @@ sim_data   = np.loadtxt(os.path.join(logs_absPath, 'simulation_data.txt'), delim
 ##### FSE
 fse_coeff_I   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_I.txt'), delimiter=',')
 fse_coeff_Q   = np.loadtxt(os.path.join(logs_absPath, 'coeffs_fse_Q.txt'), delimiter=',')
+rx_err_lms_I_v = np.loadtxt(os.path.join(logs_absPath,'rx_err_lms_I_v.txt'   ), delimiter=',')
+rx_err_lms_Q_v = np.loadtxt(os.path.join(logs_absPath,'rx_err_lms_Q_v.txt'   ), delimiter=',')
 rx_symI_fse_from_ver = np.loadtxt('file_rx_symI_fse.txt', delimiter=',')
 rx_symQ_fse_from_ver = np.loadtxt('file_rx_symQ_fse.txt', delimiter=',')
 frac_bits=9
@@ -551,6 +553,19 @@ plt.figure(figsize=[10,6])
 plt.plot(fse_coeff_Q.T)
 plt.title('FSE coefficients (Q lane) - decimated')
 plt.grid(True)
+
+
+plt.figure(figsize=[10,6])
+plt.plot(rx_err_lms_I_v)
+plt.title('LMS-Error - Lane I')
+plt.grid(True)
+
+plt.figure(figsize=[10,6])
+plt.plot(rx_err_lms_Q_v)
+plt.title('LMS-Error - Lane Q')
+plt.grid(True)
+
+
 plt.show()
 
 #################################  FCR #################################

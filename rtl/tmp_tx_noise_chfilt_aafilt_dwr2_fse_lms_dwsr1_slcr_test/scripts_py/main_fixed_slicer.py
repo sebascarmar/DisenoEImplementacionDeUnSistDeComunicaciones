@@ -199,8 +199,8 @@ RX_BITQ_DEMAP_LOG= np.zeros(NSYMB)
 ############################ BIT-ERROR RATE ############################
 ber_IjQ = ber(SEED_I, SEED_Q, START_SYN, START_CNT)
 
-tx_bitI_prbs_v = np.loadtxt("file_tx_bitI_prbs.txt", dtype=np.intp)
-tx_bitQ_prbs_v = np.loadtxt("file_tx_bitQ_prbs.txt", dtype=np.intp)
+#tx_bitI_prbs_v = np.loadtxt("file_tx_bitI_prbs.txt", dtype=np.intp)
+#tx_bitQ_prbs_v = np.loadtxt("file_tx_bitQ_prbs.txt", dtype=np.intp)
 
 #---------------------------------------------------------------------------------------------
 # INYECCION DE DATOS GENERADOS EN EL TX DE VERILOG
@@ -229,6 +229,18 @@ print("Fragmento de salidas del slicer I y Q")
 print(rx_symI_slcr_v[0:50])
 print(rx_symQ_slcr_v[0:50])
 
+#---------------------------------------------------------------------------------------------
+# INYECCION DE DATOS GENERADOS EN EL TX DE VERILOG
+#levanta archivos en formato entero equivalente
+rx_err_lms_I_from_ver = np.loadtxt("file_rx_error_I.txt", dtype=np.intp)
+rx_err_lms_Q_from_ver = np.loadtxt("file_rx_error_Q.txt", dtype=np.intp)
+#convierte al valor correspondiente al formato de punto fijo S(8.7)
+frac_bits = 9
+rx_err_lms_I_v = rx_err_lms_I_from_ver / (2**frac_bits)
+rx_err_lms_Q_v = rx_err_lms_Q_from_ver / (2**frac_bits)
+print("Fragmento de salidas del error I y Q")
+print(rx_err_lms_I_v[0:50])
+print(rx_err_lms_Q_v[0:50])
 print("Fin de la toma de datos inyectados")
 
 #---------------------------------------------------------------------------------------------
@@ -240,10 +252,10 @@ for i in range(NSYMB*OS):
     if( i%OS ==0 ): # Downsampling to BR rate (os=1)
         n = int(i/OS)
         #### Bits generation
-        tx_bitI_prbs = tx_bitI_prbs_v[n]
-        tx_bitQ_prbs = tx_bitQ_prbs_v[n]
-        TX_BITI_PRBS_LOG[n] = tx_bitI_prbs
-        TX_BITQ_PRBS_LOG[n] = tx_bitQ_prbs
+#        tx_bitI_prbs = tx_bitI_prbs_v[n]
+#        tx_bitQ_prbs = tx_bitQ_prbs_v[n]
+#        TX_BITI_PRBS_LOG[n] = tx_bitI_prbs
+#        TX_BITQ_PRBS_LOG[n] = tx_bitQ_prbs
         
 #        #### Mapper
 #        tx_symI_map = 1 if(tx_bitI_prbs == 0) else -1
@@ -443,5 +455,7 @@ np.savetxt(os.path.join(logs_absPath,'rx_symI_dw_rate1.txt'), RX_SYMI_DW_RATE1_L
 np.savetxt(os.path.join(logs_absPath,'rx_symQ_dw_rate1.txt'), RX_SYMQ_DW_RATE1_LOG , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symI_slcr.txt'    ), RX_SYMI_SLCR_LOG     , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_symQ_slcr.txt'    ), RX_SYMQ_SLCR_LOG     , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'rx_err_lms_I_v.txt'   ), rx_err_lms_I_v    , delimiter=',')
+np.savetxt(os.path.join(logs_absPath,'rx_err_lms_Q_v.txt'   ), rx_err_lms_Q_v    , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_bitI_demap.txt'   ), RX_BITI_DEMAP_LOG    , delimiter=',')
 np.savetxt(os.path.join(logs_absPath,'rx_bitQ_demap.txt'   ), RX_BITQ_DEMAP_LOG    , delimiter=',')

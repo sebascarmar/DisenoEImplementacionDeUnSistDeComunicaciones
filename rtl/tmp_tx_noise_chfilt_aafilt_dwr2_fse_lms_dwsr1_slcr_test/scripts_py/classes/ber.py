@@ -4,7 +4,7 @@ import numpy as np
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from classes.prbs9 import prbs9
+#from classes.prbs9 import prbs9
 
 
 
@@ -26,8 +26,8 @@ class ber:
         self.START_CNT = START_CNT
         self.COMB_PRBS = 511
         #### Bits generation
-        self.prbs9I_rx = prbs9(SEED_I) # Seed: 0x1AA
-        self.prbs9Q_rx = prbs9(SEED_Q) # Seed: 0x1FE
+        #self.prbs9I_rx = prbs9(SEED_I) # Seed: 0x1AA
+        #self.prbs9Q_rx = prbs9(SEED_Q) # Seed: 0x1FE
         # PRBS regster and data
         self.shftr_berI = np.zeros(1+self.COMB_PRBS, dtype=int)
         self.shftr_berQ = np.zeros(1+self.COMB_PRBS, dtype=int)
@@ -119,6 +119,8 @@ class ber:
         # Shift and update register used for PRBS 
         self.shftr_berI = np.roll(self.shftr_berI,1)
         self.shftr_berQ = np.roll(self.shftr_berQ,1)
+        #self.shftr_berI[0] = self.prbs9I_rx.get_new_bit()
+        #self.shftr_berQ[0] = self.prbs9Q_rx.get_new_bit()
         self.shftr_berI[0] = self.tx_bitI_prbs_v[self.new_bit_cnt]
         self.shftr_berQ[0] = self.tx_bitQ_prbs_v[self.new_bit_cnt]
         self.new_bit_cnt = self.new_bit_cnt+1
@@ -154,8 +156,11 @@ class ber:
         # Shift and update register used for PRBS 
         self.shftr_berI = np.roll(self.shftr_berI,1)
         self.shftr_berQ = np.roll(self.shftr_berQ,1)
-        self.shftr_berI[0] = self.prbs9I_rx.get_new_bit()
-        self.shftr_berQ[0] = self.prbs9Q_rx.get_new_bit()
+        #self.shftr_berI[0] = self.prbs9I_rx.get_new_bit()
+        #self.shftr_berQ[0] = self.prbs9Q_rx.get_new_bit()
+        self.shftr_berI[0] = self.tx_bitI_prbs_v[self.new_bit_cnt]
+        self.shftr_berQ[0] = self.tx_bitQ_prbs_v[self.new_bit_cnt]
+        self.new_bit_cnt = self.new_bit_cnt+1
         
         # Lane I
         self.bit_err_I += self.shftr_berI[self.latency] ^ rx_bitI_rot
