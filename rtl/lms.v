@@ -9,7 +9,7 @@ module lms #(
   parameter NBT_LEAK = 11      ,
   parameter NBF_LEAK = 10      ,
   
-  parameter NUM_TAPS = 11,
+  parameter NUM_TAPS =  9,
   parameter NBT_IN   =  8,
   parameter NBF_IN   =  7,
   parameter NBT_TAPS = 28,
