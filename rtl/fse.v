@@ -2,7 +2,7 @@
 
 
 module fse #(
-  parameter NUM_TAPS = 11,
+  parameter NUM_TAPS =  9,
   parameter NBT_IN   =  8,
   parameter NBF_IN   =  7,
   parameter NBT_TAPS = 28,
@@ -32,6 +32,7 @@ module fse #(
   localparam NBI_ADD  = NBT_ADD - NBF_ADD          ;
   localparam NBI_OUT  = NBT_OUT - NBF_OUT          ;
   localparam NB_SAT   = NBI_ADD - NBI_OUT          ; 
+
 
   // Internal registers and wires
   reg  signed [     NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
@@ -105,24 +106,24 @@ module fse #(
   // Sum all partial products for each component
   assign w_add_sIxtI = w_part_prod_sIxtI[ 0] + w_part_prod_sIxtI[ 1] + w_part_prod_sIxtI[ 2] + w_part_prod_sIxtI[ 3] +
                        w_part_prod_sIxtI[ 4] + w_part_prod_sIxtI[ 5] + w_part_prod_sIxtI[ 6] + w_part_prod_sIxtI[ 7] +
-                       w_part_prod_sIxtI[ 8] + w_part_prod_sIxtI[ 9] + w_part_prod_sIxtI[10] ;
+                       w_part_prod_sIxtI[ 8];
   assign w_add_sQxtQ = w_part_prod_sQxtQ[ 0] + w_part_prod_sQxtQ[ 1] + w_part_prod_sQxtQ[ 2] + w_part_prod_sQxtQ[ 3] +
                        w_part_prod_sQxtQ[ 4] + w_part_prod_sQxtQ[ 5] + w_part_prod_sQxtQ[ 6] + w_part_prod_sQxtQ[ 7] +
-                       w_part_prod_sQxtQ[ 8] + w_part_prod_sQxtQ[ 9] + w_part_prod_sQxtQ[10] ;
+                       w_part_prod_sQxtQ[ 8];
 
   assign w_add_sIxtQ = w_part_prod_sIxtQ[ 0] + w_part_prod_sIxtQ[ 1] + w_part_prod_sIxtQ[ 2] + w_part_prod_sIxtQ[ 3] +
                        w_part_prod_sIxtQ[ 4] + w_part_prod_sIxtQ[ 5] + w_part_prod_sIxtQ[ 6] + w_part_prod_sIxtQ[ 7] +
-                       w_part_prod_sIxtQ[ 8] + w_part_prod_sIxtQ[ 9] + w_part_prod_sIxtQ[10] ;
+                       w_part_prod_sIxtQ[ 8];
   assign w_add_sQxtI = w_part_prod_sQxtI[ 0] + w_part_prod_sQxtI[ 1] + w_part_prod_sQxtI[ 2] + w_part_prod_sQxtI[ 3] +
                        w_part_prod_sQxtI[ 4] + w_part_prod_sQxtI[ 5] + w_part_prod_sQxtI[ 6] + w_part_prod_sQxtI[ 7] +
-                       w_part_prod_sQxtI[ 8] + w_part_prod_sQxtI[ 9] + w_part_prod_sQxtI[10] ;
+                       w_part_prod_sQxtI[ 8];
 
 
   // Compute final summed values for I and Q outputs
   assign  w_add_I    = w_add_sIxtI - w_add_sQxtQ;
   assign  w_add_Q    = w_add_sIxtQ + w_add_sQxtI;
 
-  // Output assignment: Apply saturation and truncation to S(12,9) format
+  // Output assignments: Apply saturation and truncation to S(12,9) format
   assign o_os_data_I  = ( ~|w_add_I[(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[(NBT_ADD-1) -: NB_SAT+1])
                         ? w_add_I[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
                         :( (w_add_I[NBT_ADD-1])
