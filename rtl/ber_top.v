@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 
 
-module ber #(
+module ber_top #(
   parameter PRBS_SEED_I     = 9'h1AA             ,
   parameter PRBS_SEED_Q     = 9'h1FE             ,
   parameter PRBS_MAX_CYCLES = 511                ,

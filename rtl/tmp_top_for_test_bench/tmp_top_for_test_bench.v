@@ -416,7 +416,7 @@ module tmp_top_for_test_bench
 
 
   //////////////// BER Control measurement and validation
-  ber #(
+  ber_top #(
     .PRBS_SEED_I    (PRBS_SEED_I    ),
     .PRBS_SEED_Q    (PRBS_SEED_Q    ),
     .PRBS_MAX_CYCLES(PRBS_MAX_CYCLES),
