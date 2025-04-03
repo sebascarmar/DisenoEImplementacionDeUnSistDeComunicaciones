@@ -135,9 +135,7 @@ module tmp_top_for_test_bench
   parameter START_CNT         = `START_CNT        
  )
  (
-  //output  [3:0] o_normal_led               ,
-  output        o_ber_ok_led_I ,
-  output        o_ber_ok_led_Q ,
+  output  [3:0] o_normal_led   ,
   
   input         i_sw        ,
   input         i_reset        ,
@@ -444,10 +442,11 @@ module tmp_top_for_test_bench
 
 
   //////////////// Assign processed signals to output ports  
-  assign o_ber_ok_led_I = w_ber_ok_led_I;
-  assign o_ber_ok_led_Q = w_ber_ok_led_Q;
+  assign o_normal_led[3] = w_reset       ;
+  assign o_normal_led[2] = i_sw          ;
+  assign o_normal_led[1] = w_ber_ok_led_I;
+  assign o_normal_led[0] = w_ber_ok_led_Q;
 
 
 endmodule
-
 

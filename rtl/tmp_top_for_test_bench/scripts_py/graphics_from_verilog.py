@@ -203,7 +203,7 @@ plt.ylim((-2, 2))
 plt.grid(True)
 plt.xlabel('Real (I)')
 plt.legend(loc="upper left")
-plt.show()
+# plt.show()
 
 
 # Group of data vs time: Downsampled to rate 1 and Sliced
@@ -225,7 +225,7 @@ plt.grid(True)
 plt.ylabel('Real (I)')
 plt.xlabel('Time [n]')
 plt.legend(loc="upper left")
-# plt.show()
+plt.show()
 
 
 

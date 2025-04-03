@@ -80,8 +80,7 @@ module tb_tmp_top_for_test_bench;
   reg clk;
   reg i_reset;
   reg i_sw;
-  wire o_ber_ok_led_I;
-  wire o_ber_ok_led_Q;
+  wire  [3:0] o_normal_led;
 
   // Instantiate the Device Under Test (DUT)
   tmp_top_for_test_bench #(
@@ -136,11 +135,10 @@ module tb_tmp_top_for_test_bench;
         .START_SYN         (START_SYN        ),
         .START_CNT         (START_CNT        )
   ) dut (
-    .o_ber_ok_led_I(o_ber_ok_led_I),
-    .o_ber_ok_led_Q(o_ber_ok_led_Q),
-    .i_sw          (i_sw          ),
-    .i_reset(i_reset),
-    .clk(clk)
+    .o_normal_led  (o_normal_led ),
+    .i_sw          (i_sw         ),
+    .i_reset       (i_reset      ),
+    .clk           (clk          )
   );
 
   
