@@ -93,7 +93,8 @@ module adaptive_filter #(
     .i_is_data_Q(i_is_data_Q     ),            
     .i_taps_I   (w_taps_I        ),
     .i_taps_Q   (w_taps_Q        ),
-    .i_en       (i_en_rate2      ),
+    .i_ctrl     (i_en_rate2      ),
+    .i_en_taps  (i_en_rate1      ),
     .i_reset    (i_reset         ),
     .clk        (clk             )
   );

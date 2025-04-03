@@ -18,7 +18,8 @@ module fse #(
   input signed [             NBT_IN-1:0] i_is_data_Q, 
   input signed [(NUM_TAPS*NBT_TAPS)-1:0] i_taps_I   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
   input signed [(NUM_TAPS*NBT_TAPS)-1:0] i_taps_Q   , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
-  input                                  i_en       ,
+  input                                  i_ctrl     ,
+  input                                  i_en_taps  ,
   input                                  i_reset    ,
   input                                  clk       
 );
@@ -32,13 +33,14 @@ module fse #(
   localparam NBI_ADD  = NBT_ADD - NBF_ADD          ;
   localparam NBI_OUT  = NBT_OUT - NBF_OUT          ;
   localparam NB_SAT   = NBI_ADD - NBI_OUT          ; 
+  localparam NBI_TAPS = NBT_TAPS - NBF_TAPS        ;
 
 
   // Internal registers and wires
   reg  signed [     NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
   reg  signed [     NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
-  wire signed [   NBT_TAPS-1:0] w_taps_I         [NUM_TAPS-1:0];
-  wire signed [   NBT_TAPS-1:0] w_taps_Q         [NUM_TAPS-1:0];
+  reg  signed [   NBT_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
+  reg  signed [   NBT_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
   wire signed [   NBT_PROD-1:0] w_part_prod_sIxtI[NUM_TAPS-1:0];
   wire signed [   NBT_PROD-1:0] w_part_prod_sQxtI[NUM_TAPS-1:0];
   wire signed [   NBT_PROD-1:0] w_part_prod_sIxtQ[NUM_TAPS-1:0];
@@ -61,7 +63,7 @@ module fse #(
         end
     end
     else begin
-        if (i_en==1'b1) begin // Update shifter at rate 2
+        if (i_ctrl==1'b1) begin // Update shifter at rate 2
             for (i=0 ; i<NUM_TAPS ; i=i+1) begin
                 if (i==0) begin
                     r_shifter_I[i] <= i_is_data_I;
@@ -82,12 +84,27 @@ module fse #(
     end
   end
 
-  // Converting a packed 1D input into a 2D-indexed array for easier access
+  // FSE taps registers: converts a packed 1D input into a 2D register array, updating at rate 1 (BR)
   genvar j;
+  localparam MID_IDX = NUM_TAPS/2;
   generate
-      for (j=0; j<NUM_TAPS ; j=j+1) begin
-          assign w_taps_I[j] = i_taps_I[(j+1)*NBT_TAPS-1 : j*NBT_TAPS];
-          assign w_taps_Q[j] = i_taps_Q[(j+1)*NBT_TAPS-1 : j*NBT_TAPS];
+      for (j=0 ; j<NUM_TAPS ; j=j+1) begin
+          always @(posedge clk) begin
+            if (i_reset==1'b1) begin
+                r_taps_I[j] <= (j==MID_IDX) ? { {(NBI_TAPS-1){1'b0}} , 1'b1 , {NBF_TAPS{1'b0}} } : {NBT_TAPS{1'b0}};
+                r_taps_Q[j] <= {NBT_TAPS{1'b0}};
+            end
+            else begin
+                if (i_en_taps) begin
+                    r_taps_I[j] <= i_taps_I[(j+1)*NBT_TAPS-1 : j*NBT_TAPS];
+                    r_taps_Q[j] <= i_taps_Q[(j+1)*NBT_TAPS-1 : j*NBT_TAPS];
+                end
+                else begin
+                    r_taps_I[j] <= r_taps_I[j];
+                    r_taps_Q[j] <= r_taps_Q[j];
+                end
+            end
+          end
       end
   endgenerate
 
@@ -95,11 +112,11 @@ module fse #(
   genvar k;
   generate
       for (k=0; k<NUM_TAPS ; k=k+1) begin : multiply
-          assign w_part_prod_sIxtI[k] = r_shifter_I[k] * w_taps_I[k];
-          assign w_part_prod_sQxtQ[k] = r_shifter_Q[k] * w_taps_Q[k];
+          assign w_part_prod_sIxtI[k] = r_shifter_I[k] * r_taps_I[k];
+          assign w_part_prod_sQxtQ[k] = r_shifter_Q[k] * r_taps_Q[k];
           
-          assign w_part_prod_sIxtQ[k] = r_shifter_I[k] * w_taps_Q[k];
-          assign w_part_prod_sQxtI[k] = r_shifter_Q[k] * w_taps_I[k];
+          assign w_part_prod_sIxtQ[k] = r_shifter_I[k] * r_taps_Q[k];
+          assign w_part_prod_sQxtI[k] = r_shifter_Q[k] * r_taps_I[k];
       end
   endgenerate
 
