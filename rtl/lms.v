@@ -28,6 +28,7 @@ module lms #(
   input                                   i_en_shtr    ,
   input                                   i_en_taps    ,
   input                                   i_save_shftrs,
+  input                                   i_en_rx      ,
   input                                   i_reset      ,
   input                                   clk       
 );
@@ -75,7 +76,7 @@ module lms #(
   // Shift register: Sequentially updates input samples at rate 2
   integer i;
   always @(posedge clk) begin
-    if (i_reset == 1'b1) begin
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
         for (i=0 ; i<NUM_TAPS ; i=i+1) begin
             r_shifter_I[i] <= {NBT_IN{1'b0}};
             r_shifter_Q[i] <= {NBT_IN{1'b0}};
@@ -106,7 +107,7 @@ module lms #(
   // Shifter buffers: updated at rate 1, after taps update 
   integer n  ;
   always @(posedge clk) begin
-    if (i_reset==1'b1) begin 
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
         for (n=0 ; n<NUM_TAPS ; n=n+1) begin
             r_shftr_buf_r1_I[n] <= {NBT_IN{1'b0}};
             r_shftr_buf_r1_Q[n] <= {NBT_IN{1'b0}};
@@ -133,7 +134,7 @@ module lms #(
   integer j  ;
   localparam MID_IDX = NUM_TAPS/2;
   always @(posedge clk) begin
-    if (i_reset == 1'b1) begin // Initialize taps with 1+j0 at the center position  
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin // Initialize taps with 1+j0 at the center position 
         for (j=0 ; j<NUM_TAPS ; j=j+1) begin
             r_taps_I[j] <= (j==MID_IDX) ? { {(NBI_TAPS-1){1'b0}} , 1'b1 , {NBF_TAPS{1'b0}} } : {NBT_TAPS{1'b0}};
             r_taps_Q[j] <= {NBT_TAPS{1'b0}};

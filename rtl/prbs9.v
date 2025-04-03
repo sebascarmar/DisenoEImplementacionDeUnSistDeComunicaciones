@@ -5,11 +5,12 @@ module prbs9 #(
     parameter SEED = 9'h1FF 
 )
 (
-    output  o_new_bit, 
+    output o_new_bit, 
     
-    input   i_ctrl   ,
-    input   i_reset  , 
-    input   clk       
+    input  i_ctrl   ,
+    input  i_en     , 
+    input  i_reset  , 
+    input  clk       
 );
   
   // 9-bit shift register for PRBS generation
@@ -18,7 +19,7 @@ module prbs9 #(
   
   // PRBS bit generation using XOR feedback
   always @(posedge clk) begin
-    if (i_reset==1'b1) begin
+    if (i_reset==1'b1 || i_en==1'b0) begin
         shiftreg <= SEED;
     end
     else begin

@@ -12,6 +12,7 @@ module ber_control #(
   output o_start_ber_counter      ,
   
   input  i_ctrl                   , 
+  input  i_en_rx                  , 
   input  i_reset                  , 
   input  clk       
 );
@@ -27,7 +28,7 @@ module ber_control #(
 
   // Counter
   always @(posedge clk) begin: control
-    if (i_reset==1'b1) begin
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
         r_counter     <= {COUNTER_BITS{1'b0}}   ;
         r_prbs_cycles <= {PRBS_CYCLE_BITS{1'b0}};
     end

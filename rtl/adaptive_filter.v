@@ -28,6 +28,7 @@ module adaptive_filter #(
   input                       i_en_rate2  ,
   input                       i_en_rate1  ,
   input                       i_save_shtrs,
+  input                       i_en_rx     ,
   input                       i_reset     ,
   input                       clk       
 );
@@ -73,6 +74,7 @@ module adaptive_filter #(
     .i_en_shtr    (i_en_rate2  ),
     .i_en_taps    (i_en_rate1  ),
     .i_save_shftrs(i_save_shtrs),
+    .i_en_rx      (i_en_rx     ),
     .i_reset      (i_reset     ),
     .clk          (clk         )
   );
@@ -95,6 +97,7 @@ module adaptive_filter #(
     .i_taps_Q   (w_taps_Q        ),
     .i_ctrl     (i_en_rate2      ),
     .i_en_taps  (i_en_rate1      ),
+    .i_en_rx    (i_en_rx         ),
     .i_reset    (i_reset         ),
     .clk        (clk             )
   );
@@ -106,7 +109,8 @@ module adaptive_filter #(
   ) u_dwsamp_r1_I (
     .o_os_data(w_dw_r1I_to_slcrI),
     .i_is_data(w_fseI_to_dw_r1I ),
-    .i_en     (i_en_rate1       ),
+    .i_ctrl   (i_en_rate1       ),
+    .i_en     (i_en_rx          ),
     .i_reset  (i_reset          ),
     .clk      (clk              ) 
   );
@@ -117,7 +121,8 @@ module adaptive_filter #(
   ) u_dwsamp_r1_Q (
     .o_os_data(w_dw_r1Q_to_slcrQ),
     .i_is_data(w_fseQ_to_dw_r1Q ),
-    .i_en     (i_en_rate1       ),
+    .i_ctrl   (i_en_rate1       ),
+    .i_en     (i_en_rx          ),
     .i_reset  (i_reset          ),
     .clk      (clk              ) 
   );

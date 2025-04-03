@@ -139,7 +139,7 @@ module tmp_top_for_test_bench
   output        o_ber_ok_led_I ,
   output        o_ber_ok_led_Q ,
   
-  //input  [                 3:0]  i_sw        ,
+  input         i_sw        ,
   input         i_reset        ,
   input         clk
  );
@@ -202,6 +202,7 @@ module tmp_top_for_test_bench
   ) u_tx_prbs9_I (
     .o_new_bit(w_tx_prbsI_bit_to_tx_filtI),
     .i_ctrl   (w_control_for_rate_1      ),
+    .i_en     (1'b1                      ), 
     .i_reset  (w_reset                   ),  
     .clk      (clk                       )            
   );
@@ -211,6 +212,7 @@ module tmp_top_for_test_bench
   ) u_tx_prbs9_Q (
     .o_new_bit(w_tx_prbsQ_bit_to_tx_filtQ),
     .i_ctrl   (w_control_for_rate_1      ),
+    .i_en     (1'b1                      ), 
     .i_reset  (w_reset                   ),  
     .clk      (clk                       )            
   );
@@ -296,6 +298,7 @@ module tmp_top_for_test_bench
   ) u_ch_filt_I (
     .o_os_data(w_ch_filtI_to_aa_filtI),
     .i_is_data(w_ch_nsigI_to_chfiltI ),
+    .i_en     (1'b1                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -312,6 +315,7 @@ module tmp_top_for_test_bench
   ) u_ch_filt_Q (
     .o_os_data(w_ch_filtQ_to_aa_filtQ),
     .i_is_data(w_ch_nsigQ_to_chfiltQ ),
+    .i_en     (1'b1                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -335,6 +339,7 @@ module tmp_top_for_test_bench
   ) u_aa_filt_I (
     .o_os_data(w_rx_aa_filtI_to_dwr2I),
     .i_is_data(w_ch_filtI_to_aa_filtI),
+    .i_en     (i_sw                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -351,6 +356,7 @@ module tmp_top_for_test_bench
   ) u_aa_filt_Q (
     .o_os_data(w_rx_aa_filtQ_to_dwr2Q),
     .i_is_data(w_ch_filtQ_to_aa_filtQ),
+    .i_en     (i_sw                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -363,7 +369,8 @@ module tmp_top_for_test_bench
   ) u_dwsamp_r2_I (
     .o_os_data(w_rx_dwr2I_to_fse     ),
     .i_is_data(w_rx_aa_filtI_to_dwr2I), 
-    .i_en     (w_control_for_rate_2  ),
+    .i_ctrl   (w_control_for_rate_2  ),
+    .i_en     (i_sw                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -374,7 +381,8 @@ module tmp_top_for_test_bench
   ) u_dwsamp_r2_Q (
     .o_os_data(w_rx_dwr2Q_to_fse     ),
     .i_is_data(w_rx_aa_filtQ_to_dwr2Q),
-    .i_en     (w_control_for_rate_2  ),
+    .i_ctrl   (w_control_for_rate_2  ),
+    .i_en     (i_sw                  ),
     .i_reset  (w_reset               ),
     .clk      (clk                   ) 
   );
@@ -405,6 +413,7 @@ module tmp_top_for_test_bench
     .i_en_rate2  (w_control_for_rate_2),
     .i_en_rate1  (w_control_for_rate_1),
     .i_save_shtrs(w_save_fse_shifters ),
+    .i_en_rx     (i_sw                ),
     .i_reset     (w_reset             ),
     .clk         (clk                 )
   );
@@ -428,6 +437,7 @@ module tmp_top_for_test_bench
     .i_rx_bit_I    (w_rx_bitI_to_ber    ),
     .i_rx_bit_Q    (w_rx_bitQ_to_ber    ),
     .i_en_rate1    (w_control_for_rate_1), 
+    .i_en_rx       (i_sw                ),
     .i_reset       (w_reset             ), 
     .clk           (clk                 ) 
   );

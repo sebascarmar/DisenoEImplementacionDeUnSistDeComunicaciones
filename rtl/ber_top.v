@@ -15,6 +15,7 @@ module ber_top #(
   input  i_rx_bit_I    ,
   input  i_rx_bit_Q    ,
   input  i_en_rate1    , 
+  input  i_en_rx       , 
   input  i_reset       , 
   input  clk       
 );
@@ -40,6 +41,7 @@ module ber_top #(
     .o_prbs_cmp_curr_addr_done(w_prbs_cmp_done  ),
     .o_start_ber_counter      (w_start_ber_count),
     .i_ctrl                   (i_en_rate1       ), 
+    .i_en_rx                  (i_en_rx          ), 
     .i_reset                  (i_reset          ), 
     .clk                      (clk              )
   );
@@ -53,6 +55,7 @@ module ber_top #(
   ) u_rx_prbs9_I (
     .o_new_bit(w_prbsI_bit_to_berI),
     .i_ctrl   (w_prbs_ctrl        ),
+    .i_en     (i_en_rx            ), 
     .i_reset  (i_reset            ),  
     .clk      (clk                )            
   );
@@ -62,6 +65,7 @@ module ber_top #(
   ) u_rx_prbs9_Q (
     .o_new_bit(w_prbsQ_bit_to_berQ),
     .i_ctrl   (w_prbs_ctrl        ),
+    .i_en     (i_en_rx            ), 
     .i_reset  (i_reset            ),  
     .clk      (clk                )            
   );
@@ -79,6 +83,7 @@ module ber_top #(
     .i_synchro_en             (w_start_sync       ),
     .i_prbs_cmp_curr_addr_done(w_prbs_cmp_done    ),
     .i_ber_counter_en         (w_start_ber_count  ),
+    .i_en_rx                  (i_en_rx            ), 
     .i_reset                  (i_reset            ), 
     .clk                      (clk                )
   );
@@ -93,6 +98,7 @@ module ber_top #(
     .i_synchro_en             (w_start_sync       ),
     .i_prbs_cmp_curr_addr_done(w_prbs_cmp_done    ),
     .i_ber_counter_en         (w_start_ber_count  ),
+    .i_en_rx                  (i_en_rx            ), 
     .i_reset                  (i_reset            ), 
     .clk                      (clk                )
   );

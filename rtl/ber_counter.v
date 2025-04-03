@@ -13,6 +13,7 @@ module ber_counter #(
   input  i_synchro_en             ,
   input  i_prbs_cmp_curr_addr_done,
   input  i_ber_counter_en         ,
+  input  i_en_rx                  , 
   input  i_reset                  , 
   input  clk  
 );
@@ -32,7 +33,7 @@ module ber_counter #(
 
 
   always @(posedge clk) begin
-    if (i_reset==1'b1) begin
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
         r_shifter    <= {PRBS_MAX_CYCLES{1'b0}};
         r_accum_err  <= {64{1'b0}}             ;
         r_accum_tot  <= {64{1'b0}}             ;

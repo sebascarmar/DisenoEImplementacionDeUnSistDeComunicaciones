@@ -13,10 +13,11 @@ module fir_filter
     parameter NBF_OUT    =  7 
 )
 (
-    output signed [NBT_OUT-1:0] o_os_data,  // Output sample
-
-    input  signed [ NBT_IN-1:0] i_is_data , // Input sample
-    input                       i_reset   ,
+    output signed [NBT_OUT-1:0] o_os_data, 
+    
+    input  signed [ NBT_IN-1:0] i_is_data,
+    input                       i_en     ,
+    input                       i_reset  ,
     input                       clk       
 );
 
@@ -44,8 +45,8 @@ module fir_filter
 
   // Shift register: Sequentially updates input bits (representing QPSK symbols)
   integer i;
-  always @(posedge clk) begin:shiftRegister
-    if (i_reset == 1'b1) begin:resetShifter
+  always @(posedge clk) begin
+    if (i_reset==1'b1 || i_en==1'b0) begin
         for (i=0 ; i< NUM_COEFF ; i=i+1) begin
             r_shifter[i] <= {NBT_IN{1'b0}};
         end

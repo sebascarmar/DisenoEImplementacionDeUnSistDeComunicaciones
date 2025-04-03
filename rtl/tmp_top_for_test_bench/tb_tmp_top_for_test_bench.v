@@ -79,6 +79,7 @@ module tb_tmp_top_for_test_bench;
   // Signals
   reg clk;
   reg i_reset;
+  reg i_sw;
   wire o_ber_ok_led_I;
   wire o_ber_ok_led_Q;
 
@@ -137,6 +138,7 @@ module tb_tmp_top_for_test_bench;
   ) dut (
     .o_ber_ok_led_I(o_ber_ok_led_I),
     .o_ber_ok_led_Q(o_ber_ok_led_Q),
+    .i_sw          (i_sw          ),
     .i_reset(i_reset),
     .clk(clk)
   );
@@ -200,8 +202,8 @@ module tb_tmp_top_for_test_bench;
   genvar idx;
   generate
     for (idx=0; idx<NUM_FSE_TAPS ; idx=idx+1) begin
-      assign taps_I[idx] = dut.u_adaptive_filter.u_lms.r_taps_I[idx];
-      assign taps_Q[idx] = dut.u_adaptive_filter.u_lms.r_taps_Q[idx];
+      assign taps_I[idx] = dut.u_adaptive_filter.u_fse.r_taps_I[idx];
+      assign taps_Q[idx] = dut.u_adaptive_filter.u_fse.r_taps_Q[idx];
     end
   endgenerate
 
@@ -230,9 +232,11 @@ module tb_tmp_top_for_test_bench;
       // Initialize signals
       clk     = 0;
       i_reset = 0;
+      i_sw    = 0;
      
       #100;
       i_reset = 1;
+      i_sw    = 1;
       
       for (i=0 ; i < 4*nsymb ; i=i+1) begin
           if (i%2 == 0 ) begin
