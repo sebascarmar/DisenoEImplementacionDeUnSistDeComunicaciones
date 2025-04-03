@@ -156,7 +156,7 @@ module tb_tmp_top_for_test_bench;
   integer file_fse_taps_I   ;
   integer file_fse_taps_Q   ;
 
-  integer nsymb    = 2000000;
+  integer nsymb    = 1000000;
   integer log_step = 500    ;
 
 
