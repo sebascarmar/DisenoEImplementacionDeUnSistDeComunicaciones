@@ -30,7 +30,7 @@ module polyph_filter #(
   reg         [     NBAUD:1] r_shifter               ; 
   reg  signed [NBT_COEF-1:0] r_coeff    [NBAUD*OS-1:0];
   wire signed [NBT_COEF-1:0] w_part_prod[     NBAUD:1]; // it's because optimization due QPSK mod.
-  wire signed [ NBT_ADD-1:0] w_add                    ;
+  reg  signed [ NBT_ADD-1:0] w_add                    ;
   
   // Load the filter coefficient values
   initial begin
@@ -41,7 +41,7 @@ module polyph_filter #(
   // Shift register: Sequentially updates input bits (representing QPSK symbols)
   integer i;
   always @(posedge clk) begin:shiftRegister
-    if (i_reset == 1'b1) begin
+    if (i_reset==1'b1) begin
         r_shifter <= {6'b0};
     end
     else begin
@@ -73,8 +73,14 @@ module polyph_filter #(
   endgenerate
   
   // Add all the partial products
-  assign w_add = w_part_prod[6] + w_part_prod[5] + w_part_prod[4] + w_part_prod[3] + w_part_prod[2] + w_part_prod[1];
-    
+  integer k;
+  always @(*) begin
+    w_add = 0;
+    for (k=1 ; k<=NBAUD ; k=k+1) begin
+        w_add = w_add + w_part_prod[k];
+    end
+  end
+
 
   // Output assignment: Apply saturation and truncation to S(8,7) format
   assign o_os_data  = ( ~|w_add[(NBT_ADD-1) -: NBI_ADD] || &w_add[(NBT_ADD-1) -: NBI_ADD])

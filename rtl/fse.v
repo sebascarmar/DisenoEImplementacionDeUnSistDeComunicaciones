@@ -46,10 +46,10 @@ module fse #(
   wire signed [   NBT_PROD-1:0] w_part_prod_sQxtI[NUM_TAPS-1:0];
   wire signed [   NBT_PROD-1:0] w_part_prod_sIxtQ[NUM_TAPS-1:0];
   wire signed [   NBT_PROD-1:0] w_part_prod_sQxtQ[NUM_TAPS-1:0];
-  wire signed [    NBT_ADD-1:0] w_add_sIxtI                    ;
-  wire signed [    NBT_ADD-1:0] w_add_sQxtQ                    ;
-  wire signed [    NBT_ADD-1:0] w_add_sIxtQ                    ;
-  wire signed [    NBT_ADD-1:0] w_add_sQxtI                    ;
+  reg  signed [    NBT_ADD-1:0] w_add_sIxtI                    ;
+  reg  signed [    NBT_ADD-1:0] w_add_sQxtQ                    ;
+  reg  signed [    NBT_ADD-1:0] w_add_sIxtQ                    ;
+  reg  signed [    NBT_ADD-1:0] w_add_sQxtI                    ;
   wire signed [(NBT_ADD+1)-1:0] w_add_I                        ;
   wire signed [(NBT_ADD+1)-1:0] w_add_Q                        ;
 
@@ -122,19 +122,19 @@ module fse #(
   endgenerate
 
   // Sum all partial products for each component
-  assign w_add_sIxtI = w_part_prod_sIxtI[ 0] + w_part_prod_sIxtI[ 1] + w_part_prod_sIxtI[ 2] + w_part_prod_sIxtI[ 3] +
-                       w_part_prod_sIxtI[ 4] + w_part_prod_sIxtI[ 5] + w_part_prod_sIxtI[ 6] + w_part_prod_sIxtI[ 7] +
-                       w_part_prod_sIxtI[ 8];
-  assign w_add_sQxtQ = w_part_prod_sQxtQ[ 0] + w_part_prod_sQxtQ[ 1] + w_part_prod_sQxtQ[ 2] + w_part_prod_sQxtQ[ 3] +
-                       w_part_prod_sQxtQ[ 4] + w_part_prod_sQxtQ[ 5] + w_part_prod_sQxtQ[ 6] + w_part_prod_sQxtQ[ 7] +
-                       w_part_prod_sQxtQ[ 8];
-
-  assign w_add_sIxtQ = w_part_prod_sIxtQ[ 0] + w_part_prod_sIxtQ[ 1] + w_part_prod_sIxtQ[ 2] + w_part_prod_sIxtQ[ 3] +
-                       w_part_prod_sIxtQ[ 4] + w_part_prod_sIxtQ[ 5] + w_part_prod_sIxtQ[ 6] + w_part_prod_sIxtQ[ 7] +
-                       w_part_prod_sIxtQ[ 8];
-  assign w_add_sQxtI = w_part_prod_sQxtI[ 0] + w_part_prod_sQxtI[ 1] + w_part_prod_sQxtI[ 2] + w_part_prod_sQxtI[ 3] +
-                       w_part_prod_sQxtI[ 4] + w_part_prod_sQxtI[ 5] + w_part_prod_sQxtI[ 6] + w_part_prod_sQxtI[ 7] +
-                       w_part_prod_sQxtI[ 8];
+  integer m;
+  always @(*) begin
+    w_add_sIxtI = 0;
+    w_add_sQxtQ = 0;
+    w_add_sIxtQ = 0;
+    w_add_sQxtI = 0;
+    for (m=0 ; m<NUM_TAPS ; m=m+1) begin
+        w_add_sIxtI = w_add_sIxtI + w_part_prod_sIxtI[m];
+        w_add_sQxtQ = w_add_sQxtQ + w_part_prod_sQxtQ[m];
+        w_add_sIxtQ = w_add_sIxtQ + w_part_prod_sIxtQ[m];
+        w_add_sQxtI = w_add_sQxtI + w_part_prod_sQxtI[m];
+    end
+  end
 
 
   // Compute final summed values for I and Q outputs

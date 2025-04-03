@@ -35,7 +35,7 @@ module fir_filter
   reg  signed [   NBT_IN-1:0] r_shifter  [NUM_COEFF-1:0]; 
   reg  signed [NBT_COEFF-1:0] r_coeff    [NUM_COEFF-1:0];
   wire signed [ NBT_PROD-1:0] w_part_prod[NUM_COEFF-1:0];
-  wire signed [  NBT_ADD-1:0] w_add                     ;
+  reg  signed [  NBT_ADD-1:0] w_add                     ;
   
   // Load the filter coefficient values
   initial begin
@@ -73,11 +73,13 @@ module fir_filter
   endgenerate
 
   // Add all the partial products
-  assign w_add = w_part_prod[ 0] + w_part_prod[ 1] + w_part_prod[ 2] + w_part_prod[ 3] +
-                 w_part_prod[ 4] + w_part_prod[ 5] + w_part_prod[ 6] + w_part_prod[ 7] +
-                 w_part_prod[ 8] + w_part_prod[ 9] + w_part_prod[10] + w_part_prod[11] +
-                 w_part_prod[12] + w_part_prod[13] + w_part_prod[14] + w_part_prod[15] +
-                 w_part_prod[16];
+  integer k;
+  always @(*) begin
+    w_add = 0;
+    for (k=0 ; k<NUM_COEFF ; k=k+1) begin
+        w_add = w_add + w_part_prod[k];
+    end
+  end
 
   // Output assignment: Apply saturation and truncation to S(8,7) format
   assign o_os_data  = ( ~|w_add[(NBT_ADD-1) -: NBI_ADD] || &w_add[(NBT_ADD-1) -: NBI_ADD])
