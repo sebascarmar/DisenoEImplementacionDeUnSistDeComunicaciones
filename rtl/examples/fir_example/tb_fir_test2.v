@@ -3,17 +3,18 @@
 module tb_fir_test2;
 
     // Parámetros para igualar con el módulo
+    parameter NUM_COEFF = 17;
+    parameter FILE_COEFF = "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_aafilt.dat";
     parameter NBT_IN    = 8;
     parameter NBF_IN    = 7;
-    parameter NBT_OUT   = 8;
-    parameter NBF_OUT   = 7;
     parameter NBT_COEFF = 8;
     parameter NBF_COEFF = 7;
-    parameter NUM_COEFF = 17;
-    parameter INIT_FILE = "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat";
+    parameter NBT_OUT   = 8;
+    parameter NBF_OUT   = 7;
 
     // Señales de entrada
     reg signed [NBT_IN-1:0] i_is_data;
+    reg i_en;
     reg i_reset;
     reg clk;
 
@@ -21,18 +22,19 @@ module tb_fir_test2;
     wire signed [NBT_OUT-1:0] o_os_data;
 
     // Instanciación del módulo fir
-    fir #(
+    fir_filter #(
+        .NUM_COEFF(NUM_COEFF),
+        .FILE_COEFF(FILE_COEFF),
         .NBT_IN(NBT_IN),
         .NBF_IN(NBF_IN),
-        .NBT_OUT(NBT_OUT),
-        .NBF_OUT(NBF_OUT),
         .NBT_COEFF(NBT_COEFF),
         .NBF_COEFF(NBF_COEFF),
-        .NUM_COEFF(NUM_COEFF),
-        .INIT_FILE(INIT_FILE)
-    ) fir_inst (
+        .NBT_OUT(NBT_OUT),
+        .NBF_OUT(NBF_OUT)
+    ) dut (
         .o_os_data(o_os_data),
         .i_is_data(i_is_data),
+        .i_en(i_en),
         .i_reset(i_reset),
         .clk(clk)
     );
@@ -47,6 +49,7 @@ module tb_fir_test2;
     initial begin
         // Inicialización de señales
         i_is_data = 0;
+        i_en = 1; // Comienza con reset activado
         i_reset = 1; // Comienza con reset activado
 
         #100; // Espera un poco
