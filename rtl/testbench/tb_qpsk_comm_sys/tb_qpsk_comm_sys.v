@@ -49,8 +49,8 @@ module tb_qpsk_comm_sys;
   parameter NBT_CHFILT_OUT    =  8;
   parameter NBF_CHFILT_OUT    =  7;
   // ANTI-ALIAS FILTER
-  parameter NUM_AAFILT_COEF   =  17;
-  parameter AAFILT_COEFF_FILE =  "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat";
+  parameter NUM_AAFILT_COEF   = 17;
+  parameter AAFILT_COEFF_FILE = "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat";
   parameter NBT_AAFILT_COEF   =  8;
   parameter NBF_AAFILT_COEF   =  7;
   parameter NBT_AAFILT_OUT    =  8;
@@ -64,8 +64,10 @@ module tb_qpsk_comm_sys;
   parameter NBF_LMS_LEAK      = 10      ;
   //----
   parameter NUM_FSE_TAPS      =  9      ;
-  parameter NBT_FSE_TAPS      = 20      ;
-  parameter NBF_FSE_TAPS      = 17      ;
+  parameter NBT_LMS_TAPS      = 20      ;
+  parameter NBF_LMS_TAPS      = 17      ;
+  parameter NBT_FSE_TAPS      =  8      ;
+  parameter NBF_FSE_TAPS      =  5      ;
   parameter NBT_FSE_OUT       = 12      ;
   parameter NBF_FSE_OUT       =  9      ;
   parameter NBT_TAPS_ERR      = 12      ;
@@ -125,6 +127,8 @@ module tb_qpsk_comm_sys;
         .NBT_LMS_LEAK      (NBT_LMS_LEAK     ),
         .NBF_LMS_LEAK      (NBF_LMS_LEAK     ),
         .NUM_FSE_TAPS      (NUM_FSE_TAPS     ),
+        .NBT_LMS_TAPS      (NBT_LMS_TAPS     ),
+        .NBF_LMS_TAPS      (NBF_LMS_TAPS     ),
         .NBT_FSE_TAPS      (NBT_FSE_TAPS     ),
         .NBF_FSE_TAPS      (NBF_FSE_TAPS     ),
         .NBT_FSE_OUT       (NBT_FSE_OUT      ),
@@ -207,7 +211,7 @@ module tb_qpsk_comm_sys;
 
   // Clock generation
   always begin
-    #5 clk = ~clk; // 100 MHz clock, period = 10ns
+    #2.5 clk = ~clk; // 100 MHz clock, period = 10ns
   end
 
   // Test sequence
@@ -257,7 +261,7 @@ module tb_qpsk_comm_sys;
                   $fwrite(file_fse_taps_Q , "%d\n", taps_Q[k]);
               end
           end  
-          #10; 
+          #5; 
       end 
       
       
@@ -270,6 +274,8 @@ module tb_qpsk_comm_sys;
       $fwrite(file_sim_data , "%d\n", LMS_LEAK      );
       $fwrite(file_sim_data , "%d\n", NBF_LMS_LEAK  );
       $fwrite(file_sim_data , "%d\n", NUM_FSE_TAPS  );
+      $fwrite(file_sim_data , "%d\n", NBT_LMS_TAPS  );
+      $fwrite(file_sim_data , "%d\n", NBF_LMS_TAPS  );
       $fwrite(file_sim_data , "%d\n", NBT_FSE_TAPS  );
       $fwrite(file_sim_data , "%d\n", NBF_FSE_TAPS  );
       $fwrite(file_sim_data , "%d\n", NBF_FSE_OUT   );

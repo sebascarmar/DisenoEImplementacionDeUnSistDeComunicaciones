@@ -9,67 +9,71 @@ module lms #(
   parameter NBT_LEAK = 11      ,
   parameter NBF_LEAK = 10      ,
   
-  parameter NUM_TAPS =  9,
-  parameter NBT_IN   =  8,
-  parameter NBF_IN   =  7,
-  parameter NBT_TAPS = 28,
-  parameter NBF_TAPS = 25,
-  parameter NBT_ERR  = 12,
-  parameter NBF_ERR  =  9
+  parameter NUM_TAPS     =  9,
+  parameter NBT_IN       =  8,
+  parameter NBF_IN       =  7,
+  parameter NBT_LMS_TAPS = 20,
+  parameter NBF_LMS_TAPS = 17,
+  parameter NBT_FSE_TAPS =  8,
+  parameter NBF_FSE_TAPS =  5,
+  parameter NBT_ERR      = 12,
+  parameter NBF_ERR      =  9
 )
 (
-  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_I     , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
-  output signed [(NUM_TAPS*NBT_TAPS)-1:0] o_taps_Q     , // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_I     , // [NBT_LMS_TAPS-1:0] data_array [NUM_TAPS-1:0]
+  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_Q     , // [NBT_LMS_TAPS-1:0] data_array [NUM_TAPS-1:0]
 
-  input signed  [             NBT_IN-1:0] i_is_data_I  , // S(8,7)
-  input signed  [             NBT_IN-1:0] i_is_data_Q  , // S(8,7)
-  input signed  [            NBT_ERR-1:0] i_err_I      , // S(27,24)
-  input signed  [            NBT_ERR-1:0] i_err_Q      , // S(27,24)
-  input                                   i_en_shtr    ,
-  input                                   i_en_taps    ,
-  input                                   i_save_shftrs,
-  input                                   i_en_rx      ,
-  input                                   i_reset      ,
-  input                                   clk       
+  input signed  [                 NBT_IN-1:0] i_is_data_I  , // S(8,7)
+  input signed  [                 NBT_IN-1:0] i_is_data_Q  , // S(8,7)
+  input signed  [                NBT_ERR-1:0] i_err_I      , // S(27,24)
+  input signed  [                NBT_ERR-1:0] i_err_Q      , // S(27,24)
+  input                                       i_en_shtr    ,
+  input                                       i_en_taps    ,
+  input                                       i_save_shftrs,
+  input                                       i_en_rx      ,
+  input                                       i_reset      ,
+  input                                       clk       
 );
 
   // Local parameters for internal operations and output saturation
-  localparam NBT_TERM1 = NBT_TAPS + (NBT_STEP+NBT_LEAK)               ;
-  localparam NBF_TERM1 = NBF_TAPS + (NBF_STEP+NBF_LEAK)               ;
-  localparam NBI_TERM1 = NBT_TERM1 - NBF_TERM1                        ;
-  localparam NBT_TERM2 = NBT_STEP + (NBT_ERR+NBT_IN + 1)              ;
-  localparam NBF_TERM2 = NBF_STEP + (NBF_ERR+NBF_IN    )              ;
-  localparam NBI_TERM2 = NBT_TERM2 - NBF_TERM2                        ;
+  localparam NBT_TERM1    = NBT_LMS_TAPS + (NBT_STEP+NBT_LEAK)           ;
+  localparam NBF_TERM1    = NBF_LMS_TAPS + (NBF_STEP+NBF_LEAK)           ;
+  localparam NBI_TERM1    = NBT_TERM1 - NBF_TERM1                        ;
+  localparam NBT_TERM2    = NBT_STEP + (NBT_ERR+NBT_IN + 1)              ;
+  localparam NBF_TERM2    = NBF_STEP + (NBF_ERR+NBF_IN    )              ;
+  localparam NBI_TERM2    = NBT_TERM2 - NBF_TERM2                        ;
 
-  localparam NBT_ADD   = max(NBT_TERM1, NBT_TERM2) + 1                ;
-  localparam NBF_ADD   = max(NBF_TERM1, NBF_TERM2)                    ;
-  localparam ALIGN_SIG = max(NBI_TERM1-NBI_TERM2, NBI_TERM2-NBI_TERM1);
-  localparam ALIGN_LSB = max(NBF_TERM1-NBF_TERM2, NBF_TERM2-NBF_TERM1);
+  localparam NBT_ADD      = max(NBT_TERM1, NBT_TERM2) + 1                ;
+  localparam NBF_ADD      = max(NBF_TERM1, NBF_TERM2)                    ;
+  localparam ALIGN_SIG    = max(NBI_TERM1-NBI_TERM2, NBI_TERM2-NBI_TERM1);
+  localparam ALIGN_LSB    = max(NBF_TERM1-NBF_TERM2, NBF_TERM2-NBF_TERM1);
 
-  localparam NBI_ADD   = NBT_ADD - NBF_ADD                            ;
-  localparam NBI_TAPS  = NBT_TAPS - NBF_TAPS                          ;
-  localparam NB_SAT    = NBI_ADD - NBI_TAPS                           ; 
+  localparam NBI_ADD      = NBT_ADD - NBF_ADD                            ;
+  localparam NBI_LMS_TAPS = NBT_LMS_TAPS - NBF_LMS_TAPS                  ;
+  localparam NB_SAT       = NBI_ADD - NBI_LMS_TAPS                       ; 
 
+  localparam NBI_FSE_TAPS = NBT_FSE_TAPS - NBF_FSE_TAPS                  ;
+  localparam NB_FSE_SAT   = NBI_LMS_TAPS - NBI_FSE_TAPS                  ; 
 
 
   // Internal registers and wires
-  reg  signed [  NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
-  reg  signed [  NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
-  reg  signed [  NBT_IN-1:0] r_shftr_buf_r1_I [NUM_TAPS-1:0]; 
-  reg  signed [  NBT_IN-1:0] r_shftr_buf_r1_Q [NUM_TAPS-1:0]; 
-  reg  signed [NBT_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
-  reg  signed [NBT_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
+  reg  signed [      NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_I [NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_Q [NUM_TAPS-1:0]; 
+  reg  signed [NBT_LMS_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
+  reg  signed [NBT_LMS_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
 
-  wire signed [NBT_STEP+NBT_LEAK-1:0] one                ;
-  assign one = (1'b1 << (NBF_STEP+NBF_LEAK))             ;
-  wire signed [NBT_TERM1-1:0] w_term1_I    [NUM_TAPS-1:0];//S(51,46)
-  wire signed [NBT_TERM2-1:0] w_term2_I    [NUM_TAPS-1:0];//S(33,27)
-  wire signed [  NBT_ADD-1:0] w_add_I      [NUM_TAPS-1:0];//S(52,46)
-  wire signed [ NBT_TAPS-1:0] w_new_taps_I [NUM_TAPS-1:0];//S(28,25)
-  wire signed [NBT_TERM1-1:0] w_term1_Q    [NUM_TAPS-1:0];
-  wire signed [NBT_TERM2-1:0] w_term2_Q    [NUM_TAPS-1:0];
-  wire signed [  NBT_ADD-1:0] w_add_Q      [NUM_TAPS-1:0];
-  wire signed [ NBT_TAPS-1:0] w_new_taps_Q [NUM_TAPS-1:0];
+  wire signed [NBT_STEP+NBT_LEAK-1:0] one                    ;
+  assign one = (1'b1 << (NBF_STEP+NBF_LEAK))                 ;
+  wire signed [    NBT_TERM1-1:0] w_term1_I    [NUM_TAPS-1:0];//S(51,46)
+  wire signed [    NBT_TERM2-1:0] w_term2_I    [NUM_TAPS-1:0];//S(33,27)
+  wire signed [      NBT_ADD-1:0] w_add_I      [NUM_TAPS-1:0];//S(52,46)
+  wire signed [ NBT_LMS_TAPS-1:0] w_new_taps_I [NUM_TAPS-1:0];//S(28,25)
+  wire signed [    NBT_TERM1-1:0] w_term1_Q    [NUM_TAPS-1:0];
+  wire signed [    NBT_TERM2-1:0] w_term2_Q    [NUM_TAPS-1:0];
+  wire signed [      NBT_ADD-1:0] w_add_Q      [NUM_TAPS-1:0];
+  wire signed [ NBT_LMS_TAPS-1:0] w_new_taps_Q [NUM_TAPS-1:0];
 
 
 
@@ -136,8 +140,8 @@ module lms #(
   always @(posedge clk) begin
     if (i_reset==1'b1 || i_en_rx==1'b0) begin // Initialize taps with 1+j0 at the center position 
         for (j=0 ; j<NUM_TAPS ; j=j+1) begin
-            r_taps_I[j] <= (j==MID_IDX) ? { {(NBI_TAPS-1){1'b0}} , 1'b1 , {NBF_TAPS{1'b0}} } : {NBT_TAPS{1'b0}};
-            r_taps_Q[j] <= {NBT_TAPS{1'b0}};
+            r_taps_I[j] <= (j==MID_IDX) ? { {(NBI_LMS_TAPS-1){1'b0}} , 1'b1 , {NBF_LMS_TAPS{1'b0}} } : {NBT_LMS_TAPS{1'b0}};
+            r_taps_Q[j] <= {NBT_LMS_TAPS{1'b0}};
         end
     end
     else begin
@@ -178,10 +182,10 @@ module lms #(
                              :   w_term1_I[k] - w_term2_I[k] ;
           // Saturation and truncation of the final computed tap value  
           assign w_new_taps_I[k] = ( ~|w_add_I[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[k][(NBT_ADD-1) -: NB_SAT+1])
-                                     ? w_add_I[k][(NBT_ADD-1)-NB_SAT -: NBT_TAPS]
+                                     ? w_add_I[k][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
                                      :( (w_add_I[k][NBT_ADD-1])
-                                        ? { 1'b1, {(NBT_TAPS-1){1'b0}} }
-                                        : { 1'b0, {(NBT_TAPS-1){1'b1}} } );
+                                        ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
+                                        : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
           
           
           // NEW Q TAPS CALCULATION:
@@ -200,10 +204,10 @@ module lms #(
                              :    w_term1_Q[k] + w_term2_Q[k] ;
           // Saturation and truncation of the final computed tap value  
           assign w_new_taps_Q[k] = ( ~|w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1])
-                                     ? w_add_Q[k][(NBT_ADD-1)-NB_SAT -: NBT_TAPS]
+                                     ? w_add_Q[k][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
                                      :( (w_add_Q[k][NBT_ADD-1])
-                                        ? { 1'b1, {(NBT_TAPS-1){1'b0}} }
-                                        : { 1'b0, {(NBT_TAPS-1){1'b1}} } );
+                                        ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
+                                        : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
       end
       
   endgenerate
@@ -213,8 +217,8 @@ module lms #(
   genvar m;
   generate
       for (m=0; m<NUM_TAPS ; m=m+1) begin : assign_taps
-          assign o_taps_I[(m+1)*NBT_TAPS-1 : m*NBT_TAPS] = r_taps_I[m];
-          assign o_taps_Q[(m+1)*NBT_TAPS-1 : m*NBT_TAPS] = r_taps_Q[m];
+          assign o_taps_I[(m+1)*NBT_FSE_TAPS-1 : m*NBT_FSE_TAPS] = r_taps_I[m][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
+          assign o_taps_Q[(m+1)*NBT_FSE_TAPS-1 : m*NBT_FSE_TAPS] = r_taps_Q[m][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
       end
   endgenerate
 

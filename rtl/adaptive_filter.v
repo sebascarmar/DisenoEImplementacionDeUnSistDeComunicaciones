@@ -2,22 +2,24 @@
 
 
 module adaptive_filter #(
-  parameter STEP     = 12'sh001,
-  parameter LEAK     = 11'sh001,
-  parameter NBT_STEP = 12      ,
-  parameter NBF_STEP = 11      ,
-  parameter NBT_LEAK = 11      ,
-  parameter NBF_LEAK = 10      ,
+  parameter STEP         = 12'sh001,
+  parameter LEAK         = 11'sh001,
+  parameter NBT_STEP     = 12      ,
+  parameter NBF_STEP     = 11      ,
+  parameter NBT_LEAK     = 11      ,
+  parameter NBF_LEAK     = 10      ,
   
-  parameter NUM_TAPS =  9      ,
-  parameter NBT_IN   =  8      ,
-  parameter NBF_IN   =  7      ,
-  parameter NBT_TAPS = 28      ,
-  parameter NBF_TAPS = 25      ,
-  parameter NBT_OUT  = 12      ,
-  parameter NBF_OUT  =  9      ,
-  parameter NBT_ERR  = 12      ,
-  parameter NBF_ERR  =  9      
+  parameter NUM_TAPS     =  9      ,
+  parameter NBT_IN       =  8      ,
+  parameter NBF_IN       =  7      ,
+  parameter NBT_LMS_TAPS = 20      ,
+  parameter NBF_LMS_TAPS = 17      ,
+  parameter NBT_FSE_TAPS =  8      ,
+  parameter NBF_FSE_TAPS =  5      ,
+  parameter NBT_OUT      = 12      ,
+  parameter NBF_OUT      =  9      ,
+  parameter NBT_ERR      = 12      ,
+  parameter NBF_ERR      =  9      
 )
 (
   output signed [NBT_OUT-1:0] o_os_data_I ,
@@ -37,33 +39,35 @@ module adaptive_filter #(
   localparam NBI_OUT  = NBT_OUT - NBF_OUT;
 
 
-  wire signed [(NUM_TAPS*NBT_TAPS)-1:0] w_taps_I         ;
-  wire signed [(NUM_TAPS*NBT_TAPS)-1:0] w_taps_Q         ;
-  wire signed [            NBT_OUT-1:0] w_fseI_to_dw_r1I ;
-  wire signed [            NBT_OUT-1:0] w_fseQ_to_dw_r1Q ;
-  wire signed [            NBT_OUT-1:0] w_dw_r1I_to_slcrI;
-  wire signed [            NBT_OUT-1:0] w_dw_r1Q_to_slcrQ;
-  wire signed [            NBT_ERR-1:0] w_err_I          ;
-  wire signed [            NBT_ERR-1:0] w_err_Q          ;
-  (* keep *) wire signed [ NBT_OUT-1:0] w_sym_slcr_I     ;
-  (* keep *) wire signed [ NBT_OUT-1:0] w_sym_slcr_Q     ;
+  wire signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] w_taps_I         ;
+  wire signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] w_taps_Q         ;
+  wire signed [                NBT_OUT-1:0] w_fseI_to_dw_r1I ;
+  wire signed [                NBT_OUT-1:0] w_fseQ_to_dw_r1Q ;
+  wire signed [                NBT_OUT-1:0] w_dw_r1I_to_slcrI;
+  wire signed [                NBT_OUT-1:0] w_dw_r1Q_to_slcrQ;
+  wire signed [                NBT_ERR-1:0] w_err_I          ;
+  wire signed [                NBT_ERR-1:0] w_err_Q          ;
+  (* keep *) wire signed [     NBT_OUT-1:0] w_sym_slcr_I     ;
+  (* keep *) wire signed [     NBT_OUT-1:0] w_sym_slcr_Q     ;
   
 
 
   lms #(
-    .STEP    (STEP    ),
-    .LEAK    (LEAK    ),
-    .NBT_STEP(NBT_STEP),
-    .NBF_STEP(NBF_STEP),
-    .NBT_LEAK(NBT_LEAK),
-    .NBF_LEAK(NBF_LEAK),
-    .NUM_TAPS(NUM_TAPS),
-    .NBT_IN  (NBT_IN  ),
-    .NBF_IN  (NBF_IN  ),
-    .NBT_TAPS(NBT_TAPS),
-    .NBF_TAPS(NBF_TAPS),
-    .NBT_ERR (NBT_ERR ),
-    .NBF_ERR (NBF_ERR )
+    .STEP        (STEP        ),
+    .LEAK        (LEAK        ),
+    .NBT_STEP    (NBT_STEP    ),
+    .NBF_STEP    (NBF_STEP    ),
+    .NBT_LEAK    (NBT_LEAK    ),
+    .NBF_LEAK    (NBF_LEAK    ),
+    .NUM_TAPS    (NUM_TAPS    ),
+    .NBT_IN      (NBT_IN      ),
+    .NBF_IN      (NBF_IN      ),
+    .NBT_LMS_TAPS(NBT_LMS_TAPS),
+    .NBF_LMS_TAPS(NBF_LMS_TAPS),
+    .NBT_FSE_TAPS(NBT_FSE_TAPS),
+    .NBF_FSE_TAPS(NBF_FSE_TAPS),
+    .NBT_ERR     (NBT_ERR     ),
+    .NBF_ERR     (NBF_ERR     )
   ) u_lms (
     .o_taps_I     (w_taps_I    ), // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
     .o_taps_Q     (w_taps_Q    ), // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
@@ -81,13 +85,13 @@ module adaptive_filter #(
 
 
   fse #(
-    .NUM_TAPS(NUM_TAPS),
-    .NBT_IN  (NBT_IN  ),
-    .NBF_IN  (NBF_IN  ),
-    .NBT_TAPS(NBT_TAPS),
-    .NBF_TAPS(NBF_TAPS),
-    .NBT_OUT (NBT_OUT ),
-    .NBF_OUT (NBF_OUT )
+    .NUM_TAPS(NUM_TAPS    ),
+    .NBT_IN  (NBT_IN      ),
+    .NBF_IN  (NBF_IN      ),
+    .NBT_TAPS(NBT_FSE_TAPS),
+    .NBF_TAPS(NBF_FSE_TAPS),
+    .NBT_OUT (NBT_OUT     ),
+    .NBF_OUT (NBF_OUT     )
   ) u_fse (
     .o_os_data_I(w_fseI_to_dw_r1I),
     .o_os_data_Q(w_fseQ_to_dw_r1Q),

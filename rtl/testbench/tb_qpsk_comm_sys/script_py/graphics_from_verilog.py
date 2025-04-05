@@ -31,14 +31,16 @@ NBF_LMS_STEP   = sim_data[ 5]
 lms_leak_int   = sim_data[ 6]
 NBF_LMS_LEAK   = sim_data[ 7]
 NTAPS_FSE      = sim_data[ 8]
-NBT_FSE_TAPS   = sim_data[ 9]
-NBF_FSE_TAPS   = sim_data[10]
-NBF_FSE_OUT    = sim_data[11]
-log_step       = sim_data[12]
-latency        = sim_data[13]
-bit_err_I      = sim_data[14]
-bit_err_Q      = sim_data[15]
-bit_tot        = sim_data[16]
+NBT_LMS_TAPS   = sim_data[ 9]
+NBF_LMS_TAPS   = sim_data[10]
+NBT_FSE_TAPS   = sim_data[11]
+NBF_FSE_TAPS   = sim_data[12]
+NBF_FSE_OUT    = sim_data[13]
+log_step       = sim_data[14]
+latency        = sim_data[15]
+bit_err_I      = sim_data[16]
+bit_err_Q      = sim_data[17]
+bit_tot        = sim_data[18]
 
 
 sigma    = sigma_int / (2**NBF_SIGMA)
@@ -52,12 +54,11 @@ SNR_slicer  = (var_signal / (2*(sigma**2))) * OS
 SNR_dB      = 10*np.log10(SNR_slicer)
 
 print( "NSYMB =", NSYMB, " | step=", lms_step, " | leak=", lms_leak)
-print( "SNR = {:.3f} dB".format(SNR_dB)," | FSE_TAPS: S({},{}) ".format(NBT_FSE_TAPS, NBF_FSE_TAPS))
+print( "SNR = {:.3f} dB".format(SNR_dB)," | LMS_TAPS: S({},{}) ".format(NBT_LMS_TAPS, NBF_LMS_TAPS), " | FSE_TAPS: S({},{}) ".format(NBT_FSE_TAPS, NBF_FSE_TAPS))
 print( "latency:",latency)
-print( "BER_I: {:.3f} %".format((bit_err_I/bit_tot)*100) )
-print( "BER_Q: {:.3f} %".format((bit_err_Q/bit_tot)*100) )
-print( "theo_ber: {:.3f} %".format(theoric_ber(SNR_dB)*100) )
-
+print( "BER_I: {:.3e}".format((bit_err_I/bit_tot)) )
+print( "BER_Q: {:.3e}".format((bit_err_Q/bit_tot)) )
+print( "theo_ber: {:.3e}".format(theoric_ber(SNR_dB)) )
 
 
 #### Downsampler (rate 2)
@@ -75,7 +76,6 @@ fse_coeff_Q = np.zeros((NTAPS_FSE, int(NSYMB/log_step)))
 fseI_taps_from_ver = np.loadtxt("logs/file_fse_taps_I.txt", dtype=np.intp)
 fseQ_taps_from_ver = np.loadtxt("logs/file_fse_taps_Q.txt", dtype=np.intp)
 
-NBF_FSE_TAPS = 25
 fseI_taps = fseI_taps_from_ver/(2**NBF_FSE_TAPS)
 fseQ_taps = fseQ_taps_from_ver/(2**NBF_FSE_TAPS)
 for i in range(NTAPS_FSE):
@@ -162,7 +162,7 @@ plt.plot(rx_symI_dw_r2 ,
          label="Dws - rate 2")
 plt.ylabel('Real (I)')
 plt.grid(True)
-plt.legend(loc="upper left")
+plt.legend(loc="center right")
 plt.subplot(2,1,2) # FSE Output
 plt.plot(rx_symI_fse,
          color='salmon', marker='.', linestyle='',
@@ -170,7 +170,7 @@ plt.plot(rx_symI_fse,
 plt.grid(True)
 plt.ylabel('Real (I)')
 plt.xlabel('Time [n]')
-plt.legend(loc="upper left")
+plt.legend(loc="center right")
 plt.show()
 
 
@@ -215,7 +215,7 @@ plt.plot(rx_symI_dw_r1,
         label='dowsamp. (rate 1)')
 plt.ylabel('Real (I)')
 plt.grid(True)
-plt.legend(loc="upper left")
+plt.legend(loc="center right")
 #-------------------------------------------------------
 plt.subplot(2,1,2) # after the slicer
 plt.plot(rx_symI_slcr,
@@ -224,7 +224,7 @@ plt.plot(rx_symI_slcr,
 plt.grid(True)
 plt.ylabel('Real (I)')
 plt.xlabel('Time [n]')
-plt.legend(loc="upper left")
+plt.legend(loc="center right")
 plt.show()
 
 

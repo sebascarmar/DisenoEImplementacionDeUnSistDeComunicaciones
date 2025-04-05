@@ -70,8 +70,10 @@
 `define NBF_LMS_LEAK 10
 //----
 `define NUM_FSE_TAPS  9
-`define NBT_FSE_TAPS 20
-`define NBF_FSE_TAPS 17
+`define NBT_LMS_TAPS 20
+`define NBF_LMS_TAPS 17
+`define NBT_FSE_TAPS  8
+`define NBF_FSE_TAPS  5
 `define NBT_FSE_OUT  12
 `define NBF_FSE_OUT   9
 `define NBT_TAPS_ERR 12
@@ -127,6 +129,8 @@ module qpsk_comm_sys
   parameter NBT_LMS_LEAK      = `NBT_LMS_LEAK     ,
   parameter NBF_LMS_LEAK      = `NBF_LMS_LEAK     ,
   parameter NUM_FSE_TAPS      = `NUM_FSE_TAPS     ,
+  parameter NBT_LMS_TAPS      = `NBT_LMS_TAPS     ,
+  parameter NBF_LMS_TAPS      = `NBF_LMS_TAPS     ,
   parameter NBT_FSE_TAPS      = `NBT_FSE_TAPS     ,
   parameter NBF_FSE_TAPS      = `NBF_FSE_TAPS     ,
   parameter NBT_FSE_OUT       = `NBT_FSE_OUT      ,
@@ -138,10 +142,10 @@ module qpsk_comm_sys
   parameter START_CNT         = `START_CNT        
  )
  (
-  output  [3:0] o_normal_led   ,
+  output  [3:0] o_normal_led,
   
   input         i_sw        ,
-  input         i_reset        ,
+  input         i_reset     ,
   input         clk
  );
   
@@ -391,21 +395,23 @@ module qpsk_comm_sys
 
   //////////////// Adaptive Filter: FSE with LMS adaptation
   adaptive_filter #(
-    .STEP    (LMS_STEP      ),
-    .LEAK    (LMS_LEAK      ),
-    .NBT_STEP(NBT_LMS_STEP  ),
-    .NBF_STEP(NBF_LMS_STEP  ),
-    .NBT_LEAK(NBT_LMS_LEAK  ),
-    .NBF_LEAK(NBF_LMS_LEAK  ),
-    .NUM_TAPS(NUM_FSE_TAPS  ),
-    .NBT_IN  (NBT_AAFILT_OUT),
-    .NBF_IN  (NBF_AAFILT_OUT),
-    .NBT_TAPS(NBT_FSE_TAPS  ),
-    .NBF_TAPS(NBF_FSE_TAPS  ),
-    .NBT_OUT (NBT_FSE_OUT   ),
-    .NBF_OUT (NBF_FSE_OUT   ),
-    .NBT_ERR (NBT_TAPS_ERR  ),
-    .NBF_ERR (NBF_TAPS_ERR  )
+    .STEP        (LMS_STEP      ),
+    .LEAK        (LMS_LEAK      ),
+    .NBT_STEP    (NBT_LMS_STEP  ),
+    .NBF_STEP    (NBF_LMS_STEP  ),
+    .NBT_LEAK    (NBT_LMS_LEAK  ),
+    .NBF_LEAK    (NBF_LMS_LEAK  ),
+    .NUM_TAPS    (NUM_FSE_TAPS  ),
+    .NBT_IN      (NBT_AAFILT_OUT),
+    .NBF_IN      (NBF_AAFILT_OUT),
+    .NBT_LMS_TAPS(NBT_LMS_TAPS  ),
+    .NBF_LMS_TAPS(NBF_LMS_TAPS  ),
+    .NBT_FSE_TAPS(NBT_FSE_TAPS  ),
+    .NBF_FSE_TAPS(NBF_FSE_TAPS  ),
+    .NBT_OUT     (NBT_FSE_OUT   ),
+    .NBF_OUT     (NBF_FSE_OUT   ),
+    .NBT_ERR     (NBT_TAPS_ERR  ),
+    .NBF_ERR     (NBF_TAPS_ERR  )
   ) u_adaptive_filter (
     .o_os_data_I (w_rx_symI_to_demapI ),
     .o_os_data_Q (w_rx_symQ_to_demapQ ),
