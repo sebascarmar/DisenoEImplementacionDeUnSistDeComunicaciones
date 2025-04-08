@@ -43,29 +43,29 @@
 
 module top_hw_custom
 ( 
-	//	Descomentar para testeo
-	input   							clockdsp								,
-	input   							i_reset 								,
-	input				 [	31:0] gpio_output_to_input_dsp, //	Estimulos de entrada para testeo
-	//	Salidas
-	output		   [	31:0] gpio_input_to_output_dsp									
-//		//-------Comnentar para simulacion----------- //
-//		input           clock100   ,   
-//	  input           i_reset    ,
-//	  input           in_rx_uart ,
-//	  output          out_tx_uart    
+//			//	Descomentar para testeo
+//	   	input   							clockdsp								,
+//	   	input   							i_reset 								,
+//	   	input				 [	31:0] gpio_output_to_input_dsp, //	Estimulos de entrada para testeo
+//			//	Salidas
+//			output		   [	31:0] gpio_input_to_output_dsp									
+	//-------Comnentar para simulacion----------- //
+	input           clock100   ,   
+  input           i_reset    ,
+  input           in_rx_uart ,
+  output          out_tx_uart    
 );
 
   //___Parametros del TOP (SACAR PARA LA IMPLEMENTACION FINAL)
-//	parameter NBT_GPIOS        = 32           ;
+	parameter NBT_GPIOS        = 32;
 
 
-//	// ======= Conection MicroBlazer ========  // Comentar para Test bench
-//  wire                    locked     						  ;
-//  wire    	              soft_reset 						  ;
-//  wire [NBT_GPIOS- 1 : 0] gpio_input_to_output_dsp;	
-//  wire [NBT_GPIOS- 1 : 0] gpio_output_to_input_dsp;	
-//  wire                    clockdsp  							; 
+	// ======= Conection MicroBlazer ========  // Comentar para Test bench
+  wire                    locked     						  ;
+  wire    	              soft_reset 						  ;
+  wire [NBT_GPIOS- 1 : 0] gpio_input_to_output_dsp;	
+  wire [NBT_GPIOS- 1 : 0] gpio_output_to_input_dsp;	
+  wire                    clockdsp  							; 
   
   
 	// ======= Conection ctrl_ram ========== //  
@@ -110,7 +110,7 @@ module top_hw_custom
 
 
 	// ======= Conection VIO e ILA ==========
-//	wire w_reset_from_vio;
+	wire w_reset_from_vio;
 
 
 	//=======================================================
@@ -125,31 +125,31 @@ module top_hw_custom
 	*		ISNTANCIAR DSP COMPLETO !!!!
 	 */
 
-	//			   Descomentar para testeo 
-	//==========================================
-	//            Block for debug 						//
-	//==========================================
-  table_for_log
-		u_table_for_log
-		(
-			.i_clock						(clockdsp						), 
-			.i_reset						(w_reset_from_vio 	), 
-			.o_data_fse_I				(w_data_fse_I	 			),
-			.o_data_fse_Q				(w_data_fse_Q	 			),
-			.o_data_input_slcr_I(w_data_input_slcr_I),	 
-			.o_data_input_slcr_Q(w_data_input_slcr_Q),
-			.o_data_coeff_I			(w_data_coeff_I			),
-			.o_data_coeff_Q			(w_data_coeff_Q			),
-			.o_data_err_I				(w_data_err_I	 			),
-			.o_data_err_Q				(w_data_err_Q	 			),
-			.o_count_bit_I			(w_count_bit_I 			), 
-			.o_count_bit_Q			(w_count_bit_Q 			), 				
-			.o_count_err_I			(w_count_err_I 			), 
-			.o_count_err_Q			(w_count_err_Q 			),
-			.o_enbl_rate_two		(w_enbl_rate_two		),  
-			.o_enbl_rate_one		(w_enbl_rate_one		)
-		
-		);
+//		//			   Descomentar para testeo 
+//		//==========================================
+//		//            Block for debug 						//
+//		//==========================================
+//	  table_for_log
+//			u_table_for_log
+//			(
+//				.i_clock						(clockdsp						), 
+//				.i_reset						(w_reset_from_vio 	), 
+//				.o_data_fse_I				(w_data_fse_I	 			),
+//				.o_data_fse_Q				(w_data_fse_Q	 			),
+//				.o_data_input_slcr_I(w_data_input_slcr_I),	 
+//				.o_data_input_slcr_Q(w_data_input_slcr_Q),
+//				.o_data_coeff_I			(w_data_coeff_I			),
+//				.o_data_coeff_Q			(w_data_coeff_Q			),
+//				.o_data_err_I				(w_data_err_I	 			),
+//				.o_data_err_Q				(w_data_err_Q	 			),
+//				.o_count_bit_I			(w_count_bit_I 			), 
+//				.o_count_bit_Q			(w_count_bit_Q 			), 				
+//				.o_count_err_I			(w_count_err_I 			), 
+//				.o_count_err_Q			(w_count_err_Q 			),
+//				.o_enbl_rate_two		(w_enbl_rate_two		),  
+//				.o_enbl_rate_one		(w_enbl_rate_one		)
+//			
+//			);
 
 
   ///////////////////////////////////////////
@@ -158,7 +158,7 @@ module top_hw_custom
   ctrl_ram
     u_ctrl_ram
 			(
-      	.i_clock							(clockdsp    				 ), // Cambiar a clockdsp para tb. por defecto clock100
+      	.i_clock							(clock100    				 ), // Cambiar a clockdsp para tb
  				.i_reset							(w_reset_from_vio    ),
 				.i_data_selec_for_log	(r_data_selec_for_log), 
 				.i_enbl_write					(r_enbl_write				 ),
@@ -179,44 +179,44 @@ module top_hw_custom
 			);
 
 
-//	//=========== COMENTAR PARA TESTEO ================
-//	//==========================================
-//	//            MicroBlazer 								//
-//	//==========================================
-//  MicroGPIO    
-//     u_MicroGPIO 
-//     (
-//        .clock100         (clockdsp    						 ),  // Clock aplicacion
-//        .gpio_rtl_tri_i   (gpio_input_to_output_dsp),  // GPIO input data
-//        .gpio_rtl_tri_o   (gpio_output_to_input_dsp),  // GPIO output data
-//        .o_lock_clock     (locked      						 ),  // Signal Lock Clock        
-//        .reset            (i_reset    						 ),  // Hard Reset
-//        .sys_clock        (clock100    						 ),  // Clock de FPGA
-//        .usb_uart_rxd     (in_rx_uart  						 ),  // UART Rx
-//        .usb_uart_txd     (out_tx_uart 						 )   // UART Tx
-//      );
-//
-//	//==========================================
-//	//            VIO / ILA  						   		//
-//	//==========================================
-//
-//  VIO
-//    u_VIO
-//    (
-//     .clk_0         (clock100 			 ),
-//     .probe_out0_0  (w_reset_from_vio)
-//     );
-//
-//  ILA
-//   u_ILA
-//    (
-//     .clk_0    (clock100					 ), 
-//     .probe0_0 (w_data_fse_I			 ),  // FSE I  8  
-//     .probe1_0 (w_data_fse_Q			 ),  // FSE Q
-//     .probe2_0 (w_data_input_slcr_I),  // SLCR I 12
-//     .probe3_0 (w_data_input_slcr_Q),  // SLCR Q
-//     .probe4_0 (gpio_output_to_input_dsp)        
-//     );
+
+	//==========================================
+	//            MicroBlazer 								//
+	//==========================================
+  MicroGPIO    
+     u_MicroGPIO 
+     (
+        .clock100         (clockdsp    						 ),  // Clock aplicacion
+        .gpio_rtl_tri_i   (gpio_input_to_output_dsp),  // GPIO input data
+        .gpio_rtl_tri_o   (gpio_output_to_input_dsp),  // GPIO output data
+        .o_lock_clock     (locked      						 ),  // Signal Lock Clock        
+        .reset            (i_reset    						 ),  // Hard Reset
+        .sys_clock        (clock100    						 ),  // Clock de FPGA
+        .usb_uart_rxd     (in_rx_uart  						 ),  // UART Rx
+        .usb_uart_txd     (out_tx_uart 						 )   // UART Tx
+      );
+
+	//==========================================
+	//            VIO / ILA  						   		//
+	//==========================================
+
+  VIO
+    u_VIO
+    (
+     .clk_0         (clock100 			 ),
+     .probe_out0_0  (w_reset_from_vio)
+     );
+
+  ILA
+   u_ILA
+    (
+     .clk_0    (clock100					 ), 
+     .probe0_0 (w_data_fse_I			 ),  // FSE I  8  
+     .probe1_0 (w_data_fse_Q			 ),  // FSE Q
+     .probe2_0 (w_data_input_slcr_I),  // SLCR I 12
+     .probe3_0 (w_data_input_slcr_Q),  // SLCR Q
+     .probe4_0 (gpio_output_to_input_dsp)        
+     );
 
 
 	//==========================================
@@ -224,7 +224,7 @@ module top_hw_custom
 	//==========================================
 
 
-  always @(posedge clockdsp) begin // Cambiar clock100 por clockdsp para simulacion
+  always @(posedge clock100) begin // Cambiar clock100 por clockdsp para simulacion
      if(w_reset_from_vio == 1'b1) begin
         r_reset      							<= 1'b1 ;
 //        r_switch     							<= 4'b0 ;
@@ -271,10 +271,10 @@ module top_hw_custom
            endcase
 
            if (r_log_bits_and_errs) begin
-                r_count_err_Q	<=	w_count_err_Q;	
-                r_count_err_I	<=	w_count_err_I;	
-                r_count_bit_Q <=	w_count_bit_Q; 	
-                r_count_bit_I <=	w_count_bit_I; 	
+                r_count_err_Q	<=	w_count_err_Q;	 
+                r_count_err_I	<=	w_count_err_I;	 
+                r_count_bit_Q <=	w_count_bit_Q; 	 
+                r_count_bit_I <=	w_count_bit_I; 	 
             end 
 
         end //Fin de if(gpio_output_to_input_dsp[23] == 1'b1)
@@ -291,4 +291,5 @@ assign w_data_bits_and_errs = (r_mux_read_bits_and_errs == 3'b000) ? r_count_err
 
 // assign w_enbl_log_bits_and_errs	=	r_log_bits_and_errs; 
 endmodule
+
 
