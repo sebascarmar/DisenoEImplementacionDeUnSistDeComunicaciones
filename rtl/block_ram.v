@@ -5,7 +5,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
   
-module BlockRAM
+module block_ram
   #(
       parameter RAM_WIDTH       = 32           ,            
       parameter RAM_DEPTH       = 32000        ,                  
@@ -17,6 +17,7 @@ module BlockRAM
     input [15:0] ReadAdress  ,
     input [RAM_WIDTH - 1:0]         Dato_input  ,
     input                           clock       ,
+		input														i_reset 		,
     input                           Write_enable,
     input                           Read_Enable ,
     output [RAM_WIDTH-1:0]          Dato_output 
@@ -29,7 +30,9 @@ module BlockRAM
   
   wire rstb  ;
   wire regceb;
-  
+  	
+	assign rstb = i_reset;
+
   // The following code either initializes the memory values to a specified file or to all zeros to match hardware
   generate
     if (INIT_FILE != "") begin: use_init_file
@@ -63,15 +66,15 @@ module BlockRAM
 
       // The following is a 2 clock cycle read latency with improve clock-to-out timing
 
-      reg [RAM_WIDTH-1:0] Dato_output_reg = {RAM_WIDTH{1'b0}};
-
-      always @(posedge clock)
-        if (rstb)
-          Dato_output_reg <= {RAM_WIDTH{1'b0}};
-        else if (regceb)
-          Dato_output_reg <= RAM_DATA;
-
-      assign Dato_output = RAM_DATA;
+//      reg [RAM_WIDTH-1:0] Dato_output_reg = {RAM_WIDTH{1'b0}};
+//
+//      always @(posedge clock)
+//        if (rstb)
+//          Dato_output_reg <= {RAM_WIDTH{1'b0}};
+//        else if (regceb)
+//          Dato_output_reg <= RAM_DATA;
+//
+//      assign Dato_output = RAM_DATA;
 
     end
   endgenerate

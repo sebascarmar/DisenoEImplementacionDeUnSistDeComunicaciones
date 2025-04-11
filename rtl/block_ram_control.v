@@ -13,36 +13,33 @@
 
 
 
-module ctrl_ram 
+module block_ram_control 
 #(
-	parameter NBT_FSE			 =	`NBT_FSE		 , 
-	parameter NBT_SCLR		 =	`NBT_SCLR		 , 
-	parameter NBT_COEFF		 =	`NBT_COEFF	 , 
-	parameter NBT_ERR 		 =	`NBT_ERR 		 , 
-	parameter N_COEFFS 		 =	`N_COEFFS    , 	 
+	parameter NBT_FSE			 =	`NBT_FSE	, 
+	parameter NBT_SCLR		 =	`NBT_SCLR	, 
+	parameter NBT_COEFF		 =	`NBT_COEFF, 
+	parameter NBT_ERR 		 =	`NBT_ERR 	, 
+	parameter N_COEFFS 		 =	`N_COEFFS , 	 
 	parameter N_DELAY			 =  `N_DELAY
 )
-
 (
-	// Inputs 
-	input 																		i_clock							, 
-	input 																		i_reset							, 
-	input 																		i_enbl_write				, 
-	input 																		i_enbl_read					, 
-	input 				[ 										 2:0] i_data_selec_for_log, 
-	input signed  [											15:0] i_read_adrs	 				, 
-	input signed  [							 NBT_FSE-1:0] i_data_fse_I				, 
-	input signed  [							 NBT_FSE-1:0] i_data_fse_Q				, 
-	input signed  [						  NBT_SCLR-1:0] i_data_input_slcr_I	, 
-	input signed  [						  NBT_SCLR-1:0] i_data_input_slcr_Q	, 
-	input signed  [ (NBT_COEFF*N_COEFFS)-1:0] i_data_coeff_I			, 
-	input signed  [ (NBT_COEFF*N_COEFFS)-1:0] i_data_coeff_Q			, 
-	input signed  [						 	 NBT_ERR-1:0] i_data_err_I				, 	
-	input signed  [							 NBT_ERR-1:0] i_data_err_Q				,          
-	input 																		i_enbl_rate_two			,
-	input 																		i_enbl_rate_one			,
-	// outpus 
-	output signed [ 								  	31:0] o_data_for_read			
+	// outputs	
+	output signed [	RAM_WIDTH-1:0]  o_data_for_read     , 
+	// inputs		
+	input 													i_data_selec_for_log, 
+	input 													i_enbl_write				, 
+	input 													i_enbl_read					, 
+	input 													i_read_adrs	 				, 
+	input signed [NBT_I_EQLZR-1 :0] i_data_fse_I				, 
+	input signed [NBT_I_EQLZR-1 :0] i_data_fse_Q				, 
+	input signed [NBT_O_EQLZR-1 :0] i_data_input_slcr_I	, 
+	input signed [NBT_O_EQLZR-1 :0] i_data_input_slcr_Q	, 
+	input signed [   NBT_TAPS-1 :0] i_data_coeff_I			, 
+	input signed [   NBT_TAPS-1 :0] i_data_coeff_Q			,	 
+	input 													i_enbl_rate_two			, 
+	input 													i_enbl_rate_one			, 	
+	input 													i_reset							,          
+	input 													i_clock							
 );
 
 	// registers
@@ -55,8 +52,8 @@ module ctrl_ram
 	reg signed [NBT_COEFF-1 :0] r_data_coeff_Q [N_COEFFS-1:0];
 
 	// internal wires
-  wire 				w_enbl_write	;
-  wire [31:0]	w_data_for_log;
+  wire 									w_enbl_write	;
+  wire [NBT_COEFF-1 :0]	w_data_for_log;
 
 
 	// generate serialized to parallel coefficient data
@@ -79,18 +76,19 @@ module ctrl_ram
 	//==========================//
 	//	  Instance Block RAM		//
 	//==========================//	  
-  BlockRAM
+  block_ram
   #(
   	.RAM_WIDTH       (`RAM_WIDTH      ),               
   	.RAM_DEPTH       (`RAM_DEPTH      ),                     
   	.RAM_PERFORMANCE (`RAM_PERFORMANCE),
   	.INIT_FILE       (`INIT_FILE      )                            
 	)
-   u_RAM
+   u_block_ram
     (.WriteAdress (r_counter_adrs ), // Input direccion for write data in block RAM 
      .ReadAdress  (i_read_adrs    ), // Input direccion for read data in block RAM  
      .Dato_input  (w_data_for_log ), // Input data for log in block RAM
      .clock       (i_clock        ), // system clock 
+		 .i_reset 		(i_reset 			  ), // Reset ram
      .Write_enable(w_enbl_write   ), // Signal enable for write data 
      .Read_Enable (i_enbl_read    ), // Signal enable for read data
      .Dato_output (o_data_for_read)  // Output data read from RAM
@@ -141,7 +139,7 @@ module ctrl_ram
 					end
 				end
 				// Input slicer or errors data storage
-        else if (i_enbl_write && !i_enbl_read && i_enbl_rate_one && (i_data_selec_for_log == 3'b010 || i_data_selec_for_log == 3'b100)) begin
+        else if (i_enbl_write && !i_enbl_read && i_enbl_rate_one && i_data_selec_for_log == 3'b010) begin
         	if (r_counter_adrs < 16'h7D00) // 32000
 						r_counter_adrs <= r_counter_adrs + 1'b1;
           else begin 
@@ -171,7 +169,6 @@ module ctrl_ram
         (i_data_selec_for_log == 3'b010) ? {4'b0, i_data_input_slcr_I, 4'b0, i_data_input_slcr_Q}:     																			 // Data fse
         ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs < 16'h3E80)) ? {24'b0, r_data_coeff_I[r_counter_adrs_coeffs]}:	 // Data coeff I
         ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs >= 16'h3E80)) ? {24'b0, r_data_coeff_Q[r_counter_adrs_coeffs]}: // Data coeff Q
-        (i_data_selec_for_log == 3'b100) ? {4'b0, i_data_err_I, 4'b0, i_data_err_Q} :                   																		 // Data err
         32'b0;
         
 	assign w_enbl_write = i_enbl_write;

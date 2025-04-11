@@ -41,7 +41,23 @@
 // 4 - Entrada del error S(12,9) 						Tasa 1 BR		= 25 MHz 
 ///////////////////////////////////////////////////////////////////////////// 
 
-module top_hw_custom
+`define	NBT_I_EQLZR				 7	
+`define	NBT_O_EQLZR				 12	
+`define	NBT_TAPS  				 8	
+`define	NBT_GPIOS	  			 32	
+`define	NBT_COUNT_BITS_ERR 64 
+`define	N_COEFFS 					 9	
+
+
+module top
+#(
+	parameter NBT_I_EQLZR				 = `NBT_I_EQLZR				,	 
+	parameter NBT_O_EQLZR				 = `NBT_O_EQLZR				,
+	parameter NBT_TAPS  				 = `NBT_TAPS  				,
+	parameter NBT_GPIOS	  			 = `NBT_GPIOS	  			,
+	parameter NBT_COUNT_BITS_ERR = `NBT_COUNT_BITS_ERR,	
+	parameter N_COEFFS 					 = `N_COEFFS 					
+)
 ( 
 //			//	Descomentar para testeo
 //	   	input   							clockdsp								,
@@ -50,14 +66,11 @@ module top_hw_custom
 //			//	Salidas
 //			output		   [	31:0] gpio_input_to_output_dsp									
 	//-------Comnentar para simulacion----------- //
-	input           clock100   ,   
-  input           i_reset    ,
-  input           in_rx_uart ,
-  output          out_tx_uart    
+  output          o_tx_uart  ,     
+  input           i_rx_uart  ,
+  input           i_reset    ,	
+	input 					clk
 );
-
-  //___Parametros del TOP (SACAR PARA LA IMPLEMENTACION FINAL)
-	parameter NBT_GPIOS        = 32;
 
 
 	// ======= Conection MicroBlazer ========  // Comentar para Test bench
@@ -70,44 +83,40 @@ module top_hw_custom
   
 	// ======= Conection ctrl_ram ========== //  
 	// regs 
-  reg  [ 2:0]	r_data_selec_for_log;
-  reg       	r_enbl_write        ; 
-	reg 				r_enbl_read_from_ram;
-  reg  [15:0]	r_read_adrs     		;
+  reg       						r_enbl_write        ; 
+	reg 									r_enbl_read_from_ram;
+	reg  [           2:0]	r_data_selec_for_log;
+  reg  [          15:0]	r_read_adrs     		;
 	// wires
-	wire [31:0]	w_data_ram_for_read ;	
+	wire [NBT_GPIOS-1 :0]	w_data_ram_for_read ;	
+			 
 
- 
 	// ==== Conection Register File ==== // 
-  reg        	r_reset      						 ;
-	reg       	r_log_bits_and_errs    	 ;
-  reg 				r_enbl_read_bits_and_errs;
-//  reg	[ 3:0]	r_switch     			 			 ;
-  reg [63:0]	r_count_err_Q			       ;
-  reg [63:0]	r_count_err_I						 ;
-  reg [63:0]	r_count_bit_Q						 ;
-  reg [63:0]	r_count_bit_I						 ;
-  reg [ 2:0]	r_mux_read_bits_and_errs ;
- 
+  reg       								 	  r_reset      						 ;
+	reg       									  r_log_bits_and_errs    	 ;
+  reg 												  r_enbl_read_bits_and_errs;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_Q			       ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_I						 ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_Q						 ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_I						 ;
+  reg [ 									 2:0]	r_mux_read_bits_and_errs ;
+	// wire 
+	wire	[				NBT_GPIOS-1 :0] w_data_bits_and_errs		 ;	
+
 
   // ========== Conection DSP ============= // 
-  wire        [31:0] w_data_bits_and_errs;
-
-	wire signed [	7:0] w_data_fse_I	 			 ;	
-	wire signed [	7:0] w_data_fse_Q	 			 ;	
-	wire signed [11:0] w_data_input_slcr_I ;									
-	wire signed [11:0] w_data_input_slcr_Q ;		
-	wire signed [87:0] w_data_coeff_I			 ;		
-	wire signed [87:0] w_data_coeff_Q			 ;	
-	wire signed [11:0] w_data_err_I	 			 ;	
-	wire signed [11:0] w_data_err_Q	 			 ;	
-  wire        [63:0] w_count_err_Q 			 ;
-  wire        [63:0] w_count_err_I 			 ;
-  wire        [63:0] w_count_bit_Q 			 ;
-  wire        [63:0] w_count_bit_I 			 ;
- 	wire  						 w_enbl_rate_two		 ;
-	wire	  					 w_enbl_rate_one		 ;
-
+	wire signed [NBT_I_EQLZR-1 :0] 				w_data_i_eqlzr_I		 ;	
+	wire signed [NBT_I_EQLZR-1 :0] 				w_data_i_eqlzr_Q		 ;	
+	wire signed [NBT_O_EQLZR-1 :0] 				w_data_o_eqlzr_I 		 ;									
+	wire signed [NBT_O_EQLZR-1 :0] 				w_data_o_eqlzr_Q 		 ;		
+	wire signed [NBT_TAPS-1 :0] 					w_data_taps_I				 ;		
+	wire signed [NBT_TAPS-1 :0] 					w_data_taps_Q				 ;	
+  wire        [NBT_COUNT_BITS_ERR-1 :0] w_accum_err_Q 			 ;
+  wire        [NBT_COUNT_BITS_ERR-1 :0] w_accum_err_I 			 ;
+  wire        [NBT_COUNT_BITS_ERR-1 :0] w_accum_bit_Q 			 ;
+  wire        [NBT_COUNT_BITS_ERR-1 :0] w_accum_bit_I 			 ;
+ 	wire  						 										w_control_for_rate_2 ;
+	wire	  					 										w_control_for_rate_1 ;
 
 	// ======= Conection VIO e ILA ==========
 	wire w_reset_from_vio;
@@ -117,67 +126,27 @@ module top_hw_custom
 	// 										Instances 											 //
 	//=======================================================
 
-
 	//==========================================
-	//            DSP Designe 								//
+	//            VIO / ILA  						   		//
 	//==========================================
-	/*
-	*		ISNTANCIAR DSP COMPLETO !!!!
-	 */
 
-//		//			   Descomentar para testeo 
-//		//==========================================
-//		//            Block for debug 						//
-//		//==========================================
-//	  table_for_log
-//			u_table_for_log
-//			(
-//				.i_clock						(clockdsp						), 
-//				.i_reset						(w_reset_from_vio 	), 
-//				.o_data_fse_I				(w_data_fse_I	 			),
-//				.o_data_fse_Q				(w_data_fse_Q	 			),
-//				.o_data_input_slcr_I(w_data_input_slcr_I),	 
-//				.o_data_input_slcr_Q(w_data_input_slcr_Q),
-//				.o_data_coeff_I			(w_data_coeff_I			),
-//				.o_data_coeff_Q			(w_data_coeff_Q			),
-//				.o_data_err_I				(w_data_err_I	 			),
-//				.o_data_err_Q				(w_data_err_Q	 			),
-//				.o_count_bit_I			(w_count_bit_I 			), 
-//				.o_count_bit_Q			(w_count_bit_Q 			), 				
-//				.o_count_err_I			(w_count_err_I 			), 
-//				.o_count_err_Q			(w_count_err_Q 			),
-//				.o_enbl_rate_two		(w_enbl_rate_two		),  
-//				.o_enbl_rate_one		(w_enbl_rate_one		)
-//			
-//			);
+  vio_k
+    u_vio_k
+    (
+     .clk_0         (clk 			 			 ),
+     .probe_out0_0  (w_reset_from_vio)
+     );
 
-
-  ///////////////////////////////////////////
-  // Logueo control for RAM
-  ///////////////////////////////////////////  
-  ctrl_ram
-    u_ctrl_ram
-			(
-      	.i_clock							(clock100    				 ), // Cambiar a clockdsp para tb
- 				.i_reset							(w_reset_from_vio    ),
-				.i_data_selec_for_log	(r_data_selec_for_log), 
-				.i_enbl_write					(r_enbl_write				 ),
-				.i_enbl_read					(r_enbl_read_from_ram),
-				.i_read_adrs	 				(r_read_adrs 				 ), 
-				.i_data_fse_I					(w_data_fse_I				 ),
-				.i_data_fse_Q					(w_data_fse_Q				 ),			
-				.i_data_input_slcr_I	(w_data_input_slcr_I ),	
-				.i_data_input_slcr_Q	(w_data_input_slcr_Q ),	
-				.i_data_coeff_I				(w_data_coeff_I			 ),
-				.i_data_coeff_Q				(w_data_coeff_Q			 ),
-				.i_data_err_I					(w_data_err_I				 ),						
-				.i_data_err_Q					(w_data_err_Q				 ),
-				.i_enbl_rate_two			(w_enbl_rate_two	 	 ),
-				.i_enbl_rate_one			(w_enbl_rate_one 		 ),
-				.o_data_for_read			(w_data_ram_for_read )
-				
-			);
-
+  ila_k
+   u_ila_k
+    (
+     .clk_0    (clk					 					  ), 
+     .probe0_0 (w_data_i_eqlzr_I			  ),  // FSE I  8  
+     .probe1_0 (w_data_i_eqlzr_Q			  ),  // FSE Q
+     .probe2_0 (w_data_o_eqlzr_I			  ),  // SLCR I 12
+     .probe3_0 (w_data_o_eqlzr_Q			  ),  // SLCR Q
+     .probe4_0 (gpio_output_to_input_dsp)        
+     );
 
 
 	//==========================================
@@ -186,59 +155,84 @@ module top_hw_custom
   MicroGPIO    
      u_MicroGPIO 
      (
-        .clock100         (clockdsp    						 ),  // Clock aplicacion
+        .clk         			(clockdsp    						 ),  // Clock aplicacion
         .gpio_rtl_tri_i   (gpio_input_to_output_dsp),  // GPIO input data
         .gpio_rtl_tri_o   (gpio_output_to_input_dsp),  // GPIO output data
         .o_lock_clock     (locked      						 ),  // Signal Lock Clock        
         .reset            (i_reset    						 ),  // Hard Reset
-        .sys_clock        (clock100    						 ),  // Clock de FPGA
+        .sys_clock        (clk    						 		 ),  // Clock de FPGA
         .usb_uart_rxd     (in_rx_uart  						 ),  // UART Rx
         .usb_uart_txd     (out_tx_uart 						 )   // UART Tx
       );
 
+
 	//==========================================
-	//            VIO / ILA  						   		//
+	//            DSP Designe 								//
 	//==========================================
+  qpsk_comm_sys #()
+    u_qpsk_comm_sys(
+      .o_data_i_eqlzr_I    (w_data_i_eqlzr_I		),	//	output FSE I
+      .o_data_i_eqlzr_Q    (w_data_i_eqlzr_Q		),	//	output FSE Q
+      .o_data_o_eqlzr_I    (w_data_o_eqlzr_I		),	//	input slcr I
+      .o_data_o_eqlzr_Q    (w_data_o_eqlzr_Q		),	//	input slcr Q	
+      .o_data_taps_I       (w_data_taps_I				),	//  coeff I
+      .o_data_taps_Q       (w_data_taps_Q 			),	//	coeff Q
+      .o_accum_err_I       (w_accum_err_I   		),  // 	count err I
+      .o_accum_tot_I       (w_accum_bit_I   		),	//	count bit I
+      .o_accum_err_Q       (w_accum_err_Q   		),	//	count err Q
+      .o_accum_tot_Q       (w_accum_bit_Q   		),	//	count bit Q  
+      .o_control_for_rate_2(w_control_for_rate_2),  //	w_control_for_rate_2
+      .o_control_for_rate_1(w_control_for_rate_1),  //  rate one 
+      .o_normal_led        (),
+data_i_eqlzr_I
+      .i_sw                (),
+      .i_reset             (w_reset_from_vio	  ), // reset from vio
+      .clk                 (clockdsp						)  // clock from MicroBlaze   
+    );
 
-  VIO
-    u_VIO
-    (
-     .clk_0         (clock100 			 ),
-     .probe_out0_0  (w_reset_from_vio)
-     );
+  ///////////////////////////////////////////
+  // Logueo control for RAM
+  ///////////////////////////////////////////  
+  ctrl_ram
+    u_ctrl_ram
+			(
+				.o_data_for_read			(w_data_ram_for_read ),				
+				.i_data_selec_for_log	(r_data_selec_for_log), 
+				.i_enbl_write					(r_enbl_write				 ),
+				.i_enbl_read					(r_enbl_read_from_ram),
+				.i_read_adrs	 				(r_read_adrs 				 ), 
+				.i_data_fse_I					(w_data_i_eqlzr_I		 ),
+				.i_data_fse_Q					(w_data_i_eqlzr_Q		 ),			
+				.i_data_input_slcr_I	(w_data_o_eqlzr_I 	 ),	
+				.i_data_input_slcr_Q	(w_data_o_eqlzr_Q    ),	
+				.i_data_coeff_I				(w_data_taps_I			 ),
+				.i_data_coeff_Q				(w_data_taps_Q			 ),
+				.i_enbl_rate_two			(w_control_for_rate_2),
+				.i_enbl_rate_one			(w_control_for_rate_1),
+ 				.i_reset							(w_reset_from_vio    ),
+      	.i_clock							(clk    					   ) // Cambiar a clockdsp para tb				
+			);
 
-  ILA
-   u_ILA
-    (
-     .clk_0    (clock100					 ), 
-     .probe0_0 (w_data_fse_I			 ),  // FSE I  8  
-     .probe1_0 (w_data_fse_Q			 ),  // FSE Q
-     .probe2_0 (w_data_input_slcr_I),  // SLCR I 12
-     .probe3_0 (w_data_input_slcr_Q),  // SLCR Q
-     .probe4_0 (gpio_output_to_input_dsp)        
-     );
 
-
+	// DEBERIA ESTAR EN UN MODULO ESTO 
 	//==========================================
 	//            Register file 						  //
 	//==========================================
 
 
-  always @(posedge clock100) begin // Cambiar clock100 por clockdsp para simulacion
+  always @(posedge clk) begin // Cambiar clk por clockdsp para simulacion
      if(w_reset_from_vio == 1'b1) begin
         r_reset      							<= 1'b1 ;
-//        r_switch     							<= 4'b0 ;
         r_data_selec_for_log		  <= 3'b0 ;
         r_enbl_write        		 	<= 1'b0 ;
 				r_enbl_read_from_ram		  <= 1'b0 ;
-        r_count_err_Q       			<= 64'b0;
-        r_count_err_I       			<= 64'b0;
-        r_count_bit_Q       		  <= 64'b0;
-        r_count_bit_I       		  <= 64'b0;
+        r_accum_err_Q       			<= 64'b0;
+        r_accum_err_I       			<= 64'b0;
+        r_accum_bit_Q       		  <= 64'b0;
+        r_accum_bit_I       		  <= 64'b0;
         r_enbl_read_bits_and_errs	<= 1'b0 ;
 				r_mux_read_bits_and_errs  <= 3'b0 ;
         r_log_bits_and_errs 		  <= 1'b0 ;
-      //r_flag_capture 						<= 1'b0 ;
         r_read_adrs  							<= 16'b0;
      
      end
@@ -251,7 +245,6 @@ module top_hw_custom
 											begin
                       	r_data_selec_for_log	<= gpio_output_to_input_dsp[2:0];	// 3 Login data in RAM,
 												r_enbl_write					<= gpio_output_to_input_dsp[3]  ;	// Signal enbl for write data in RAM
-						     				//paso_wave     				<= gpio_output_to_input_dsp[11:8];	// Selec frec (SACAR)
 						     			end								 
                 8'h04: 
 											begin                          																// 4 Read data from RAM
@@ -261,7 +254,6 @@ module top_hw_custom
                 8'h05: 
 											begin                           														// 5 Log bits and err from BER    
                       	r_log_bits_and_errs	<= gpio_output_to_input_dsp[0];
-                        //r_flag_capture		<= r_log_bits_and_errs;
                       end
                 8'h06:
 											begin 
@@ -271,10 +263,10 @@ module top_hw_custom
            endcase
 
            if (r_log_bits_and_errs) begin
-                r_count_err_Q	<=	w_count_err_Q;	 
-                r_count_err_I	<=	w_count_err_I;	 
-                r_count_bit_Q <=	w_count_bit_Q; 	 
-                r_count_bit_I <=	w_count_bit_I; 	 
+                r_accum_err_Q	<=	w_accum_err_Q;	 
+                r_accum_err_I	<=	w_accum_err_I;	 
+                r_accum_bit_Q <=	w_accum_bit_Q; 	 
+                r_accum_bit_I <=	w_accum_bit_I; 	 
             end 
 
         end //Fin de if(gpio_output_to_input_dsp[23] == 1'b1)
@@ -284,12 +276,10 @@ module top_hw_custom
 assign gpio_input_to_output_dsp	= (r_enbl_read_from_ram == 1'b1)	? w_data_ram_for_read : (r_enbl_read_bits_and_errs == 1'b1) 
 																																	? w_data_bits_and_errs : 32'b0; // Selec data for Micro
 
-assign w_data_bits_and_errs = (r_mux_read_bits_and_errs == 3'b000) ? r_count_err_I [31:0] : (r_mux_read_bits_and_errs == 3'b001) ? r_count_err_I [63:32] :
-                         			(r_mux_read_bits_and_errs == 3'b010) ? r_count_bit_I [31:0] : (r_mux_read_bits_and_errs == 3'b011) ? r_count_bit_I [63:32] : // Bits and errs
-                         			(r_mux_read_bits_and_errs == 3'b100) ? r_count_err_Q [31:0] : (r_mux_read_bits_and_errs == 3'b101) ? r_count_err_Q [63:32] :
-                         			(r_mux_read_bits_and_errs == 3'b110) ? r_count_bit_Q [31:0] :  r_count_bit_Q  [63:32];
-
-// assign w_enbl_log_bits_and_errs	=	r_log_bits_and_errs; 
+assign w_data_bits_and_errs = (r_mux_read_bits_and_errs == 3'b000) ? r_accum_err_I [31:0] : (r_mux_read_bits_and_errs == 3'b001) ? r_accum_err_I [63:32] :
+                         			(r_mux_read_bits_and_errs == 3'b010) ? r_accum_bit_I [31:0] : (r_mux_read_bits_and_errs == 3'b011) ? r_accum_bit_I [63:32] : // Bits and errs
+                         			(r_mux_read_bits_and_errs == 3'b100) ? r_accum_err_Q [31:0] : (r_mux_read_bits_and_errs == 3'b101) ? r_accum_err_Q [63:32] :
+                         			(r_mux_read_bits_and_errs == 3'b110) ? r_accum_bit_Q [31:0] :  r_accum_bit_Q  [63:32];
 endmodule
 
 
