@@ -1,37 +1,27 @@
-//////////////////////////////////////////////////////////////////////////////////
-// AUTOR: Jose gomez Lazarte, Juarez Daniel 
-// AÑO:   2023  
-// NOMBRE: Block RAM de 32kb para almacenamiento de datos de los filtros 
-//
-//////////////////////////////////////////////////////////////////////////////////
+`timescale 1ns/1ps
+
   
-module block_ram
-  #(
-      parameter RAM_WIDTH       = 32           ,            
-      parameter RAM_DEPTH       = 32000        ,                  
-      parameter RAM_PERFORMANCE = "LOW_LATENCY",
-      parameter INIT_FILE       = ""                       
-   )
-   (
-    input [15:0] WriteAdress ,
-    input [15:0] ReadAdress  ,
-    input [RAM_WIDTH - 1:0]         Dato_input  ,
-    input                           clock       ,
-		input														i_reset 		,
-    input                           Write_enable,
-    input                           Read_Enable ,
-    output [RAM_WIDTH-1:0]          Dato_output 
-    
-    
-    );
-    
+module block_ram #(
+  parameter RAM_WIDTH       = 32   ,            
+  parameter RAM_DEPTH       = 32768,                  
+  parameter RAM_PERFORMANCE = ""   ,
+  parameter INIT_FILE       = ""                       
+)
+(
+  output [        RAM_WIDTH-1:0] o_data_output,
+
+  input  [$clog2(RAM_DEPTH)-1:0] i_write_addr ,
+  input  [$clog2(RAM_DEPTH)-1:0] i_read_addr  ,
+  input  [      RAM_WIDTH - 1:0] i_data_input ,
+  input                          i_write_en   ,
+  input                          i_read_en    ,
+  input                          i_reset      ,
+  input                          clk       
+);
+
   reg [RAM_WIDTH-1:0] BlockRAM [RAM_DEPTH-1:0];
   reg [RAM_WIDTH-1:0] RAM_DATA = {RAM_WIDTH{1'b0}};
   
-  wire rstb  ;
-  wire regceb;
-  	
-	assign rstb = i_reset;
 
   // The following code either initializes the memory values to a specified file or to all zeros to match hardware
   generate
@@ -46,38 +36,47 @@ module block_ram
     end
   endgenerate
 
-  always @(posedge clock) begin //Lectura y escritura de la RAM
-    if (Write_enable)
-      
-      BlockRAM[WriteAdress] <= Dato_input;
-
-    if (Read_Enable)
-      RAM_DATA <= BlockRAM[ReadAdress];
+  // Reading and writing RAM 
+  always @(posedge clk) begin
+    if (i_write_en) begin
+        BlockRAM[i_write_addr] <= i_data_input;
+    end
+    else begin
+        BlockRAM[i_write_addr] <= BlockRAM[i_write_addr];
+    end
+    
+    if (i_read_en) begin
+        RAM_DATA <= BlockRAM[i_read_addr];
+    end begin
+        RAM_DATA <= RAM_DATA;
+    end
   end
 
   //  The following code generates HIGH_PERFORMANCE (use output register) or LOW_LATENCY (no output register)
   generate
     if (RAM_PERFORMANCE == "LOW_LATENCY") begin: no_output_register
-
-      // The following is a 1 clock cycle read latency at the cost of a longer clock-to-out timing
-       assign Dato_output = RAM_DATA;
-
+        // The following is a 1 clk cycle read latency at the cost of a longer clk-to-out timing
+        assign o_data_output = RAM_DATA;
+       
     end else begin: output_register
-
-      // The following is a 2 clock cycle read latency with improve clock-to-out timing
-
-//      reg [RAM_WIDTH-1:0] Dato_output_reg = {RAM_WIDTH{1'b0}};
-//
-//      always @(posedge clock)
-//        if (rstb)
-//          Dato_output_reg <= {RAM_WIDTH{1'b0}};
-//        else if (regceb)
-//          Dato_output_reg <= RAM_DATA;
-//
-//      assign Dato_output = RAM_DATA;
-
+        // The following is a 2 clk cycle read latency with improve clk-to-out timing
+        reg [RAM_WIDTH-1:0] r_data_output = {RAM_WIDTH{1'b0}};
+        
+        always @(posedge clk) begin
+          if (i_reset) begin
+              r_data_output <= {RAM_WIDTH{1'b0}};
+          end
+          //else if ( ) begin
+          else begin
+              r_data_output <= RAM_DATA;
+          end
+        end
+        
+        assign o_data_output = r_data_output;
+       
     end
   endgenerate
 				
 						
 endmodule
+
