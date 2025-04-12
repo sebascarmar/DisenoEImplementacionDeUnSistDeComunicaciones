@@ -1,52 +1,18 @@
-/*
-	* ======== Definition the finaly menu ========== 
-	* 1 - Reset del DSP
-	* 2 - Enbl or Disable Aaptive filter 
-	* 3 - Log data in RAM 
-	* 		|__ Data FSE (Input)  (Sub options)
-	*			|__ Data input Slcr 
-	*			|__ Data coeffs 
-	*			|__ Data error
-	*	4 - Read data from RAM 
-	*	5 - Capture bits and err from PRBS 
-	*	6 - Read bits and err from PRBS 
-	*	7 - Finish program 
-	* */
-
-/*
- * Ejemplo selec de fase:  
- * 0x03 OPC principal 
- * 0x80 enbl del RF siempre va ese valor
- * 0x0A relleno  
- * 0x03 seccion de subopcion 
- * Trama completa ----- > 0x03800A03 Formato para tb
-*/
-
-//Error and Bits
-//|   000   | ||LEI||
-//|   001   | ||HEI||
-//|   010   | ||LBI||
-//|   011   | ||HBI||
-//|   100   | ||LEQ||
-//|   101   | ||HEQ||
-//|   110   | ||LBQ||
-//|   111   | ||HBQ||
-
-
-/////////////////////////////////////////////////////////////////////////////
-// Cosas a loguear: 	
-// 1 - Entrada del FSE S(8,7) 							Tasa 2 BR*2 = 50 MHz
-// 2 - Entrada del Slicer S(12,9)       	  Tasa 2 BR*2 = 50 MHz
-// 3 - Coeficientes de I e Q S(28,25) 			Tasa 1 BR   = 25 MHz CON RETARDO 
-// 4 - Entrada del error S(12,9) 						Tasa 1 BR		= 25 MHz 
-///////////////////////////////////////////////////////////////////////////// 
-
 `define	NBT_I_EQLZR         8	
 `define	NBT_O_EQLZR        12	
 `define	NUM_TAPS            9	
-`define	NBT_TAPS            8	
+`define	NBT_TAPS           10	
 `define	NBT_GPIOS          32	
 `define	NBT_COUNT_BITS_ERR 64 
+`define N_DELAY           250
+// for RAM module 
+`define RAM_WIDTH        32                    
+`define RAM_DEPTH        32000                       
+`define RAM_PERFORMANCE  "LOW_LATENCY"
+`define INIT_FILE        ""           
+
+
+`timescale 1ns/1ps
 
 
 module top #(
@@ -55,14 +21,19 @@ module top #(
   parameter NBT_TAPS           = `NBT_TAPS          ,
   parameter NBT_GPIOS          = `NBT_GPIOS         ,
   parameter NBT_COUNT_BITS_ERR = `NBT_COUNT_BITS_ERR,	
-  parameter NUM_TAPS           = `NUM_TAPS 					
+  parameter NUM_TAPS           = `NUM_TAPS          ,
+  parameter N_DELAY            = `N_DELAY           ,
+  parameter RAM_WIDTH          = `RAM_WIDTH         ,            
+  parameter RAM_DEPTH          = `RAM_DEPTH         ,                  
+  parameter RAM_PERFORMANCE    = `RAM_PERFORMANCE   ,
+  parameter INIT_FILE          = `INIT_FILE                   
 )
 ( 
 //// Descomentar para testeo
 //input         clockdsp                ,
 //input         i_reset                 ,
-//input  [31:0] gpio_output_to_input_dsp, //	Estimulos de entrada para testeo
-//output [31:0] gpio_input_to_output_dsp
+//input  [31:0] w_gpio_to_regf, //	Estimulos de entrada para testeo
+//output [31:0] w_regf_to_gpio
 //// Comentar para testeo
   output       o_tx_uart   ,
   output [3:0] o_normal_led,
@@ -70,15 +41,15 @@ module top #(
   input        i_rx_uart   ,
   input        i_sw        ,
   input        i_reset     ,	
-  input        clk
+  input        i_clk
 );
 
 
 	// ======= Conection MicroBlazer ========  // Comentar para Test bench
   wire                    locked                  ;
   wire                    soft_reset              ;
-  wire [NBT_GPIOS- 1 : 0] gpio_input_to_output_dsp;	
-  wire [NBT_GPIOS- 1 : 0] gpio_output_to_input_dsp;	
+  wire [NBT_GPIOS- 1 : 0] w_regf_to_gpio;	
+  wire [NBT_GPIOS- 1 : 0] w_gpio_to_regf;	
   wire                    clockdsp                ; 
   
   
@@ -126,6 +97,7 @@ module top #(
   wire       w_select_from_vio;
   wire       w_reset_from_vio ;
   wire       w_sw_from_vio    ;
+  wire       clk              ;
     
   // SELECCIONA ENTRE MANEJO FÍSICO DE LA FPGA O MEDIANTE VIO
   assign w_reset  = w_select_from_vio ? ~w_reset_from_vio : ~i_reset;
@@ -139,19 +111,19 @@ module top #(
 	//==========================================
 	//            VIO / ILA  						   		//
 	//==========================================
-  //ila_a
-  ila_k
+  ila_a
+  //ila_k
     u_ila (
-    //.clk_100MHz(clk         ),
-    .clk_200MHz(clk         ),
+    .clk_100MHz(i_clk         ),
+    //.clk_200MHz(i_clk         ),
     .probe0_0  (w_normal_led)
   );
 
-  //vio_a
-  vio_k
+  vio_a
+  //vio_k
     u_vio (
-    //.clk_100MHz  (clk              ),
-    .clk_200MHz  (clk              ),
+    .clk_100MHz  (i_clk              ),
+    //.clk_200MHz  (i_clk              ),
     .probe_in0_0 (w_normal_led     ),
     .probe_out0_0(w_select_from_vio),
     .probe_out1_0(w_reset_from_vio ),
@@ -162,19 +134,17 @@ module top #(
 	//==========================================
 	//            MicroBlazer 								//
 	//==========================================
-  MicroGPIO    
-     u_MicroGPIO 
+  uBlaze_a    
+     u_uBlaze_a 
      (
-        .clk           (clockdsp                ),// Clock aplicacion
-        .gpio_rtl_tri_i(gpio_input_to_output_dsp),// GPIO input data
-        .gpio_rtl_tri_o(gpio_output_to_input_dsp),// GPIO output data
-        //  ( .gpio_rtl_0_tri_i(data_from_regf_to_gpio2),  // GPIO in's
-        //    .gpio_rtl_tri_o  (gpio1_to_regf          ),  // GPIO out's
-        .o_lock_clock  (locked                  ),// Signal Lock Clock        
-        .reset         (i_reset                 ),// Hard Reset
-        .sys_clock     (clk                     ),// Clock de FPGA
-        .usb_uart_rxd  (in_rx_uart              ),// UART Rx
-        .usb_uart_txd  (out_tx_uart             ) // UART Tx
+        .clock100        (clk           ),// Clock aplicacion
+        .gpio_rtl_0_tri_i(w_regf_to_gpio),// GPIO input data
+        .gpio_rtl_0_tri_o(w_gpio_to_regf),// GPIO output data
+        .o_lock_clock    (locked        ),// Signal Lock Clock        
+        .reset           (i_reset       ),// Hard Reset
+        .sys_clock       (i_clk         ),
+        .usb_uart_rxd    (i_rx_uart     ),
+        .usb_uart_txd    (o_tx_uart     )
       );
 
 
@@ -198,15 +168,23 @@ module top #(
       .o_normal_led        (w_normal_led          ),
       .i_sw                (w_sw                  ),
       .i_reset             (~w_reset || r_rst_soft), // reset from vio
-      .clk                 (clockdsp              )  // clock from MicroBlaze   
+      .clk                 (i_clk                   )  // clock from MicroBlaze   
     );
 
   ///////////////////////////////////////////
   // Logueo control for RAM
   ///////////////////////////////////////////  
-  block_ram_control
-    u_block_ram_control
-    (
+  block_ram_control #(
+      .NBT_I_EQLZR    (NBT_I_EQLZR    ),	 
+      .NBT_O_EQLZR    (NBT_O_EQLZR    ),
+      .NBT_TAPS       (NBT_TAPS       ),
+      .NUM_TAPS       (NUM_TAPS       ),
+      .N_DELAY        (N_DELAY        ),
+      .RAM_WIDTH      (RAM_WIDTH      ),            
+      .RAM_DEPTH      (RAM_DEPTH      ),                  
+      .RAM_PERFORMANCE(RAM_PERFORMANCE),
+      .INIT_FILE      (INIT_FILE      )             
+    ) u_block_ram_control (
       .o_data_for_read     (w_data_ram_for_read ),				
       .i_data_selec_for_log(r_data_selec_for_log), 
       .i_enbl_write        (r_enbl_write        ),
@@ -221,7 +199,7 @@ module top #(
       .i_enbl_rate_two     (w_control_for_rate_2),
       .i_enbl_rate_one     (w_control_for_rate_1),
       .i_reset             (w_reset             ),
-      .i_clock             (clk                 ) // Cambiar a clockdsp para tb				
+      .i_clock             (i_clk                 ) // Cambiar a clockdsp para tb				
      );
 
 
@@ -231,7 +209,7 @@ module top #(
 	//==========================================
 
 
-  always @(posedge clk) begin // Cambiar clk por clockdsp para simulacion
+  always @(posedge i_clk) begin // Cambiar clk por clockdsp para simulacion
      if(w_reset== 1'b1) begin
         r_rst_soft               <= 1'b1 ;
         r_data_selec_for_log     <= 3'b0 ;
@@ -248,33 +226,33 @@ module top #(
         
      end
      else begin   
-        if(gpio_output_to_input_dsp[23] == 1'b1)begin
-            case (gpio_output_to_input_dsp[31:24])
+        if(w_gpio_to_regf[23] == 1'b1)begin
+            case (w_gpio_to_regf[31:24])
                 8'h01: begin
-                    r_rst_soft        <= gpio_output_to_input_dsp[0]  ; 					// 0 Reset for DSP 
+                    r_rst_soft        <= w_gpio_to_regf[0]  ; 					// 0 Reset for DSP 
                 end
                 
                 //8'h02: begin
-                //    r_switch[1:0]  <= gpio_output_to_input_dsp[1:0]; 				// 1 Enable Adaptive Filter ? 
+                //    r_switch[1:0]  <= w_gpio_to_regf[1:0]; 				// 1 Enable Adaptive Filter ? 
                 //end
                 
                 8'h03: begin
-                    r_data_selec_for_log<= gpio_output_to_input_dsp[2:0];	// 3 Login data in RAM,
-                    r_enbl_write        <= gpio_output_to_input_dsp[3]  ;	// Signal enbl for write data in RAM
+                    r_data_selec_for_log<= w_gpio_to_regf[2:0];	// 3 Login data in RAM,
+                    r_enbl_write        <= w_gpio_to_regf[3]  ;	// Signal enbl for write data in RAM
                 end								 
                 
                 8'h04: begin // 4 Read data from RAM
-                    r_enbl_read_from_ram<= gpio_output_to_input_dsp[16]	 ;      
-                    r_read_adrs[15:0]   <= gpio_output_to_input_dsp[15:0];	// Addrs for read in RAM
+                    r_enbl_read_from_ram<= w_gpio_to_regf[16]	 ;      
+                    r_read_adrs[15:0]   <= w_gpio_to_regf[15:0];	// Addrs for read in RAM
                 end
                
                 8'h05: begin 
-                    r_log_bits_and_errs	<= gpio_output_to_input_dsp[0];
+                    r_log_bits_and_errs	<= w_gpio_to_regf[0];
                 end
                 
                 8'h06: begin
-                    r_mux_read_bits_and_errs  <= gpio_output_to_input_dsp[2:0];  // 6 Read bits and err 
-                    r_enbl_read_bits_and_errs <= gpio_output_to_input_dsp[3]	;
+                    r_mux_read_bits_and_errs  <= w_gpio_to_regf[2:0];  // 6 Read bits and err 
+                    r_enbl_read_bits_and_errs <= w_gpio_to_regf[3]	;
                 end		
                 
            endcase
@@ -286,17 +264,17 @@ module top #(
                 r_accum_bit_I <= w_accum_bit_I; 	 
             end 
             
-        end //Fin de if(gpio_output_to_input_dsp[23] == 1'b1)
+        end //Fin de if(w_gpio_to_regf[23] == 1'b1)
      end //Fin de else begin    
   end //Fin de always
 																							                           
 
 
-assign gpio_input_to_output_dsp	=   (r_enbl_read_from_ram == 1'b1)
-                                   ? w_data_ram_for_read
-                                   :((r_enbl_read_bits_and_errs == 1'b1)
-                                   ? w_data_bits_and_errs
-                                   : 32'b0); // Selec data for Micro
+assign w_regf_to_gpio	=   (r_enbl_read_from_ram == 1'b1)
+                            ? w_data_ram_for_read
+                            :((r_enbl_read_bits_and_errs == 1'b1)
+                            ? w_data_bits_and_errs
+                            : 32'b0); // Selec data for Micro
 
 assign w_data_bits_and_errs = (r_mux_read_bits_and_errs == 3'b000)
                              ? r_accum_err_I [31:0]

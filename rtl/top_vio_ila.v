@@ -23,19 +23,19 @@ module top_vio_ila
   assign w_sw     = w_select_from_vio ? w_sw_from_vio : i_sw        ;
 
 
-  //ila_a
-  ila_k
+  ila_a
+  //ila_k
     u_ila (
-    //.clk_100MHz(clk         ),
-    .clk_200MHz(clk         ),
+    .clk_100MHz(clk         ),
+    //.clk_200MHz(clk         ),
     .probe0_0  (w_normal_led)
   );
 
-  //vio_a
-  vio_k
+  vio_a
+  //vio_k
     u_vio (
-    //.clk_100MHz  (clk              ),
-    .clk_200MHz  (clk              ),
+    .clk_100MHz  (clk              ),
+    //.clk_200MHz  (clk              ),
     .probe_in0_0 (w_normal_led     ),
     .probe_out0_0(w_select_from_vio),
     .probe_out1_0(w_reset_from_vio ),

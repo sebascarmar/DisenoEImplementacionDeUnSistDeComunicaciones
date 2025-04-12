@@ -1,0 +1,78 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x44A7DB25AA90DD28",
+      "device": "xc7a35ticsg324-1L",
+      "name": "ila_a",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2023.1",
+      "validated": "true"
+    },
+    "design_tree": {
+      "ila_0": ""
+    },
+    "ports": {
+      "clk_100MHz": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "CLK_DOMAIN": {
+            "value": "ila_a_clk_100MHz",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "probe0_0": {
+        "direction": "I",
+        "left": "3",
+        "right": "0"
+      }
+    },
+    "components": {
+      "ila_0": {
+        "vlnv": "xilinx.com:ip:ila:6.2",
+        "xci_name": "ila_a_ila_0_0",
+        "xci_path": "ip/ila_a_ila_0_0/ila_a_ila_0_0.xci",
+        "inst_hier_path": "ila_0",
+        "parameters": {
+          "C_MONITOR_TYPE": {
+            "value": "Native"
+          },
+          "C_PROBE0_WIDTH": {
+            "value": "4"
+          }
+        }
+      }
+    },
+    "nets": {
+      "clk_100MHz_1": {
+        "ports": [
+          "clk_100MHz",
+          "ila_0/clk"
+        ]
+      },
+      "probe0_0_1": {
+        "ports": [
+          "probe0_0",
+          "ila_0/probe0"
+        ]
+      }
+    }
+  }
+}

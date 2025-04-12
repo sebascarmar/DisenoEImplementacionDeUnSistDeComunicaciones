@@ -1,26 +1,17 @@
-
-`define NBT_FSE			 		 8	
-`define NBT_SCLR		 		 12 
-`define NBT_COEFF		 		 8 
-`define NBT_ERR 		 		 12	
-`define N_COEFFS 		 		 11
-`define N_DELAY 				 250
-// for RAM module 
-`define RAM_WIDTH        32                    
-`define RAM_DEPTH        32000                       
-`define RAM_PERFORMANCE  "LOW_LATENCY"
-`define INIT_FILE        ""           
-
+`timescale 1ns/1ps
 
 
 module block_ram_control 
 #(
-	parameter NBT_FSE			 =	`NBT_FSE	, 
-	parameter NBT_SCLR		 =	`NBT_SCLR	, 
-	parameter NBT_COEFF		 =	`NBT_COEFF, 
-	parameter NBT_ERR 		 =	`NBT_ERR 	, 
-	parameter N_COEFFS 		 =	`N_COEFFS , 	 
-	parameter N_DELAY			 =  `N_DELAY
+  parameter NBT_I_EQLZR     =     8,	 
+  parameter NBT_O_EQLZR     =    12,
+  parameter NBT_TAPS        =    10,
+  parameter NUM_TAPS        =     9,
+  parameter N_DELAY         =   250,
+  parameter RAM_WIDTH       =    32,            
+  parameter RAM_DEPTH       = 32768,                  
+  parameter RAM_PERFORMANCE = "LOW_LATENCY",
+  parameter INIT_FILE       = ""             
 )
 (
 	// outputs	
@@ -30,12 +21,12 @@ module block_ram_control
 	input 													i_enbl_write				, 
 	input 													i_enbl_read					, 
 	input 													i_read_adrs	 				, 
-	input signed [NBT_I_EQLZR-1 :0] i_data_fse_I				, 
-	input signed [NBT_I_EQLZR-1 :0] i_data_fse_Q				, 
-	input signed [NBT_O_EQLZR-1 :0] i_data_input_slcr_I	, 
-	input signed [NBT_O_EQLZR-1 :0] i_data_input_slcr_Q	, 
-	input signed [   NBT_TAPS-1 :0] i_data_coeff_I			, 
-	input signed [   NBT_TAPS-1 :0] i_data_coeff_Q			,	 
+	input signed [      NBT_I_EQLZR-1 :0] i_data_fse_I				, 
+	input signed [      NBT_I_EQLZR-1 :0] i_data_fse_Q				, 
+	input signed [      NBT_O_EQLZR-1 :0] i_data_input_slcr_I	, 
+	input signed [      NBT_O_EQLZR-1 :0] i_data_input_slcr_Q	, 
+	input signed [NBT_TAPS*NUM_TAPS-1 :0] i_data_coeff_I			, 
+	input signed [NBT_TAPS*NUM_TAPS-1 :0] i_data_coeff_Q			,	 
 	input 													i_enbl_rate_two			, 
 	input 													i_enbl_rate_one			, 	
 	input 													i_reset							,          
@@ -44,29 +35,29 @@ module block_ram_control
 
 	// registers
   reg [	  						 15:0]	r_counter_adrs			 ; 
-	reg [$clog2(N_COEFFS)-1:0]	r_counter_adrs_coeffs; 
+	reg [$clog2(NUM_TAPS)-1:0]	r_counter_adrs_coeffs; 
 	reg [ $clog2(N_DELAY)-1:0]	r_count_delay 			 ;
 	reg 												r_enbl_coeffs				 ;
 		
-	reg signed [NBT_COEFF-1 :0] r_data_coeff_I [N_COEFFS-1:0];  
-	reg signed [NBT_COEFF-1 :0] r_data_coeff_Q [N_COEFFS-1:0];
+	reg signed [NBT_TAPS-1 :0] r_data_coeff_I [NUM_TAPS-1:0];  
+	reg signed [NBT_TAPS-1 :0] r_data_coeff_Q [NUM_TAPS-1:0];
 
 	// internal wires
   wire 									w_enbl_write	;
-  wire [NBT_COEFF-1 :0]	w_data_for_log;
+  wire [NBT_TAPS-1 :0]	w_data_for_log;
 
 
 	// generate serialized to parallel coefficient data
 	genvar i;
 	generate
-	    for (i = 0; i < N_COEFFS; i = i + 1) begin 
+	    for (i = 0; i < NUM_TAPS; i = i + 1) begin 
 	    	always @(posedge i_clock) begin
 				//	As long as r_enbl_coeffs is not enabled, data are still collected.
 				//	once enabled, data collection is frozen and data is stored 
 				//	data in RAM 
 	      	if (!r_enbl_coeffs) begin
-		       	r_data_coeff_I[i] <= i_data_coeff_I[(i+1)*NBT_COEFF-1 -: NBT_COEFF];
-		        r_data_coeff_Q[i] <= i_data_coeff_Q[(i+1)*NBT_COEFF-1 -: NBT_COEFF];
+		       	r_data_coeff_I[i] <= i_data_coeff_I[(i+1)*NBT_TAPS-1 -: NBT_TAPS];
+		        r_data_coeff_Q[i] <= i_data_coeff_Q[(i+1)*NBT_TAPS-1 -: NBT_TAPS];
 		      end
 			end // end always
 	end	// end for 
@@ -78,10 +69,10 @@ module block_ram_control
 	//==========================//	  
   block_ram
   #(
-  	.RAM_WIDTH       (`RAM_WIDTH      ),               
-  	.RAM_DEPTH       (`RAM_DEPTH      ),                     
-  	.RAM_PERFORMANCE (`RAM_PERFORMANCE),
-  	.INIT_FILE       (`INIT_FILE      )                            
+  	.RAM_WIDTH       (RAM_WIDTH      ),               
+  	.RAM_DEPTH       (RAM_DEPTH      ),                     
+  	.RAM_PERFORMANCE (RAM_PERFORMANCE),
+  	.INIT_FILE       (INIT_FILE      )                            
 	)
    u_block_ram
     (.WriteAdress (r_counter_adrs ), // Input direccion for write data in block RAM 
@@ -111,7 +102,7 @@ module block_ram_control
 			end 
 			// Coefficient buffer data count
 			if (r_enbl_coeffs) begin 	
-				if (r_counter_adrs_coeffs < (N_COEFFS-1)) begin  					
+				if (r_counter_adrs_coeffs < (NUM_TAPS-1)) begin  					
 						r_counter_adrs_coeffs <= r_counter_adrs_coeffs + 1'b1;
 				end 	
 				else begin 
@@ -165,10 +156,10 @@ module block_ram_control
 	end// end always 
 	
 	// Assign internal wires 
-	assign w_data_for_log = (i_data_selec_for_log == 3'b001) ? {8'b0, i_data_fse_I, 8'b0, i_data_fse_Q} :																			 // Data input slcr
-        (i_data_selec_for_log == 3'b010) ? {4'b0, i_data_input_slcr_I, 4'b0, i_data_input_slcr_Q}:     																			 // Data fse
-        ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs < 16'h3E80)) ? {24'b0, r_data_coeff_I[r_counter_adrs_coeffs]}:	 // Data coeff I
-        ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs >= 16'h3E80)) ? {24'b0, r_data_coeff_Q[r_counter_adrs_coeffs]}: // Data coeff Q
+	assign w_data_for_log = (i_data_selec_for_log == 3'b001) ? {8'b0, i_data_fse_I, 8'b0, i_data_fse_Q} :// Data input slcr
+        (i_data_selec_for_log == 3'b010) ? {4'b0, i_data_input_slcr_I, 4'b0, i_data_input_slcr_Q}:// Data fse
+        ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs < 16'h3E80)) ? {12'b0, r_data_coeff_I[r_counter_adrs_coeffs]}:	 // Data coeff I
+        ((i_data_selec_for_log == 3'b011) && r_enbl_coeffs && (r_counter_adrs >= 16'h3E80)) ? {12'b0, r_data_coeff_Q[r_counter_adrs_coeffs]}: // Data coeff Q
         32'b0;
         
 	assign w_enbl_write = i_enbl_write;

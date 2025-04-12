@@ -1,0 +1,19 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-290,-84",
+   "ExpandedHierarchyInLayout":"",
+   "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0 TLS
+#  -string -flagsOSRD
+preplace port port-id_clk_100MHz -pg 1 -lvl 0 -x -20 -y 10 -defaultsOSRD
+preplace portBus probe0_0 -pg 1 -lvl 0 -x -20 -y 30 -defaultsOSRD
+preplace inst ila_0 -pg 1 -lvl 1 -x 100 -y 20 -defaultsOSRD
+preplace netloc clk_100MHz_1 1 0 1 N 10
+preplace netloc probe0_0_1 1 0 1 N 30
+levelinfo -pg 1 -20 100 200
+pagesize -pg 1 -db -bbox -sgen -170 -50 200 140
+"
+}
+{
+   "da_clkrst_cnt":"1"
+}

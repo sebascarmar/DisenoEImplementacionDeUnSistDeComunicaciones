@@ -22,12 +22,10 @@ module adaptive_filter #(
   parameter NBF_ERR      =  9      
 )
 (
-//  output signed [                NBT_OUT-1:0] o_data_o_eqlzr_I,
-//  output signed [                NBT_OUT-1:0] o_data_o_eqlzr_Q,
-//  output signed [                NBT_ERR-1:0] o_data_lms_err_I,
-//  output signed [                NBT_ERR-1:0] o_data_lms_err_Q,
-//  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_I        ,
-//  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_Q        ,
+  output signed [                NBT_OUT-1:0] o_data_o_eqlzr_I,
+  output signed [                NBT_OUT-1:0] o_data_o_eqlzr_Q,
+  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_I        ,
+  output signed [(NUM_TAPS*NBT_FSE_TAPS)-1:0] o_taps_Q        ,
   output signed [NBT_OUT-1:0] o_os_data_I ,
   output signed [NBT_OUT-1:0] o_os_data_Q ,
 
@@ -156,12 +154,10 @@ module adaptive_filter #(
   assign o_os_data_I = w_sym_slcr_I;
   assign o_os_data_Q = w_sym_slcr_Q;
 
-//  assign o_data_o_eqlzr_I = w_dw_r1I_to_slcrI;
-//  assign o_data_o_eqlzr_Q = w_dw_r1I_to_slcrI;
-//  assign o_data_lms_err_I = w_err_I ;
-//  assign o_data_lms_err_Q = w_err_Q ;
-//  assign o_taps_I         = w_taps_I;
-//  assign o_taps_Q         = w_taps_Q;
+  assign o_data_o_eqlzr_I = w_dw_r1I_to_slcrI;
+  assign o_data_o_eqlzr_Q = w_dw_r1I_to_slcrI;
+  assign o_taps_I         = w_taps_I;
+  assign o_taps_Q         = w_taps_Q;
 
 endmodule
 

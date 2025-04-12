@@ -1,0 +1,9 @@
+{
+	"version": "1.0",
+	"modules": {
+		"vio_a": {
+			"proto_instances": {
+			}
+		}
+	}
+}

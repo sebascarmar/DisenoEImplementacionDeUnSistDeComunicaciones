@@ -72,8 +72,8 @@
 `define NUM_FSE_TAPS  9
 `define NBT_LMS_TAPS 20
 `define NBF_LMS_TAPS 17
-`define NBT_FSE_TAPS  8
-`define NBF_FSE_TAPS  5
+`define NBT_FSE_TAPS 10
+`define NBF_FSE_TAPS  7
 `define NBT_FSE_OUT  12
 `define NBF_FSE_OUT   9
 `define NBT_TAPS_ERR 12
@@ -142,18 +142,18 @@ module qpsk_comm_sys
   parameter START_CNT         = `START_CNT        
  )
  (
-//  output signed [             NBT_AAFILT_OUT-1:0] o_data_i_eqlzr_I    ,
-//  output signed [             NBT_AAFILT_OUT-1:0] o_data_i_eqlzr_Q    ,
-//  output signed [                NBT_FSE_OUT-1:0] o_data_o_eqlzr_I    ,
-//  output signed [                NBT_FSE_OUT-1:0] o_data_o_eqlzr_Q    ,
-//  output signed [(NUM_FSE_TAPS*NBT_FSE_TAPS)-1:0] o_data_taps_I       ,
-//  output signed [(NUM_FSE_TAPS*NBT_FSE_TAPS)-1:0] o_data_taps_Q       ,
-//  output        [                           63:0] o_accum_err_I       ,
-//  output        [                           63:0] o_accum_tot_I       ,
-//  output        [                           63:0] o_accum_err_Q       ,
-//  output        [                           63:0] o_accum_tot_Q       ,
-//  output                                          o_control_for_rate_2,
-//  output                                          o_control_for_rate_1,
+  output signed [             NBT_AAFILT_OUT-1:0] o_data_i_eqlzr_I    ,
+  output signed [             NBT_AAFILT_OUT-1:0] o_data_i_eqlzr_Q    ,
+  output signed [                NBT_FSE_OUT-1:0] o_data_o_eqlzr_I    ,
+  output signed [                NBT_FSE_OUT-1:0] o_data_o_eqlzr_Q    ,
+  output signed [(NUM_FSE_TAPS*NBT_FSE_TAPS)-1:0] o_data_taps_I       ,
+  output signed [(NUM_FSE_TAPS*NBT_FSE_TAPS)-1:0] o_data_taps_Q       ,
+  output        [                           63:0] o_accum_err_I       ,
+  output        [                           63:0] o_accum_tot_I       ,
+  output        [                           63:0] o_accum_err_Q       ,
+  output        [                           63:0] o_accum_tot_Q       ,
+  output                                          o_control_for_rate_2,
+  output                                          o_control_for_rate_1,
   output  [3:0] o_normal_led        ,
 
   input         i_sw                ,
@@ -425,12 +425,10 @@ module qpsk_comm_sys
     .NBT_ERR     (NBT_TAPS_ERR  ),
     .NBF_ERR     (NBF_TAPS_ERR  )
   ) u_adaptive_filter (
-//    .o_data_o_eqlzr_I(o_data_o_eqlzr_I),
-//    .o_data_o_eqlzr_Q(o_data_o_eqlzr_Q),
-//    .o_data_lms_err_I(o_data_err_I    ),
-//    .o_data_lms_err_Q(o_data_err_Q    ),
-//    .o_taps_I        (o_data_taps_I   ),
-//    .o_taps_Q        (o_data_taps_Q   ),
+    .o_data_o_eqlzr_I(o_data_o_eqlzr_I),
+    .o_data_o_eqlzr_Q(o_data_o_eqlzr_Q),
+    .o_taps_I        (o_data_taps_I   ),
+    .o_taps_Q        (o_data_taps_Q   ),
     .o_os_data_I (w_rx_symI_to_demapI ),
     .o_os_data_Q (w_rx_symQ_to_demapQ ),
     .i_is_data_I (w_rx_dwr2I_to_fse   ),
@@ -459,10 +457,10 @@ module qpsk_comm_sys
   ) u_ber_IjQ (
     .o_ber_ok_led_I(w_ber_ok_led_I      ),
     .o_ber_ok_led_Q(w_ber_ok_led_Q      ),
-//    .o_accum_err_I (o_accum_err_I       ),
-//    .o_accum_tot_I (o_accum_tot_I       ),
-//    .o_accum_err_Q (o_accum_err_Q       ),
-//    .o_accum_tot_Q (o_accum_tot_Q       ),
+    .o_accum_err_I (o_accum_err_I       ),
+    .o_accum_tot_I (o_accum_tot_I       ),
+    .o_accum_err_Q (o_accum_err_Q       ),
+    .o_accum_tot_Q (o_accum_tot_Q       ),
     .i_rx_bit_I    (w_rx_bitI_to_ber    ),
     .i_rx_bit_Q    (w_rx_bitQ_to_ber    ),
     .i_en_rate1    (w_control_for_rate_1), 
@@ -478,10 +476,10 @@ module qpsk_comm_sys
   assign o_normal_led[1] = w_ber_ok_led_I;
   assign o_normal_led[0] = w_ber_ok_led_Q;
 
-//  assign o_control_for_rate_2 = w_control_for_rate_2;
-//  assign o_control_for_rate_1 = w_control_for_rate_1;
-//  assign o_data_i_eqlzr_I     = w_rx_dwr2I_to_fse   ;
-//  assign o_data_i_eqlzr_Q     = w_rx_dwr2Q_to_fse   ;
+  assign o_control_for_rate_2 = w_control_for_rate_2;
+  assign o_control_for_rate_1 = w_control_for_rate_1;
+  assign o_data_i_eqlzr_I     = w_rx_dwr2I_to_fse   ;
+  assign o_data_i_eqlzr_Q     = w_rx_dwr2Q_to_fse   ;
 
 
 endmodule

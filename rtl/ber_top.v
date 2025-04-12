@@ -9,10 +9,10 @@ module ber_top #(
   parameter START_CNT       = START_SYN + 511*511
 )
 (
-//  output [63:0] o_accum_err_I ,
-//  output [63:0] o_accum_tot_I ,
-//  output [63:0] o_accum_err_Q ,
-//  output [63:0] o_accum_tot_Q ,
+  output [63:0] o_accum_err_I ,
+  output [63:0] o_accum_tot_I ,
+  output [63:0] o_accum_err_Q ,
+  output [63:0] o_accum_tot_Q ,
   output o_ber_ok_led_I,
   output o_ber_ok_led_Q,
   
@@ -81,8 +81,8 @@ module ber_top #(
     .PRBS_MAX_CYCLES(PRBS_MAX_CYCLES)
   ) u_bit_error_counter_I (
     .o_ber_ok_led             (w_ber_ok_led_I     ),
-//    .o_accum_err              (      o_accum_err_I),
-//    .o_accum_tot              (      o_accum_tot_I),
+    .o_accum_err              (      o_accum_err_I),
+    .o_accum_tot              (      o_accum_tot_I),
     .i_ctrl                   (i_en_rate1         ),
     .i_rx_bit                 (i_rx_bit_I         ),
     .i_new_bit_from_prbs      (w_prbsI_bit_to_berI),
@@ -98,8 +98,8 @@ module ber_top #(
     .PRBS_MAX_CYCLES(PRBS_MAX_CYCLES)
   ) u_bit_error_counter_Q (
     .o_ber_ok_led             (w_ber_ok_led_Q     ),
-//    .o_accum_err              (      o_accum_err_Q),
-//    .o_accum_tot              (      o_accum_tot_Q),
+    .o_accum_err              (      o_accum_err_Q),
+    .o_accum_tot              (      o_accum_tot_Q),
     .i_ctrl                   (i_en_rate1         ),
     .i_rx_bit                 (i_rx_bit_Q         ),
     .i_new_bit_from_prbs      (w_prbsQ_bit_to_berQ),
