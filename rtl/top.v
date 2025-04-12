@@ -41,7 +41,9 @@ module top #(
   input        i_rx_uart   ,
   input        i_sw        ,
   input        i_reset     ,	
-  input        i_clk
+  input        i_clk         
+  //input        i_clk_n     ,
+  //input        i_clk_p     
 );
 
 
@@ -50,7 +52,6 @@ module top #(
   wire                    soft_reset              ;
   wire [NBT_GPIOS- 1 : 0] w_regf_to_gpio;	
   wire [NBT_GPIOS- 1 : 0] w_gpio_to_regf;	
-  wire                    clockdsp                ; 
   
   
 	// ======= Conection ctrl_ram ========== //  
@@ -115,7 +116,7 @@ module top #(
   //ila_k
     u_ila (
     .clk_100MHz(i_clk         ),
-    //.clk_200MHz(i_clk         ),
+    //.clk_200MHz(clk         ),
     .probe0_0  (w_normal_led)
   );
 
@@ -123,7 +124,7 @@ module top #(
   //vio_k
     u_vio (
     .clk_100MHz  (i_clk              ),
-    //.clk_200MHz  (i_clk              ),
+    //.clk_200MHz  (clk              ),
     .probe_in0_0 (w_normal_led     ),
     .probe_out0_0(w_select_from_vio),
     .probe_out1_0(w_reset_from_vio ),
@@ -132,7 +133,7 @@ module top #(
 
 
 	//==========================================
-	//            MicroBlazer 								//
+	//            MicroBlaze 								//
 	//==========================================
   uBlaze_a    
      u_uBlaze_a 
@@ -146,6 +147,20 @@ module top #(
         .usb_uart_rxd    (i_rx_uart     ),
         .usb_uart_txd    (o_tx_uart     )
       );
+//  uBlaze_k    
+//     u_uBlaze_k 
+//     (
+//        .clock200            (clk           ),// Clock aplicacion
+//        .gpio_rtl_tri_i      (w_regf_to_gpio),// GPIO input data
+//        .gpio_rtl_tri_o      (w_gpio_to_regf),// GPIO output data
+//        .o_lock_clock        (locked        ),// Signal Lock Clock        
+//        .reset_rtl           (w_reset       ),// Hard Reset
+//        .reset_rtl_0         (w_reset       ),// Hard Reset
+//        .rs232_uart_rxd      (i_rx_uart     ),
+//        .rs232_uart_txd      (o_tx_uart     ),
+//        .sys_diff_clock_clk_n(i_clk_n       ),
+//        .sys_diff_clock_clk_p(i_clk_p       )
+//      );
 
 
 	//==========================================
@@ -199,7 +214,7 @@ module top #(
       .i_enbl_rate_two     (w_control_for_rate_2),
       .i_enbl_rate_one     (w_control_for_rate_1),
       .i_reset             (w_reset             ),
-      .i_clock             (i_clk                 ) // Cambiar a clockdsp para tb				
+      .clk                 (i_clk                 ) // Cambiar a clockdsp para tb				
      );
 
 
@@ -267,7 +282,6 @@ module top #(
         end //Fin de if(w_gpio_to_regf[23] == 1'b1)
      end //Fin de else begin    
   end //Fin de always
-																							                           
 
 
 assign w_regf_to_gpio	=   (r_enbl_read_from_ram == 1'b1)
