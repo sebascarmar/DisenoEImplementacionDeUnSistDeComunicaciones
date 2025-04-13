@@ -70,7 +70,7 @@ module tb_qpsk_comm_sys;
   parameter NBF_FSE_TAPS      =  7      ;
   parameter NBT_FSE_OUT       = 12      ;
   parameter NBF_FSE_OUT       =  9      ;
-  parameter NBT_TAPS_ERR      = 10      ;
+  parameter NBT_TAPS_ERR      =  9      ;
   parameter NBF_TAPS_ERR      =  7      ;
   // BER
   parameter PRBS_MAX_CYCLES   = 511                ;

@@ -16,7 +16,7 @@ module lms #(
   parameter NBF_LMS_TAPS = 17,
   parameter NBT_FSE_TAPS = 10,
   parameter NBF_FSE_TAPS =  7,
-  parameter NBT_ERR      = 10,
+  parameter NBT_ERR      =  9,
   parameter NBF_ERR      =  7
 )
 (
@@ -179,6 +179,10 @@ module lms #(
                              ?   { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} ,w_term1_I[k] } - (w_term2_I[k]<<ALIGN_LSB)
                              :(NBI_TERM1<NBI_TERM2 && NBF_TERM1<NBF_TERM2)
                              ?   { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} , (w_term1_I[k]<<ALIGN_LSB )} - w_term2_I[k]
+                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1>NBF_TERM2)
+                             ?   w_term1_I[k] - (w_term2_I[k]<<ALIGN_LSB)
+                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1<NBF_TERM2)
+                             ?   (w_term1_I[k]<<ALIGN_LSB ) - w_term2_I[k]
                              :   w_term1_I[k] - w_term2_I[k] ;
           // Saturation and truncation of the final computed tap value  
           assign w_new_taps_I[k] = ( ~|w_add_I[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[k][(NBT_ADD-1) -: NB_SAT+1])
@@ -201,6 +205,10 @@ module lms #(
                              ?    { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} ,w_term1_Q[k] } + (w_term2_Q[k]<<ALIGN_LSB)
                              :(NBI_TERM1<NBI_TERM2 && NBF_TERM1<NBF_TERM2)
                              ?    { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} , (w_term1_Q[k]<<ALIGN_LSB )} + w_term2_Q[k]
+                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1>NBF_TERM2)
+                             ?   w_term1_Q[k] + (w_term2_Q[k]<<ALIGN_LSB)
+                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1<NBF_TERM2)
+                             ?  (w_term1_Q[k]<<ALIGN_LSB ) + w_term2_Q[k]
                              :    w_term1_Q[k] + w_term2_Q[k] ;
           // Saturation and truncation of the final computed tap value  
           assign w_new_taps_Q[k] = ( ~|w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1])

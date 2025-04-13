@@ -76,7 +76,7 @@
 `define NBF_FSE_TAPS  7
 `define NBT_FSE_OUT  12
 `define NBF_FSE_OUT   9
-`define NBT_TAPS_ERR 10
+`define NBT_TAPS_ERR  9
 `define NBF_TAPS_ERR  7
 
 // BER
