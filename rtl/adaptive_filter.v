@@ -14,12 +14,12 @@ module adaptive_filter #(
   parameter NBF_IN       =  7      ,
   parameter NBT_LMS_TAPS = 20      ,
   parameter NBF_LMS_TAPS = 17      ,
-  parameter NBT_FSE_TAPS =  8      ,
-  parameter NBF_FSE_TAPS =  5      ,
+  parameter NBT_FSE_TAPS = 10      ,
+  parameter NBF_FSE_TAPS =  7      ,
   parameter NBT_OUT      = 12      ,
   parameter NBF_OUT      =  9      ,
-  parameter NBT_ERR      = 12      ,
-  parameter NBF_ERR      =  9      
+  parameter NBT_ERR      = 10      ,
+  parameter NBF_ERR      =  7      
 )
 (
   // Ports to uBlaze
