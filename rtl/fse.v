@@ -5,8 +5,8 @@ module fse #(
   parameter NUM_TAPS =  9,
   parameter NBT_IN   =  8,
   parameter NBF_IN   =  7,
-  parameter NBT_TAPS =  8,
-  parameter NBF_TAPS =  5,
+  parameter NBT_TAPS = 10,
+  parameter NBF_TAPS =  7,
   parameter NBT_OUT  = 12,
   parameter NBF_OUT  =  9
 )

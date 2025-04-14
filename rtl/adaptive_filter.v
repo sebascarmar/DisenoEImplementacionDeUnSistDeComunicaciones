@@ -14,12 +14,12 @@ module adaptive_filter #(
   parameter NBF_IN       =  7      ,
   parameter NBT_LMS_TAPS = 20      ,
   parameter NBF_LMS_TAPS = 17      ,
-  parameter NBT_FSE_TAPS =  8      ,
-  parameter NBF_FSE_TAPS =  5      ,
+  parameter NBT_FSE_TAPS = 10      ,
+  parameter NBF_FSE_TAPS =  7      ,
   parameter NBT_OUT      = 12      ,
   parameter NBF_OUT      =  9      ,
-  parameter NBT_ERR      = 12      ,
-  parameter NBF_ERR      =  9      
+  parameter NBT_ERR      =  9      ,
+  parameter NBF_ERR      =  7      
 )
 (
   // Ports to uBlaze
@@ -51,6 +51,8 @@ module adaptive_filter #(
   wire signed [                NBT_OUT-1:0] w_fseQ_to_dw_r1Q ;
   wire signed [                NBT_OUT-1:0] w_dw_r1I_to_slcrI;
   wire signed [                NBT_OUT-1:0] w_dw_r1Q_to_slcrQ;
+  wire signed [                NBT_OUT-1:0] w_err_I_aux      ;
+  wire signed [                NBT_OUT-1:0] w_err_Q_aux      ;
   wire signed [                NBT_ERR-1:0] w_err_I          ;
   wire signed [                NBT_ERR-1:0] w_err_Q          ;
   (* keep *) wire signed [     NBT_OUT-1:0] w_sym_slcr_I     ;
@@ -148,8 +150,11 @@ module adaptive_filter #(
 
 
   // Error for LMS
-  assign w_err_I = w_dw_r1I_to_slcrI - w_sym_slcr_I;
-  assign w_err_Q = w_dw_r1Q_to_slcrQ - w_sym_slcr_Q;
+  assign w_err_I_aux = w_dw_r1I_to_slcrI - w_sym_slcr_I;
+  assign w_err_Q_aux = w_dw_r1Q_to_slcrQ - w_sym_slcr_Q;
+
+  assign w_err_I     = w_err_I_aux[(NBT_OUT-1)-1 -: NBT_ERR];
+  assign w_err_Q     = w_err_Q_aux[(NBT_OUT-1)-1 -: NBT_ERR];
 
 
   // Output assignments

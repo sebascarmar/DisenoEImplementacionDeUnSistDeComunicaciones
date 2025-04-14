@@ -112,8 +112,8 @@ rx_symQ_slcr = rx_symQ_slcr_from_ver / (2**NBF_FSE_OUT)
 rx_err_lms_I_from_ver = np.loadtxt("file_rx_error_I.txt", dtype=np.intp)
 rx_err_lms_Q_from_ver = np.loadtxt("file_rx_error_Q.txt", dtype=np.intp)
 
-rx_err_lms_I = rx_err_lms_I_from_ver / (2**NBF_FSE_OUT)
-rx_err_lms_Q = rx_err_lms_Q_from_ver / (2**NBF_FSE_OUT)
+rx_err_lms_I = rx_err_lms_I_from_ver / (2**7)
+rx_err_lms_Q = rx_err_lms_Q_from_ver / (2**7)
 
 
 

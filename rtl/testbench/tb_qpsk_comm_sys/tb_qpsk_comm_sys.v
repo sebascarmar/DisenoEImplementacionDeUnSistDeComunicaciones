@@ -66,12 +66,12 @@ module tb_qpsk_comm_sys;
   parameter NUM_FSE_TAPS      =  9      ;
   parameter NBT_LMS_TAPS      = 20      ;
   parameter NBF_LMS_TAPS      = 17      ;
-  parameter NBT_FSE_TAPS      =  8      ;
-  parameter NBF_FSE_TAPS      =  5      ;
+  parameter NBT_FSE_TAPS      = 10      ;
+  parameter NBF_FSE_TAPS      =  7      ;
   parameter NBT_FSE_OUT       = 12      ;
   parameter NBF_FSE_OUT       =  9      ;
-  parameter NBT_TAPS_ERR      = 12      ;
-  parameter NBF_TAPS_ERR      =  9      ;
+  parameter NBT_TAPS_ERR      =  9      ;
+  parameter NBF_TAPS_ERR      =  7      ;
   // BER
   parameter PRBS_MAX_CYCLES   = 511                ;
   parameter START_SYN         = PRBS_MAX_CYCLES*690;
