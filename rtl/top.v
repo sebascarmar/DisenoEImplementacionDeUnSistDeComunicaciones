@@ -56,25 +56,25 @@ module top #(
   
 	// ======= Conection ctrl_ram ========== //  
 	// regs 
-  reg                					   r_en_write        ; 
-  reg                					   r_en_read_from_ram;
-  reg  [           					2:0] r_data_sel_for_log;
-  reg  [  $clog2(RAM_DEPTH)-1:0] r_read_adrs       ;
+  reg                            r_en_write         ; 
+  reg                            r_en_read_from_ram ;
+  reg  [                    2:0] r_data_sel_for_log ;
+  reg  [  $clog2(RAM_DEPTH)-1:0] r_read_adrs        ;
   // wires
-  wire [				 NBT_GPIOS-1 :0]	w_data_ram_for_read ;	
+  wire [         NBT_GPIOS-1 :0] w_data_ram_for_read;	
 			 
 
 	// ==== Conection Register File ==== // 
-  reg                           r_rst_soft               ;
-  reg                           r_log_bits_and_errs      ;
-  reg                           r_en_read_bits_and_errs  ;
-  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_Q            ;
-  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_I            ;
-  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_Q            ;
-  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_I            ;
-  reg [                    2:0]	r_mux_read_bits_and_errs ;
+  reg                           r_rst_soft              ;
+  reg                           r_log_bits_and_errs     ;
+  reg                           r_en_read_bits_and_errs ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_Q           ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_err_I           ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_Q           ;
+  reg [NBT_COUNT_BITS_ERR-1 :0]	r_accum_bit_I           ;
+  reg [                    2:0]	r_mux_read_bits_and_errs;
 	// wire 
-  wire [        NBT_GPIOS-1 :0] w_data_bits_and_errs     ;	
+  wire [        NBT_GPIOS-1 :0] w_data_bits_and_errs    ;	
 
 
   // ========== Conection DSP ============= // 
@@ -93,7 +93,7 @@ module top #(
 
 	// ======= Conection VIO e ILA ==========
   wire [3:0] w_normal_led     ;
-	wire       w_reset          ;
+  wire       w_reset          ;
   wire       w_sw             ;
   wire       w_select_from_vio;
   wire       w_reset_from_vio ;
@@ -226,25 +226,25 @@ module top #(
 
   always @(posedge clk)	begin      
     if(w_reset== 1'b1) begin
-        r_rst_soft               	<= 1'b1;
-        r_en_read_bits_and_errs		<= 1'b0;
-        r_en_write             		<= 1'b0;
-        r_en_read_from_ram     		<= 1'b0;
-        r_log_bits_and_errs      	<= 1'b0;
-        r_data_sel_for_log     		<= {3{1'b0}};
-        r_mux_read_bits_and_errs	<= {3{1'b0}};
-        r_read_adrs             	<= {$clog2(RAM_DEPTH){1'b0}};
-        r_accum_err_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-        r_accum_err_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
-        r_accum_bit_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-        r_accum_bit_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
+        r_rst_soft               <= 1'b1;
+        r_en_read_bits_and_errs  <= 1'b0;
+        r_en_write               <= 1'b0;
+        r_en_read_from_ram       <= 1'b0;
+        r_log_bits_and_errs      <= 1'b0;
+        r_data_sel_for_log       <= {3{1'b0}};
+        r_mux_read_bits_and_errs <= {3{1'b0}};
+        r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
+        r_accum_err_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+        r_accum_err_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
+        r_accum_bit_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+        r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
         
      end
      else begin   
         if(w_gpio_to_regf[23] == 1'b1)begin
             case (w_gpio_to_regf[31:24])
                 8'h01: begin
-                    r_rst_soft              <= w_gpio_to_regf[0];	// 0 Reset for sys comm (nedge)
+                    r_rst_soft              <= w_gpio_to_regf[0];// 0 Reset for sys comm (nedge)
        	            r_rst_soft              <= 1'b1;
        	            r_en_read_bits_and_errs <= 1'b0;
        	            r_en_write              <= 1'b0;
@@ -266,91 +266,92 @@ module top #(
                 8'h03: begin
                     r_data_sel_for_log <= w_gpio_to_regf[2:0];	// 3 Login data in RAM,
                     r_en_write         <= w_gpio_to_regf[3]  ;	// Signal enbl for write data in RAM
-
-      						  r_rst_soft                <= 1'b1;
-      						  r_en_read_bits_and_errs   <= 1'b0;
-      						  r_en_read_from_ram     	  <= 1'b0;
-      						  r_log_bits_and_errs       <= 1'b0;
-      						  r_mux_read_bits_and_errs	<= {3{1'b0}};
-      						  r_read_adrs               <= {$clog2(RAM_DEPTH){1'b0}};
-      						  r_accum_err_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-      						  r_accum_err_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
-      						  r_accum_bit_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-      						  r_accum_bit_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    
+                    r_rst_soft               <= 1'b1;
+                    r_en_read_bits_and_errs  <= 1'b0;
+                    r_en_read_from_ram       <= 1'b0;
+                    r_log_bits_and_errs      <= 1'b0;
+                    r_mux_read_bits_and_errs <= {3{1'b0}};
+                    r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
+                    r_accum_err_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_err_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
                 end								 
                 
                 8'h04: begin // 4 Read data from RAM
-                    r_en_read_from_ram   								<= w_gpio_to_regf[16];      
-                    r_read_adrs[$clog2(RAM_DEPTH)-1:0]  <= w_gpio_to_regf[$clog2(RAM_DEPTH)-1:0];	// Addrs for read in RAM
-										
-	     						  r_rst_soft              	<= 1'b1;
-       						  r_en_read_bits_and_errs		<= 1'b0;
-       						  r_en_write              	<= 1'b0;
-       						  r_log_bits_and_errs       <= 1'b0;
-       						  r_data_sel_for_log     		<= {3{1'b0}};
-       						  r_mux_read_bits_and_errs	<= {3{1'b0}};
-       						  r_accum_err_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_err_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_bit_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_bit_I             <= {NBT_COUNT_BITS_ERR{1'b0}};					
+                    r_en_read_from_ram                 <= w_gpio_to_regf[16];      
+                    r_read_adrs[$clog2(RAM_DEPTH)-1:0] <= w_gpio_to_regf[$clog2(RAM_DEPTH)-1:0];// Addrs for read in RAM
+                    
+                    r_rst_soft               <= 1'b1;
+                    r_en_read_bits_and_errs  <= 1'b0;
+                    r_en_write               <= 1'b0;
+                    r_log_bits_and_errs      <= 1'b0;
+                    r_data_sel_for_log       <= {3{1'b0}};
+                    r_mux_read_bits_and_errs <= {3{1'b0}};
+                    r_accum_err_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_err_I             <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_Q             <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_I             <= {NBT_COUNT_BITS_ERR{1'b0}};					
                 end
                
                 8'h05: begin 
                     r_log_bits_and_errs	<= w_gpio_to_regf[0];
-
-										if (r_log_bits_and_errs) begin
-                				r_accum_err_Q  <= w_accum_err_Q;	 
-               				  r_accum_err_I  <= w_accum_err_I;	 
-               				  r_accum_bit_Q  <= w_accum_bit_Q; 	 
-               				  r_accum_bit_I  <= w_accum_bit_I; 	 
-           					end 
-					 					else begin  
-       						  		r_accum_err_Q  <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  		r_accum_err_I  <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  		r_accum_bit_Q  <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  		r_accum_bit_I  <= {NBT_COUNT_BITS_ERR{1'b0}};
-										end
-
-       								  r_rst_soft               <= 1'b1;
-       								  r_en_read_bits_and_errs	 <= 1'b0;
-       								  r_en_write               <= 1'b0;
-       								  r_en_read_from_ram       <= 1'b0;
-       								  r_data_sel_for_log       <= {3{1'b0}};
-       								  r_mux_read_bits_and_errs <= {3{1'b0}};
-       								  r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
-       								  r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    
+                    if (r_log_bits_and_errs) begin
+                        r_accum_err_Q  <= w_accum_err_Q;	 
+                        r_accum_err_I  <= w_accum_err_I;	 
+                        r_accum_bit_Q  <= w_accum_bit_Q; 	 
+                        r_accum_bit_I  <= w_accum_bit_I; 	 
+                    end 
+                    else begin  
+                        r_accum_err_Q  <= {NBT_COUNT_BITS_ERR{1'b0}};
+                        r_accum_err_I  <= {NBT_COUNT_BITS_ERR{1'b0}};
+                        r_accum_bit_Q  <= {NBT_COUNT_BITS_ERR{1'b0}};
+                        r_accum_bit_I  <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    end
+                    
+                    r_rst_soft               <= 1'b1;
+                    r_en_read_bits_and_errs	 <= 1'b0;
+                    r_en_write               <= 1'b0;
+                    r_en_read_from_ram       <= 1'b0;
+                    r_data_sel_for_log       <= {3{1'b0}};
+                    r_mux_read_bits_and_errs <= {3{1'b0}};
+                    r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
+                    r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
                 end
                 
                 8'h06: begin
-                    r_mux_read_bits_and_errs	<= w_gpio_to_regf[2:0];  // 6 Read bits and err 
-                    r_en_read_bits_and_errs		<= w_gpio_to_regf[3]	;
-
-       						  r_rst_soft              <= 1'b1;
-       						  r_en_read_bits_and_errs	<= 1'b0;
-       						  r_en_write             	<= 1'b0;
-       						  r_en_read_from_ram     	<= 1'b0;
-       						  r_log_bits_and_errs     <= 1'b0;
-       						  r_read_adrs             <= {$clog2(RAM_DEPTH){1'b0}};
-       						  r_accum_err_Q           <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_err_I           <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_bit_Q           <= {NBT_COUNT_BITS_ERR{1'b0}};
-       						  r_accum_bit_I           <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_mux_read_bits_and_errs <= w_gpio_to_regf[2:0];  // 6 Read bits and err
+                    r_en_read_bits_and_errs  <= w_gpio_to_regf[3]  ;
+                    
+                    r_rst_soft              <= 1'b1;
+                    r_en_read_bits_and_errs <= 1'b0;
+                    r_en_write              <= 1'b0;
+                    r_en_read_from_ram      <= 1'b0;
+                    r_log_bits_and_errs     <= 1'b0;
+                    r_read_adrs             <= {$clog2(RAM_DEPTH){1'b0}};
+                    r_accum_err_Q           <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_err_I           <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_Q           <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_I           <= {NBT_COUNT_BITS_ERR{1'b0}};
                 end		
                 
-								default: begin 
-	       						r_rst_soft               <= 1'b1;
-       	 					  r_en_read_bits_and_errs	 <= 1'b0;
-       	 					  r_en_write             	 <= 1'b0;
-       	 					  r_en_read_from_ram     	 <= 1'b0;
-       	 					  r_log_bits_and_errs      <= 1'b0;
-       	 					  r_data_sel_for_log     	 <= {3{1'b0}};
-       	 					  r_mux_read_bits_and_errs <= {3{1'b0}};
-       	 					  r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
-       	 					  r_accum_err_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
-       	 					  r_accum_err_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
-       	 					  r_accum_bit_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
-       	 					  r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};							
-								end  
+                default: begin 
+                    r_rst_soft               <= 1'b1;
+                    r_en_read_bits_and_errs	 <= 1'b0;
+                    r_en_write             	 <= 1'b0;
+                    r_en_read_from_ram     	 <= 1'b0;
+                    r_log_bits_and_errs      <= 1'b0;
+                    r_data_sel_for_log     	 <= {3{1'b0}};
+                    r_mux_read_bits_and_errs <= {3{1'b0}};
+                    r_read_adrs              <= {$clog2(RAM_DEPTH){1'b0}};
+                    r_accum_err_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_err_I            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_Q            <= {NBT_COUNT_BITS_ERR{1'b0}};
+                    r_accum_bit_I            <= {NBT_COUNT_BITS_ERR{1'b0}};							
+                end  
+                
            endcase          
         end //Fin de if(w_gpio_to_regf[23] == 1'b1)
      end //Fin de else begin    
