@@ -12,7 +12,7 @@ module block_ram #(
 
   input  [$clog2(RAM_DEPTH)-1:0] i_write_addr ,
   input  [$clog2(RAM_DEPTH)-1:0] i_read_addr  ,
-  input  [      RAM_WIDTH - 1:0] i_data_input ,
+  input  [        RAM_WIDTH-1:0] i_data_input ,
   input                          i_write_en   ,
   input                          i_read_en    ,
   input                          i_reset      ,
@@ -47,7 +47,8 @@ module block_ram #(
     
     if (i_read_en) begin
         RAM_DATA <= BlockRAM[i_read_addr];
-    end begin
+		end 
+		else begin
         RAM_DATA <= RAM_DATA;
     end
   end
