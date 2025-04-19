@@ -34,8 +34,18 @@ module fir_filter
   // Internal registers and wires
   reg  signed [   NBT_IN-1:0] r_shifter  [NUM_COEFF-1:0]; 
   reg  signed [NBT_COEFF-1:0] r_coeff    [NUM_COEFF-1:0];
-  wire signed [ NBT_PROD-1:0] w_part_prod[NUM_COEFF-1:0];
-  reg  signed [  NBT_ADD-1:0] w_add                     ;
+  reg  signed [ NBT_PROD-1:0] r_part_prod[NUM_COEFF-1:0];
+  reg  signed [  NBT_ADD-1:0] w_sum1_a                  ;
+  reg  signed [  NBT_ADD-1:0] w_sum1_b                  ;
+  reg  signed [  NBT_ADD-1:0] w_sum1_c                  ;
+  reg  signed [  NBT_ADD-1:0] w_sum1_d                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum1_a                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum1_b                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum1_c                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum1_d                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum2_a                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum2_b                  ;
+  reg  signed [  NBT_ADD-1:0] r_sum_final               ;
   
   // Load the filter coefficient values
   initial begin
@@ -43,7 +53,7 @@ module fir_filter
   end   
 
 
-  // Shift register: Sequentially updates input bits (representing QPSK symbols)
+  // Shift register: Sequentially updates input samples
   integer i;
   always @(posedge clk) begin
     if (i_reset==1'b1 || i_en==1'b0) begin
@@ -64,27 +74,92 @@ module fir_filter
   end
 
 
-  // Compute partial products based on filter phase and stored symbols (1 or -1)
-  genvar j;
-  generate
-      for (j=0; j<NUM_COEFF ; j=j+1) begin : multiply
-          assign w_part_prod[j] = r_shifter[j] * r_coeff[j];
-      end
-  endgenerate
-
-  // Add all the partial products
-  integer k;
-  always @(*) begin
-    w_add = 0;
-    for (k=0 ; k<NUM_COEFF ; k=k+1) begin
-        w_add = w_add + w_part_prod[k];
+  // Compute partial products 
+  integer j;
+  always @(posedge clk) begin
+    if (i_reset==1'b1 || i_en==1'b0) begin
+        for (j=0 ; j< NUM_COEFF ; j=j+1) begin
+            r_part_prod[j] <= {NBT_PROD{1'b0}};
+        end
+    end
+    else begin
+        for (j=0; j<NUM_COEFF ; j=j+1) begin
+            r_part_prod[j] <= r_shifter[j] * r_coeff[j];
+        end
     end
   end
 
+
+  // SUM OF PARTIAL PRODUCTOS IN 3 STAGES
+
+  ////Sum all partial products in 4 groups
+  integer k;
+  always @(*) begin
+      w_sum1_a = 0;
+      w_sum1_b = 0;
+      w_sum1_c = 0;
+      w_sum1_d = 0;
+      for (k=0 ; k<NUM_COEFF ; k=k+1) begin
+          if (k<5) begin
+              w_sum1_a = w_sum1_a + r_part_prod[k];
+          end
+          else if (k<9) begin
+              w_sum1_b = w_sum1_b + r_part_prod[k];
+          end
+          else if (k<13) begin
+              w_sum1_c = w_sum1_c + r_part_prod[k];
+          end
+          else begin
+              w_sum1_d = w_sum1_d + r_part_prod[k];
+          end
+      end
+  end
+  ////Register the 4 groups
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en==1'b0) begin
+          r_sum1_a <= {NBT_ADD{1'b0}};
+          r_sum1_b <= {NBT_ADD{1'b0}};
+          r_sum1_c <= {NBT_ADD{1'b0}};
+          r_sum1_d <= {NBT_ADD{1'b0}};
+      end
+      else begin
+          r_sum1_a <= w_sum1_a;
+          r_sum1_b <= w_sum1_b;
+          r_sum1_c <= w_sum1_c;
+          r_sum1_d <= w_sum1_d;
+      end
+  end
+
+
+  ////Combine the 4 groups into 2 intermediate sums
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en==1'b0) begin
+          r_sum2_a <= {NBT_ADD{1'b0}};
+          r_sum2_b <= {NBT_ADD{1'b0}};
+      end
+      else begin
+          r_sum2_a <= r_sum1_a+r_sum1_b;
+          r_sum2_b <= r_sum1_c+r_sum1_d;
+      end
+  end
+
+  
+  ////Add the 2 intermediate sums to produce the final result
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en==1'b0) begin
+          r_sum_final <= {NBT_ADD{1'b0}};
+      end
+      else begin
+          r_sum_final <= r_sum2_a+r_sum2_b;
+      end
+  end
+
+
+
   // Output assignment: Apply saturation and truncation to S(8,7) format
-  assign o_os_data  = ( ~|w_add[(NBT_ADD-1) -: NBI_ADD] || &w_add[(NBT_ADD-1) -: NBI_ADD])
-                        ? w_add[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
-                        :( (w_add[NBT_ADD-1])
+  assign o_os_data  = ( ~|r_sum_final[(NBT_ADD-1) -: NBI_ADD] || &r_sum_final[(NBT_ADD-1) -: NBI_ADD])
+                        ? r_sum_final[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
+                        :( (r_sum_final[NBT_ADD-1])
                            ? { 1'b1, {(NBT_OUT-1){1'b0}} }
                            : { 1'b0, {(NBT_OUT-1){1'b1}} } );
 

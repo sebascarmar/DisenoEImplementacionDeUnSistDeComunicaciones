@@ -38,20 +38,36 @@ module fse #(
 
 
   // Internal registers and wires
-  reg  signed [     NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
-  reg  signed [     NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
-  reg  signed [   NBT_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
-  reg  signed [   NBT_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
-  wire signed [   NBT_PROD-1:0] w_part_prod_sIxtI[NUM_TAPS-1:0];
-  wire signed [   NBT_PROD-1:0] w_part_prod_sQxtI[NUM_TAPS-1:0];
-  wire signed [   NBT_PROD-1:0] w_part_prod_sIxtQ[NUM_TAPS-1:0];
-  wire signed [   NBT_PROD-1:0] w_part_prod_sQxtQ[NUM_TAPS-1:0];
-  reg  signed [    NBT_ADD-1:0] w_add_sIxtI                    ;
-  reg  signed [    NBT_ADD-1:0] w_add_sQxtQ                    ;
-  reg  signed [    NBT_ADD-1:0] w_add_sIxtQ                    ;
-  reg  signed [    NBT_ADD-1:0] w_add_sQxtI                    ;
-  wire signed [(NBT_ADD+1)-1:0] w_add_I                        ;
-  wire signed [(NBT_ADD+1)-1:0] w_add_Q                        ;
+  reg  signed [     NBT_IN-1:0] r_shifter_I       [NUM_TAPS-1:0]; 
+  reg  signed [     NBT_IN-1:0] r_shifter_Q       [NUM_TAPS-1:0]; 
+  reg  signed [   NBT_TAPS-1:0] r_taps_I          [NUM_TAPS-1:0];
+  reg  signed [   NBT_TAPS-1:0] r_taps_Q          [NUM_TAPS-1:0];
+  reg  signed [   NBT_PROD-1:0] r_part_prod_sIxtI [NUM_TAPS-1:0];
+  reg  signed [   NBT_PROD-1:0] r_part_prod_sQxtI [NUM_TAPS-1:0];
+  reg  signed [   NBT_PROD-1:0] r_part_prod_sIxtQ [NUM_TAPS-1:0];
+  reg  signed [   NBT_PROD-1:0] r_part_prod_sQxtQ [NUM_TAPS-1:0];
+  reg  signed [    NBT_ADD-1:0] w_sum_sIxtI_A                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sQxtQ_A                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sIxtQ_A                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sQxtI_A                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sIxtI_B                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sQxtQ_B                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sIxtQ_B                   ;
+  reg  signed [    NBT_ADD-1:0] w_sum_sQxtI_B                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtI_A                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtQ_A                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtQ_A                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtI_A                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtI_B                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtQ_B                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtQ_B                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtI_B                   ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtI                     ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtQ                     ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sIxtQ                     ;
+  reg  signed [    NBT_ADD-1:0] r_sum_sQxtI                     ;
+  reg  signed [(NBT_ADD+1)-1:0] r_sum_final_I                   ;
+  reg  signed [(NBT_ADD+1)-1:0] r_sum_final_Q                   ;
 
 
   // Shift register: Sequentially updates input samples at rate 2
@@ -110,47 +126,119 @@ module fse #(
   endgenerate
 
   // Compute partial products between input samples and filter coefficients
-  genvar k;
-  generate
-      for (k=0; k<NUM_TAPS ; k=k+1) begin : multiply
-          assign w_part_prod_sIxtI[k] = r_shifter_I[k] * r_taps_I[k];
-          assign w_part_prod_sQxtQ[k] = r_shifter_Q[k] * r_taps_Q[k];
-          
-          assign w_part_prod_sIxtQ[k] = r_shifter_I[k] * r_taps_Q[k];
-          assign w_part_prod_sQxtI[k] = r_shifter_Q[k] * r_taps_I[k];
-      end
-  endgenerate
-
-  // Sum all partial products for each component
-  integer m;
-  always @(*) begin
-    w_add_sIxtI = 0;
-    w_add_sQxtQ = 0;
-    w_add_sIxtQ = 0;
-    w_add_sQxtI = 0;
-    for (m=0 ; m<NUM_TAPS ; m=m+1) begin
-        w_add_sIxtI = w_add_sIxtI + w_part_prod_sIxtI[m];
-        w_add_sQxtQ = w_add_sQxtQ + w_part_prod_sQxtQ[m];
-        w_add_sIxtQ = w_add_sIxtQ + w_part_prod_sIxtQ[m];
-        w_add_sQxtI = w_add_sQxtI + w_part_prod_sQxtI[m];
+  integer k;
+  always @(posedge clk) begin
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
+        for (k=0 ; k<NUM_TAPS ; k=k+1) begin
+            r_part_prod_sIxtI[k] <= {NBT_PROD{1'b0}};
+            r_part_prod_sQxtQ[k] <= {NBT_PROD{1'b0}};
+            r_part_prod_sIxtQ[k] <= {NBT_PROD{1'b0}};
+            r_part_prod_sQxtI[k] <= {NBT_PROD{1'b0}};
+        end
+    end
+    else begin
+        for (k=0 ; k<NUM_TAPS ; k=k+1) begin
+            r_part_prod_sIxtI[k] <= r_shifter_I[k] * r_taps_I[k];
+            r_part_prod_sQxtQ[k] <= r_shifter_Q[k] * r_taps_Q[k];
+            r_part_prod_sIxtQ[k] <= r_shifter_I[k] * r_taps_Q[k];
+            r_part_prod_sQxtI[k] <= r_shifter_Q[k] * r_taps_I[k];
+        end
     end
   end
 
 
-  // Compute final summed values for I and Q outputs
-  assign  w_add_I    = w_add_sIxtI - w_add_sQxtQ;
-  assign  w_add_Q    = w_add_sIxtQ + w_add_sQxtI;
+  // Sum of partial products in 3 stages
+
+  ////1st level: sum all partial products into 2 groups
+  integer m;
+  always @(*) begin
+    w_sum_sIxtI_A = 0;
+    w_sum_sQxtQ_A = 0;
+    w_sum_sIxtQ_A = 0;
+    w_sum_sQxtI_A = 0;
+    w_sum_sIxtI_B = 0;
+    w_sum_sQxtQ_B = 0;
+    w_sum_sIxtQ_B = 0;
+    w_sum_sQxtI_B = 0;
+    for (m=0 ; m<NUM_TAPS ; m=m+1) begin
+        if (m<NUM_TAPS/2) begin
+            w_sum_sIxtI_A = w_sum_sIxtI_A + r_part_prod_sIxtI[m];
+            w_sum_sQxtQ_A = w_sum_sQxtQ_A + r_part_prod_sQxtQ[m];
+            w_sum_sIxtQ_A = w_sum_sIxtQ_A + r_part_prod_sIxtQ[m];
+            w_sum_sQxtI_A = w_sum_sQxtI_A + r_part_prod_sQxtI[m];
+        end
+        else begin
+            w_sum_sIxtI_B = w_sum_sIxtI_B + r_part_prod_sIxtI[m];
+            w_sum_sQxtQ_B = w_sum_sQxtQ_B + r_part_prod_sQxtQ[m];
+            w_sum_sIxtQ_B = w_sum_sIxtQ_B + r_part_prod_sIxtQ[m];
+            w_sum_sQxtI_B = w_sum_sQxtI_B + r_part_prod_sQxtI[m];
+        end
+    end
+  end
+  ////1st level: register the 2 groups for each partial product type
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en_rx==1'b0) begin
+          r_sum_sIxtI_A <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtQ_A <= {(NBT_ADD){1'b0}};
+          r_sum_sIxtQ_A <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtI_A <= {(NBT_ADD){1'b0}};
+          r_sum_sIxtI_B <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtQ_B <= {(NBT_ADD){1'b0}};
+          r_sum_sIxtQ_B <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtI_B <= {(NBT_ADD){1'b0}};
+      end
+      else begin
+          r_sum_sIxtI_A <= w_sum_sIxtI_A;
+          r_sum_sQxtQ_A <= w_sum_sQxtQ_A;
+          r_sum_sIxtQ_A <= w_sum_sIxtQ_A;
+          r_sum_sQxtI_A <= w_sum_sQxtI_A;
+          r_sum_sIxtI_B <= w_sum_sIxtI_B;
+          r_sum_sQxtQ_B <= w_sum_sQxtQ_B;
+          r_sum_sIxtQ_B <= w_sum_sIxtQ_B;
+          r_sum_sQxtI_B <= w_sum_sQxtI_B;
+      end
+  end
+
+  ////2nd level: combine each pair of groups into final convolution sums
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en_rx==1'b0) begin
+          r_sum_sIxtI <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtQ <= {(NBT_ADD){1'b0}};
+          r_sum_sIxtQ <= {(NBT_ADD){1'b0}};
+          r_sum_sQxtI <= {(NBT_ADD){1'b0}};
+      end
+      else begin
+          r_sum_sIxtI <= r_sum_sIxtI_A+r_sum_sIxtI_B;
+          r_sum_sQxtQ <= r_sum_sQxtQ_A+r_sum_sQxtQ_B;
+          r_sum_sIxtQ <= r_sum_sIxtQ_A+r_sum_sIxtQ_B;
+          r_sum_sQxtI <= r_sum_sQxtI_A+r_sum_sQxtI_B;
+      end
+  end
+
+  ////3rd level: register the final I and Q output values
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en_rx==1'b0) begin
+          r_sum_final_I <= {(NBT_ADD+1){1'b0}};
+          r_sum_final_Q <= {(NBT_ADD+1){1'b0}};
+      end
+      else begin
+          r_sum_final_I <= r_sum_sIxtI - r_sum_sQxtQ;
+          r_sum_final_Q <= r_sum_sIxtQ + r_sum_sQxtI;
+      end
+  end
+
+
 
   // Output assignments: Apply saturation and truncation to S(12,9) format
-  assign o_os_data_I  = ( ~|w_add_I[(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[(NBT_ADD-1) -: NB_SAT+1])
-                        ? w_add_I[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
-                        :( (w_add_I[NBT_ADD-1])
+  assign o_os_data_I  = ( ~|r_sum_final_I[(NBT_ADD-1) -: NB_SAT+1] || &r_sum_final_I[(NBT_ADD-1) -: NB_SAT+1])
+                        ? r_sum_final_I[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
+                        :( (r_sum_final_I[NBT_ADD-1])
                            ? { 1'b1, {(NBT_OUT-1){1'b0}} }
                            : { 1'b0, {(NBT_OUT-1){1'b1}} } );
 
-  assign o_os_data_Q  = ( ~|w_add_Q[(NBT_ADD-1) -: NB_SAT+1] || &w_add_Q[(NBT_ADD-1) -: NB_SAT+1])
-                        ? w_add_Q[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
-                        :( (w_add_Q[NBT_ADD-1])
+  assign o_os_data_Q  = ( ~|r_sum_final_Q[(NBT_ADD-1) -: NB_SAT+1] || &r_sum_final_Q[(NBT_ADD-1) -: NB_SAT+1])
+                        ? r_sum_final_Q[(NBT_ADD-1)-NB_SAT -: NBT_OUT]
+                        :( (r_sum_final_Q[NBT_ADD-1])
                            ? { 1'b1, {(NBT_OUT-1){1'b0}} }
                            : { 1'b0, {(NBT_OUT-1){1'b1}} } );
 

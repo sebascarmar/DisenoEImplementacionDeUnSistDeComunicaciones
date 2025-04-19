@@ -53,8 +53,8 @@ module adaptive_filter #(
   wire signed [                NBT_OUT-1:0] w_dw_r1Q_to_slcrQ;
   wire signed [                NBT_OUT-1:0] w_err_I_aux      ;
   wire signed [                NBT_OUT-1:0] w_err_Q_aux      ;
-  wire signed [                NBT_ERR-1:0] w_err_I          ;
-  wire signed [                NBT_ERR-1:0] w_err_Q          ;
+  reg  signed [                NBT_ERR-1:0] r_err_I          ;
+  reg  signed [                NBT_ERR-1:0] r_err_Q          ;
   (* keep *) wire signed [     NBT_OUT-1:0] w_sym_slcr_I     ;
   (* keep *) wire signed [     NBT_OUT-1:0] w_sym_slcr_Q     ;
   
@@ -81,8 +81,8 @@ module adaptive_filter #(
     .o_taps_Q     (w_taps_Q    ), // [NBT_TAPS-1:0] data_array [NUM_TAPS-1:0]
     .i_is_data_I  (i_is_data_I ),
     .i_is_data_Q  (i_is_data_Q ),
-    .i_err_I      (w_err_I     ),
-    .i_err_Q      (w_err_Q     ),
+    .i_err_I      (r_err_I     ),
+    .i_err_Q      (r_err_Q     ),
     .i_en_shtr    (i_en_rate2  ),
     .i_en_taps    (i_en_rate1  ),
     .i_save_shftrs(i_save_shtrs),
@@ -153,8 +153,16 @@ module adaptive_filter #(
   assign w_err_I_aux = w_dw_r1I_to_slcrI - w_sym_slcr_I;
   assign w_err_Q_aux = w_dw_r1Q_to_slcrQ - w_sym_slcr_Q;
 
-  assign w_err_I     = w_err_I_aux[(NBT_OUT-1)-1 -: NBT_ERR];
-  assign w_err_Q     = w_err_Q_aux[(NBT_OUT-1)-1 -: NBT_ERR];
+  always @(posedge clk) begin
+      if (i_reset==1'b1 || i_en_rx==1'b0) begin
+          r_err_I <= {NBT_ERR{1'b1}};
+          r_err_Q <= {NBT_ERR{1'b1}};
+      end
+      else begin
+          r_err_I <= w_err_I_aux[(NBT_OUT-1)-1 -: NBT_ERR];
+          r_err_Q <= w_err_Q_aux[(NBT_OUT-1)-1 -: NBT_ERR];
+      end
+  end
 
 
   // Output assignments
@@ -168,4 +176,3 @@ module adaptive_filter #(
   assign o_taps_Q         = w_taps_Q;
 
 endmodule
-

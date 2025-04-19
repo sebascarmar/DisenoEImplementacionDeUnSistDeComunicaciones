@@ -57,23 +57,23 @@ module lms #(
 
 
   // Internal registers and wires
-  reg  signed [      NBT_IN-1:0] r_shifter_I      [NUM_TAPS-1:0]; 
-  reg  signed [      NBT_IN-1:0] r_shifter_Q      [NUM_TAPS-1:0]; 
-  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_I [NUM_TAPS-1:0]; 
-  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_Q [NUM_TAPS-1:0]; 
-  reg  signed [NBT_LMS_TAPS-1:0] r_taps_I         [NUM_TAPS-1:0];
-  reg  signed [NBT_LMS_TAPS-1:0] r_taps_Q         [NUM_TAPS-1:0];
+  reg  signed [      NBT_IN-1:0] r_shifter_I      [3+NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shifter_Q      [3+NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_I [  NUM_TAPS-1:0]; 
+  reg  signed [      NBT_IN-1:0] r_shftr_buf_r1_Q [  NUM_TAPS-1:0]; 
+  reg  signed [NBT_LMS_TAPS-1:0] r_taps_I         [  NUM_TAPS-1:0];
+  reg  signed [NBT_LMS_TAPS-1:0] r_taps_Q         [  NUM_TAPS-1:0];
 
-  wire signed [NBT_STEP+NBT_LEAK-1:0] one                    ;
-  assign one = (1'b1 << (NBF_STEP+NBF_LEAK))                 ;
-  wire signed [    NBT_TERM1-1:0] w_term1_I    [NUM_TAPS-1:0];//S(51,46)
-  wire signed [    NBT_TERM2-1:0] w_term2_I    [NUM_TAPS-1:0];//S(33,27)
-  wire signed [      NBT_ADD-1:0] w_add_I      [NUM_TAPS-1:0];//S(52,46)
-  wire signed [ NBT_LMS_TAPS-1:0] w_new_taps_I [NUM_TAPS-1:0];//S(28,25)
-  wire signed [    NBT_TERM1-1:0] w_term1_Q    [NUM_TAPS-1:0];
-  wire signed [    NBT_TERM2-1:0] w_term2_Q    [NUM_TAPS-1:0];
-  wire signed [      NBT_ADD-1:0] w_add_Q      [NUM_TAPS-1:0];
-  wire signed [ NBT_LMS_TAPS-1:0] w_new_taps_Q [NUM_TAPS-1:0];
+  wire signed [NBT_STEP+NBT_LEAK-1:0] one                   ;
+  assign one = (1'b1 << (NBF_STEP+NBF_LEAK))                ;
+  reg signed [    NBT_TERM1-1:0] r_term1_I    [NUM_TAPS-1:0];//S(51,46)
+  reg signed [    NBT_TERM2-1:0] r_term2_I    [NUM_TAPS-1:0];//S(33,27)
+  reg signed [      NBT_ADD-1:0] w_add_I      [NUM_TAPS-1:0];//S(52,46)
+  reg signed [ NBT_LMS_TAPS-1:0] w_new_taps_I [NUM_TAPS-1:0];//S(28,25)
+  reg signed [    NBT_TERM1-1:0] r_term1_Q    [NUM_TAPS-1:0];
+  reg signed [    NBT_TERM2-1:0] r_term2_Q    [NUM_TAPS-1:0];
+  reg signed [      NBT_ADD-1:0] w_add_Q      [NUM_TAPS-1:0];
+  reg signed [ NBT_LMS_TAPS-1:0] w_new_taps_Q [NUM_TAPS-1:0];
 
 
 
@@ -81,14 +81,14 @@ module lms #(
   integer i;
   always @(posedge clk) begin
     if (i_reset==1'b1 || i_en_rx==1'b0) begin
-        for (i=0 ; i<NUM_TAPS ; i=i+1) begin
+        for (i=0 ; i<3+NUM_TAPS ; i=i+1) begin
             r_shifter_I[i] <= {NBT_IN{1'b0}};
             r_shifter_Q[i] <= {NBT_IN{1'b0}};
         end
     end
     else begin
         if (i_en_shtr==1'b1) begin // Update shifter at rate 2
-            for (i=0 ; i<NUM_TAPS ; i=i+1) begin
+            for (i=0 ; i<3+NUM_TAPS ; i=i+1) begin
                 if (i==0) begin
                     r_shifter_I[i] <= i_is_data_I;
                     r_shifter_Q[i] <= i_is_data_Q;
@@ -100,7 +100,7 @@ module lms #(
             end
         end
         else begin
-            for (i=0 ; i<NUM_TAPS ; i=i+1) begin
+            for (i=0 ; i<3+NUM_TAPS ; i=i+1) begin
                 r_shifter_I[i] <= r_shifter_I[i];
                 r_shifter_Q[i] <= r_shifter_Q[i];
             end
@@ -109,25 +109,25 @@ module lms #(
   end
   
   // Shifter buffers: updated at rate 1, after taps update 
-  integer n  ;
+  integer j  ;
   always @(posedge clk) begin
     if (i_reset==1'b1 || i_en_rx==1'b0) begin
-        for (n=0 ; n<NUM_TAPS ; n=n+1) begin
-            r_shftr_buf_r1_I[n] <= {NBT_IN{1'b0}};
-            r_shftr_buf_r1_Q[n] <= {NBT_IN{1'b0}};
+        for (j=0 ; j<NUM_TAPS ; j=j+1) begin
+            r_shftr_buf_r1_I[j] <= {NBT_IN{1'b0}};
+            r_shftr_buf_r1_Q[j] <= {NBT_IN{1'b0}};
         end
     end
     else begin
         if (i_save_shftrs==1'b1) begin
-            for (n=0 ; n<NUM_TAPS ; n=n+1) begin
-                r_shftr_buf_r1_I[n] <= r_shifter_I[n];
-                r_shftr_buf_r1_Q[n] <= r_shifter_Q[n];
+            for (j=0 ; j<NUM_TAPS ; j=j+1) begin
+                r_shftr_buf_r1_I[j] <= r_shifter_I[3+j];
+                r_shftr_buf_r1_Q[j] <= r_shifter_Q[3+j];
             end
         end
         else begin
-            for (n=0 ; n<NUM_TAPS ; n=n+1) begin
-                r_shftr_buf_r1_I[n] <= r_shftr_buf_r1_I[n];
-                r_shftr_buf_r1_Q[n] <= r_shftr_buf_r1_Q[n];
+            for (j=0 ; j<NUM_TAPS ; j=j+1) begin
+                r_shftr_buf_r1_I[j] <= r_shftr_buf_r1_I[j];
+                r_shftr_buf_r1_Q[j] <= r_shftr_buf_r1_Q[j];
             end
         end
     end
@@ -135,98 +135,99 @@ module lms #(
 
 
   // FSE coefficient registers: initialized to 1+j0 and updated at rate 1 (BR)
-  integer j  ;
+  integer k  ;
   localparam MID_IDX = NUM_TAPS/2;
   always @(posedge clk) begin
     if (i_reset==1'b1 || i_en_rx==1'b0) begin // Initialize taps with 1+j0 at the center position 
-        for (j=0 ; j<NUM_TAPS ; j=j+1) begin
-            r_taps_I[j] <= (j==MID_IDX) ? { {(NBI_LMS_TAPS-1){1'b0}} , 1'b1 , {NBF_LMS_TAPS{1'b0}} } : {NBT_LMS_TAPS{1'b0}};
-            r_taps_Q[j] <= {NBT_LMS_TAPS{1'b0}};
+        for (k=0 ; k<NUM_TAPS ; k=k+1) begin
+            r_taps_I[k] <= (k==MID_IDX) ? { {(NBI_LMS_TAPS-1){1'b0}} , 1'b1 , {NBF_LMS_TAPS{1'b0}} } : {NBT_LMS_TAPS{1'b0}};
+            r_taps_Q[k] <= {NBT_LMS_TAPS{1'b0}};
         end
     end
     else begin
         if (i_en_taps==1'b1) begin // Update taps at rate 1 (BR)
-            for (j=0 ; j<NUM_TAPS ; j=j+1) begin
-                r_taps_I[j] <= w_new_taps_I[j];
-                r_taps_Q[j] <= w_new_taps_Q[j];
+            for (k=0 ; k<NUM_TAPS ; k=k+1) begin
+                r_taps_I[k] <= w_new_taps_I[k];
+                r_taps_Q[k] <= w_new_taps_Q[k];
             end
         end
         else begin
-            for (j=0 ; j<NUM_TAPS ; j=j+1) begin
-                r_taps_I[j] <= r_taps_I[j];
-                r_taps_Q[j] <= r_taps_Q[j];
+            for (k=0 ; k<NUM_TAPS ; k=k+1) begin
+                r_taps_I[k] <= r_taps_I[k];
+                r_taps_Q[k] <= r_taps_Q[k];
             end
         end
     end
   end
 
 
+  // Update tap values in 2 stages
 
-  // LMS-based coefficient computation for the FSE  
-  genvar k;
+  ////1st stage: compute and register both terms for tap update
+  integer m;
+  always @(posedge clk) begin
+    if (i_reset==1'b1 || i_en_rx==1'b0) begin
+        for (m=0 ; m<NUM_TAPS ; m=m+1) begin
+          r_term1_I[m] <= r_taps_I[m]*(one-STEP*LEAK);
+          r_term2_I[m] <= STEP*(i_err_I*r_shftr_buf_r1_I[m] + i_err_Q*r_shftr_buf_r1_Q[m]);
+          r_term1_Q[m] <= r_taps_Q[m]*(one-STEP*LEAK);
+          r_term2_Q[m] <= STEP*(i_err_I*r_shftr_buf_r1_Q[m] - i_err_Q*r_shftr_buf_r1_I[m]);
+        end
+    end
+    else begin
+        if (i_save_shftrs==1'b1) begin // Update terms at rate 1 (BR)
+            for (m=0 ; m<NUM_TAPS ; m=m+1) begin
+              r_term1_I[m] <= r_taps_I[m]*(one-STEP*LEAK);
+              r_term2_I[m] <= STEP*(i_err_I*r_shftr_buf_r1_I[m] + i_err_Q*r_shftr_buf_r1_Q[m]);
+              r_term1_Q[m] <= r_taps_Q[m]*(one-STEP*LEAK);
+              r_term2_Q[m] <= STEP*(i_err_I*r_shftr_buf_r1_Q[m] - i_err_Q*r_shftr_buf_r1_I[m]);
+            end
+        end
+        else begin
+            for (m=0 ; m<NUM_TAPS ; m=m+1) begin
+              r_term1_I[m] <= r_term1_I[m];
+              r_term2_I[m] <= r_term2_I[m];
+              r_term1_Q[m] <= r_term1_Q[m];
+              r_term2_Q[m] <= r_term2_Q[m];
+            end
+        end
+    end
+  end
+
+  //// 2nd stage: combine both terms to compute the updated tap values
+  integer n;
+  always @(*) begin
+    for (n=0 ; n<NUM_TAPS ; n=n+1) begin
+        w_add_I[n] =  r_term1_I[n] - (r_term2_I[n]<<ALIGN_LSB);
+        w_add_Q[n] =  r_term1_Q[n] + (r_term2_Q[n]<<ALIGN_LSB);
+    end
+  end
+
+
+  // Saturate and truncate updated taps to LSM format (wider than FSE format)
+  integer p;
+  always @(*) begin
+    for (p=0 ; p<NUM_TAPS ; p=p+1) begin
+          w_new_taps_I[p] = ( ~|w_add_I[p][(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[p][(NBT_ADD-1) -: NB_SAT+1])
+                              ? w_add_I[p][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
+                              :( (w_add_I[p][NBT_ADD-1])
+                                 ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
+                                 : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
+          w_new_taps_Q[p] = ( ~|w_add_Q[p][(NBT_ADD-1) -: NB_SAT+1] || &w_add_Q[p][(NBT_ADD-1) -: NB_SAT+1])
+                              ? w_add_Q[p][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
+                              :( (w_add_Q[p][NBT_ADD-1])
+                                 ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
+                                 : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
+    end
+  end
+
+
+  // Assign computed tap values to output bus while applying truncation to FSE format
+  genvar q;
   generate
-      for (k=0; k<NUM_TAPS ; k=k+1) begin
-          // NEW I TAPS CALCULATION:
-          //  new_tap_I = tap_I*(1-step*leak) - step*(err_I*shi_I + err_Q*shi_Q)
-          //  new_tap_I = term1_I - term2_I
-          assign w_term1_I[k] = r_taps_I[k]*(one-STEP*LEAK);
-          assign w_term2_I[k] = STEP*(i_err_I*r_shftr_buf_r1_I[k] + i_err_Q*r_shftr_buf_r1_Q[k]);
-          assign w_add_I[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?   w_term1_I[k] - { {ALIGN_SIG{w_term2_I[k][NBT_TERM2-1]}} , (w_term2_I[k]<<ALIGN_LSB ) } 
-                             :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?   (w_term1_I[k]<<ALIGN_LSB ) - { {ALIGN_SIG{w_term2_I[k][NBT_TERM2-1]}} , w_term2_I[k] }
-                             :(NBI_TERM1<NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?   { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} ,w_term1_I[k] } - (w_term2_I[k]<<ALIGN_LSB)
-                             :(NBI_TERM1<NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?   { {ALIGN_SIG{w_term1_I[k][NBT_TERM1-1]}} , (w_term1_I[k]<<ALIGN_LSB )} - w_term2_I[k]
-                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?   w_term1_I[k] - (w_term2_I[k]<<ALIGN_LSB)
-                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?   (w_term1_I[k]<<ALIGN_LSB ) - w_term2_I[k]
-                             :   w_term1_I[k] - w_term2_I[k] ;
-          // Saturation and truncation of the final computed tap value  
-          assign w_new_taps_I[k] = ( ~|w_add_I[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_I[k][(NBT_ADD-1) -: NB_SAT+1])
-                                     ? w_add_I[k][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
-                                     :( (w_add_I[k][NBT_ADD-1])
-                                        ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
-                                        : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
-          
-          
-          // NEW Q TAPS CALCULATION:
-          //  new_tap_Q = tap_Q*(1-step*leak) + step*(err_I*shi_Q - err_Q*shi_I)
-          //  new_tap_Q = term1_Q - term2_Q
-          assign w_term1_Q[k] = r_taps_Q[k]*(one-STEP*LEAK);
-          assign w_term2_Q[k] = STEP*(i_err_I*r_shftr_buf_r1_Q[k] - i_err_Q*r_shftr_buf_r1_I[k]);
-          assign w_add_Q[k] = (NBI_TERM1>NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?    w_term1_Q[k] + { {ALIGN_SIG{w_term2_Q[k][NBT_TERM2-1]}} , (w_term2_Q[k]<<ALIGN_LSB ) } 
-                             :(NBI_TERM1>NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?    (w_term1_Q[k]<<ALIGN_LSB ) + { {ALIGN_SIG{w_term2_Q[k][NBT_TERM2-1]}} , w_term2_Q[k] }
-                             :(NBI_TERM1<NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?    { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} ,w_term1_Q[k] } + (w_term2_Q[k]<<ALIGN_LSB)
-                             :(NBI_TERM1<NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?    { {ALIGN_SIG{w_term1_Q[k][NBT_TERM1-1]}} , (w_term1_Q[k]<<ALIGN_LSB )} + w_term2_Q[k]
-                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1>NBF_TERM2)
-                             ?   w_term1_Q[k] + (w_term2_Q[k]<<ALIGN_LSB)
-                             :(NBI_TERM1==NBI_TERM2 && NBF_TERM1<NBF_TERM2)
-                             ?  (w_term1_Q[k]<<ALIGN_LSB ) + w_term2_Q[k]
-                             :    w_term1_Q[k] + w_term2_Q[k] ;
-          // Saturation and truncation of the final computed tap value  
-          assign w_new_taps_Q[k] = ( ~|w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1] || &w_add_Q[k][(NBT_ADD-1) -: NB_SAT+1])
-                                     ? w_add_Q[k][(NBT_ADD-1)-NB_SAT -: NBT_LMS_TAPS]
-                                     :( (w_add_Q[k][NBT_ADD-1])
-                                        ? { 1'b1, {(NBT_LMS_TAPS-1){1'b0}} }
-                                        : { 1'b0, {(NBT_LMS_TAPS-1){1'b1}} } );
-      end
-      
-  endgenerate
-
-
-  // Assign computed tap values to output bus  
-  genvar m;
-  generate
-      for (m=0; m<NUM_TAPS ; m=m+1) begin : assign_taps
-          assign o_taps_I[(m+1)*NBT_FSE_TAPS-1 : m*NBT_FSE_TAPS] = r_taps_I[m][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
-          assign o_taps_Q[(m+1)*NBT_FSE_TAPS-1 : m*NBT_FSE_TAPS] = r_taps_Q[m][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
+      for (q=0; q<NUM_TAPS ; q=q+1) begin
+          assign o_taps_I[(q+1)*NBT_FSE_TAPS-1 : q*NBT_FSE_TAPS] = r_taps_I[q][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
+          assign o_taps_Q[(q+1)*NBT_FSE_TAPS-1 : q*NBT_FSE_TAPS] = r_taps_Q[q][(NBT_LMS_TAPS-1) -: NBT_FSE_TAPS];
       end
   endgenerate
 
@@ -245,3 +246,4 @@ endfunction
 
 
 endmodule
+
