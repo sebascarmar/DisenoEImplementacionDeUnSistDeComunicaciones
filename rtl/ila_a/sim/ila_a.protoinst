@@ -1,9 +1,0 @@
-{
-	"version": "1.0",
-	"modules": {
-		"ila_a": {
-			"proto_instances": {
-			}
-		}
-	}
-}
