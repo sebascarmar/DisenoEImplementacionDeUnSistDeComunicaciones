@@ -156,11 +156,15 @@ module qpsk_comm_sys
 //  output                                          o_control_for_rate_2,
 //  output                                          o_control_for_rate_1,
 //  //
-  output  [3:0] o_normal_led        ,
+  output [1:0] o_normal_led,
+  output       o_rgb_led3_b,
+  output       o_rgb_led2_b,
+  output       o_rgb_led1_g,
+  output       o_rgb_led0_g,
 
-  input         i_sw                ,
-  input         i_reset             ,
-  input         clk
+  input        i_sw        ,
+  input        i_reset     ,
+  input        clk
  );
   
   
@@ -189,6 +193,8 @@ module qpsk_comm_sys
   wire signed [   NBT_FSE_OUT-1:0] w_rx_symQ_to_demapQ       ;
   wire                             w_rx_bitI_to_ber          ;
   wire                             w_rx_bitQ_to_ber          ;
+  wire                             w_sync_done_I             ;
+  wire                             w_sync_done_Q             ;
   wire                             w_ber_ok_led_I            ;
   wire                             w_ber_ok_led_Q            ;
   
@@ -465,6 +471,8 @@ module qpsk_comm_sys
 //    .o_accum_err_Q (o_accum_err_Q       ),
 //    .o_accum_tot_Q (o_accum_tot_Q       ),
 //    //
+    .o_sync_done_I (w_sync_done_I       ),
+    .o_sync_done_Q (w_sync_done_Q       ),
     .o_ber_ok_led_I(w_ber_ok_led_I      ),
     .o_ber_ok_led_Q(w_ber_ok_led_Q      ),
     .i_rx_bit_I    (w_rx_bitI_to_ber    ),
@@ -477,10 +485,12 @@ module qpsk_comm_sys
 
 
   //////////////// Assign processed signals to output ports  
-  assign o_normal_led[3] = w_reset       ;
-  assign o_normal_led[2] = i_sw          ;
-  assign o_normal_led[1] = w_ber_ok_led_I;
-  assign o_normal_led[0] = w_ber_ok_led_Q;
+  assign o_normal_led[1] = w_reset       ;
+  assign o_normal_led[0] = i_sw          ;
+  assign o_rgb_led3_b    = w_sync_done_I ;
+  assign o_rgb_led2_b    = w_sync_done_Q ;
+  assign o_rgb_led1_g    = w_ber_ok_led_I;
+  assign o_rgb_led0_g    = w_ber_ok_led_Q;
 
 //  // Data assignments to uBlaze
 //  assign o_control_for_rate_2 = w_control_for_rate_2;

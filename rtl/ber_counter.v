@@ -9,6 +9,7 @@ module ber_counter #(
 //  output [63:0] o_accum_err       ,
 //  output [63:0] o_accum_tot       ,
 //  //
+  output o_sync_done_led          ,
   output o_ber_ok_led             ,
   
   input  i_ctrl                   ,
@@ -115,7 +116,8 @@ module ber_counter #(
 
 
   // Output assignment: it's HIGH if ber<16.13e-3 (for SNR=7dB)
-  assign o_ber_ok_led = (62*r_accum_err < r_accum_tot) ? 1'b1 : 1'b0 ; // límite
+  assign o_sync_done_led = i_ber_counter_en; // límite
+  assign o_ber_ok_led    = (64*r_accum_err < r_accum_tot) ? 1'b1 : 1'b0 ; // límite
 
 
 //  // Data assignments to uBlaze

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sat Apr 19 14:23:43 2025" VIVADOVERSION="2023.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Apr 20 16:40:33 2025" VIVADOVERSION="2023.1">
 
   <SYSTEMINFO ARCH="artix7" BOARD="digilentinc.com:arty:part0:1.1" DEVICE="7a35ti" NAME="vio" PACKAGE="csg324" SPEEDGRADE="-1L"/>
 
@@ -9,9 +9,34 @@
         <CONNECTION INSTANCE="vio_0" PORT="clk"/>
       </CONNECTIONS>
     </PORT>
-    <PORT DIR="I" LEFT="3" NAME="probe_in0_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in0_0">
+    <PORT DIR="I" LEFT="0" NAME="probe_in0_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in0_0">
       <CONNECTIONS>
         <CONNECTION INSTANCE="vio_0" PORT="probe_in0"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" LEFT="0" NAME="probe_in1_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in1_0">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="vio_0" PORT="probe_in1"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" LEFT="0" NAME="probe_in2_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in2_0">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="vio_0" PORT="probe_in2"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" LEFT="0" NAME="probe_in3_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in3_0">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="vio_0" PORT="probe_in3"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" LEFT="0" NAME="probe_in4_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in4_0">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="vio_0" PORT="probe_in4"/>
+      </CONNECTIONS>
+    </PORT>
+    <PORT DIR="I" LEFT="0" NAME="probe_in5_0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in5_0">
+      <CONNECTIONS>
+        <CONNECTION INSTANCE="vio_0" PORT="probe_in5"/>
       </CONNECTIONS>
     </PORT>
     <PORT DIR="O" LEFT="0" NAME="probe_out0_0" RIGHT="0" SIGIS="undef" SIGNAME="vio_0_probe_out0">
@@ -57,11 +82,11 @@
         <PARAMETER NAME="C_PIPE_IFACE" VALUE="0"/>
         <PARAMETER NAME="C_BUS_ADDR_WIDTH" VALUE="17"/>
         <PARAMETER NAME="C_BUS_DATA_WIDTH" VALUE="16"/>
-        <PARAMETER NAME="C_NUM_PROBE_IN" VALUE="1"/>
+        <PARAMETER NAME="C_NUM_PROBE_IN" VALUE="6"/>
         <PARAMETER NAME="C_EN_PROBE_IN_ACTIVITY" VALUE="1"/>
         <PARAMETER NAME="C_NUM_PROBE_OUT" VALUE="3"/>
         <PARAMETER NAME="C_EN_SYNCHRONIZATION" VALUE="1"/>
-        <PARAMETER NAME="C_PROBE_IN0_WIDTH" VALUE="4"/>
+        <PARAMETER NAME="C_PROBE_IN0_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_PROBE_IN1_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_PROBE_IN2_WIDTH" VALUE="1"/>
         <PARAMETER NAME="C_PROBE_IN3_WIDTH" VALUE="1"/>
@@ -838,9 +863,34 @@
             <CONNECTION INSTANCE="External_Ports" PORT="clk_0"/>
           </CONNECTIONS>
         </PORT>
-        <PORT DIR="I" LEFT="3" NAME="probe_in0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in0_0">
+        <PORT DIR="I" LEFT="0" NAME="probe_in0" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in0_0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="External_Ports" PORT="probe_in0_0"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" LEFT="0" NAME="probe_in1" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in1_0">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="probe_in1_0"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" LEFT="0" NAME="probe_in2" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in2_0">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="probe_in2_0"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" LEFT="0" NAME="probe_in3" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in3_0">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="probe_in3_0"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" LEFT="0" NAME="probe_in4" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in4_0">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="probe_in4_0"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="I" LEFT="0" NAME="probe_in5" RIGHT="0" SIGIS="undef" SIGNAME="External_Ports_probe_in5_0">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="External_Ports" PORT="probe_in5_0"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" LEFT="0" NAME="probe_out0" RIGHT="0" SIGIS="undef" SIGNAME="vio_0_probe_out0">

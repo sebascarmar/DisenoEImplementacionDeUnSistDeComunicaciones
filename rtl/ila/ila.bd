@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x2E08E9A895BE7446",
+      "boundary_crc": "0x7DD3DF19F5A5069D",
       "device": "xc7a35ticsg324-1L",
       "name": "ila",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
@@ -41,7 +41,32 @@
       },
       "probe0_0": {
         "direction": "I",
-        "left": "3",
+        "left": "0",
+        "right": "0"
+      },
+      "probe1_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe2_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe3_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe4_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe5_0": {
+        "direction": "I",
+        "left": "0",
         "right": "0"
       }
     },
@@ -55,8 +80,8 @@
           "C_MONITOR_TYPE": {
             "value": "Native"
           },
-          "C_PROBE0_WIDTH": {
-            "value": "4"
+          "C_NUM_OF_PROBES": {
+            "value": "6"
           }
         }
       }
@@ -72,6 +97,36 @@
         "ports": [
           "probe0_0",
           "ila_0/probe0"
+        ]
+      },
+      "probe1_0_1": {
+        "ports": [
+          "probe1_0",
+          "ila_0/probe1"
+        ]
+      },
+      "probe2_0_1": {
+        "ports": [
+          "probe2_0",
+          "ila_0/probe2"
+        ]
+      },
+      "probe3_0_1": {
+        "ports": [
+          "probe3_0",
+          "ila_0/probe3"
+        ]
+      },
+      "probe4_0_1": {
+        "ports": [
+          "probe4_0",
+          "ila_0/probe4"
+        ]
+      },
+      "probe5_0_1": {
+        "ports": [
+          "probe5_0",
+          "ila_0/probe5"
         ]
       }
     }

@@ -15,6 +15,8 @@ module ber_top #(
 //  output [63:0] o_accum_err_Q ,
 //  output [63:0] o_accum_tot_Q ,
 //  //
+  output o_sync_done_I ,
+  output o_sync_done_Q ,
   output o_ber_ok_led_I,
   output o_ber_ok_led_Q,
   
@@ -33,6 +35,8 @@ module ber_top #(
   wire w_prbs_ctrl        ;
   wire w_prbsI_bit_to_berI;
   wire w_prbsQ_bit_to_berQ;
+  wire w_sync_done_I      ;
+  wire w_sync_done_Q      ;
   wire w_ber_ok_led_I     ;
   wire w_ber_ok_led_Q     ;
 
@@ -86,6 +90,7 @@ module ber_top #(
     //.o_accum_err(o_accum_err_I),
     //.o_accum_tot(o_accum_tot_I),
     ////
+    .o_sync_done_led          (w_sync_done_I      ),
     .o_ber_ok_led             (w_ber_ok_led_I     ),
     .i_ctrl                   (i_en_rate1         ),
     .i_rx_bit                 (i_rx_bit_I         ),
@@ -105,6 +110,7 @@ module ber_top #(
 //    .o_accum_err(o_accum_err_Q),
 //    .o_accum_tot(o_accum_tot_Q),
 //    //
+    .o_sync_done_led          (w_sync_done_Q      ),
     .o_ber_ok_led             (w_ber_ok_led_Q     ),
     .i_ctrl                   (i_en_rate1         ),
     .i_rx_bit                 (i_rx_bit_Q         ),
@@ -119,6 +125,8 @@ module ber_top #(
 
 
   // Output assignments
+  assign o_sync_done_I  = w_sync_done_I ;
+  assign o_sync_done_Q  = w_sync_done_Q ;
   assign o_ber_ok_led_I = w_ber_ok_led_I;
   assign o_ber_ok_led_Q = w_ber_ok_led_Q;
 

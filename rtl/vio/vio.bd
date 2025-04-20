@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x122E9EB3AE783E68",
+      "boundary_crc": "0xAF9CC2362DD9A7BC",
       "device": "xc7a35ticsg324-1L",
       "name": "vio",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
@@ -41,7 +41,32 @@
       },
       "probe_in0_0": {
         "direction": "I",
-        "left": "3",
+        "left": "0",
+        "right": "0"
+      },
+      "probe_in1_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe_in2_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe_in3_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe_in4_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe_in5_0": {
+        "direction": "I",
+        "left": "0",
         "right": "0"
       },
       "probe_out0_0": {
@@ -68,7 +93,7 @@
         "inst_hier_path": "vio_0",
         "parameters": {
           "C_NUM_PROBE_IN": {
-            "value": "1"
+            "value": "6"
           },
           "C_NUM_PROBE_OUT": {
             "value": "3"
@@ -87,6 +112,36 @@
         "ports": [
           "probe_in0_0",
           "vio_0/probe_in0"
+        ]
+      },
+      "probe_in1_0_1": {
+        "ports": [
+          "probe_in1_0",
+          "vio_0/probe_in1"
+        ]
+      },
+      "probe_in2_0_1": {
+        "ports": [
+          "probe_in2_0",
+          "vio_0/probe_in2"
+        ]
+      },
+      "probe_in3_0_1": {
+        "ports": [
+          "probe_in3_0",
+          "vio_0/probe_in3"
+        ]
+      },
+      "probe_in4_0_1": {
+        "ports": [
+          "probe_in4_0",
+          "vio_0/probe_in4"
+        ]
+      },
+      "probe_in5_0_1": {
+        "ports": [
+          "probe_in5_0",
+          "vio_0/probe_in5"
         ]
       },
       "vio_0_probe_out0": {
