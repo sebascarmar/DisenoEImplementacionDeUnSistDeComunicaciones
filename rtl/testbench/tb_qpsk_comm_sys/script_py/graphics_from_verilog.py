@@ -208,7 +208,7 @@ plt.legend(loc="upper left")
 
 
 # Group of data vs time: Downsampled to rate 1 and Sliced
-plt.figure(figsize=[12,6])
+plt.figure(figsize=[10,6])
 plt.suptitle('Downsampled to rate 1 and Sliced vs time')
 plt.subplot(2,1,1) # after downsampling to rate 1
 plt.plot(rx_symI_dw_r1,
