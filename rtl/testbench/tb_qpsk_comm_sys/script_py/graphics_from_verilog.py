@@ -130,9 +130,9 @@ plt.plot(rx_symI_dw_r2[len(rx_symI_dw_r2)-8000:],
          rx_symQ_dw_r2[len(rx_symQ_dw_r2)-8000:],
          color='chocolate', marker='.', linestyle='',
          label='dowsamp. (rate 2)')
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.ylabel('Imag (Q)')
 plt.xlabel('Real (I)')
@@ -143,11 +143,10 @@ plt.plot(rx_symI_fse[len(rx_symI_fse)-8000:],
          rx_symQ_fse[len(rx_symQ_fse)-8000:],
          color='salmon', marker='.', linestyle='',
          label="FSE Output")
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
-plt.ylabel('Imag (Q)')
 plt.xlabel('Real (I)')
 plt.legend(loc="upper left")
 #plt.show()
@@ -161,16 +160,18 @@ plt.plot(rx_symI_dw_r2 ,
          color='chocolate', marker='.', linestyle='',
          label="Dws - rate 2")
 plt.ylabel('Real (I)')
+plt.ylim((-3, 3))
 plt.grid(True)
-plt.legend(loc="center right")
+plt.legend(loc="upper right")
 plt.subplot(2,1,2) # FSE Output
 plt.plot(rx_symI_fse,
          color='salmon', marker='.', linestyle='',
          label="FSE Output")
-plt.grid(True)
 plt.ylabel('Real (I)')
 plt.xlabel('Time [n]')
-plt.legend(loc="center right")
+plt.ylim((-3, 3))
+plt.grid(True)
+plt.legend(loc="upper right")
 plt.show()
 
 
@@ -184,9 +185,9 @@ plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
          rx_symQ_dw_r1[len(rx_symQ_dw_r1)-4000:],
          color='seagreen', marker='.', linestyle='',
          label='dowsamp. (rate 1)')
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.ylabel('Imag (Q)')
 plt.xlabel('Real (I)')
@@ -197,9 +198,9 @@ plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
          rx_symQ_slcr[len(rx_symQ_slcr)-4000:],
          color='magenta', marker='.', linestyle='',
          label="sliced")
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-#plt.axis('equal')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.xlabel('Real (I)')
 plt.legend(loc="upper left")
@@ -214,17 +215,19 @@ plt.plot(rx_symI_dw_r1,
         color='seagreen', marker='.', linestyle='',
         label='dowsamp. (rate 1)')
 plt.ylabel('Real (I)')
+plt.ylim((-3, 3))
 plt.grid(True)
-plt.legend(loc="center right")
+plt.legend(loc="upper right")
 #-------------------------------------------------------
 plt.subplot(2,1,2) # after the slicer
 plt.plot(rx_symI_slcr,
         color='magenta', marker='.', linestyle='',
         label="sliced")
-plt.grid(True)
 plt.ylabel('Real (I)')
 plt.xlabel('Time [n]')
-plt.legend(loc="center right")
+plt.ylim((-3, 3))
+plt.grid(True)
+plt.legend(loc="upper right")
 plt.show()
 
 
@@ -253,6 +256,7 @@ plt.title("Bode - FSE I")
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Magnitud [dB]")
 plt.legend(loc="lower left")
+plt.ylim(-6.0,16.0)
 plt.grid(True)
 #plt.show()
 
@@ -266,9 +270,10 @@ plt.figure(figsize=[7,4])
 plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
          linestyle='-', linewidth=2.0)
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-plt.title('FSE Coefficients')
-plt.xlabel('Sample')
+plt.title('FSE I Coefficients')
+plt.xlabel('Sample [s]')
 plt.ylabel('Magnitud')
+plt.ylim(-1.5,3.0)
 plt.grid(True)
 plt.show()
 
@@ -278,11 +283,15 @@ plt.show()
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff_I.T)
 plt.title('FSE coefficients (I lane) - decimated')
+plt.xlabel('Time [n]')
+plt.ylim(-1.5,3.0)
 plt.grid(True)
 
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff_Q.T)
 plt.title('FSE coefficients (Q lane) - decimated')
+plt.xlabel('Time [n]')
+plt.ylim(-1.5,3.0)
 plt.grid(True)
 plt.show()
 
@@ -291,13 +300,14 @@ plt.show()
 plt.figure(figsize=[10,6])
 plt.plot(rx_err_lms_I)
 plt.title('LMS-Error - Lane I')
+plt.xlabel('Time [n]')
+plt.ylim(-2.0,2.0)
 plt.grid(True)
 
 plt.figure(figsize=[10,6])
 plt.plot(rx_err_lms_Q)
 plt.title('LMS-Error - Lane Q')
+plt.ylim(-2.0,2.0)
+plt.xlabel('Time [n]')
 plt.grid(True)
 plt.show()
-
-
-
