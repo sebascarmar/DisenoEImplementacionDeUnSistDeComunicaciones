@@ -1,27 +1,31 @@
 {
    "ActiveEmotionalView":"Default View",
-   "Default View_ScaleFactor":"0.773504",
-   "Default View_TopLeft":"-384,-97",
+   "Default View_ScaleFactor":"1.0",
+   "Default View_TopLeft":"-974,-914",
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 7.5.8 2022-09-21 7111 VDI=41 GEI=38 GUI=JA:10.0 TLS
 #  -string -flagsOSRD
-preplace port port-id_clk_0 -pg 1 -lvl 0 -x -20 -y -40 -defaultsOSRD
-preplace portBus probe0_0 -pg 1 -lvl 0 -x -20 -y -20 -defaultsOSRD
-preplace portBus probe1_0 -pg 1 -lvl 0 -x -20 -y 0 -defaultsOSRD
-preplace portBus probe2_0 -pg 1 -lvl 0 -x -20 -y 20 -defaultsOSRD
-preplace portBus probe3_0 -pg 1 -lvl 0 -x -20 -y 40 -defaultsOSRD
-preplace portBus probe4_0 -pg 1 -lvl 0 -x -20 -y 60 -defaultsOSRD
-preplace portBus probe5_0 -pg 1 -lvl 0 -x -20 -y 80 -defaultsOSRD
-preplace inst ila_0 -pg 1 -lvl 1 -x 100 -y 20 -defaultsOSRD
-preplace netloc clk_0_1 1 0 1 NJ -40
-preplace netloc probe0_0_1 1 0 1 NJ -20
-preplace netloc probe1_0_1 1 0 1 NJ 0
-preplace netloc probe2_0_1 1 0 1 NJ 20
-preplace netloc probe3_0_1 1 0 1 NJ 40
-preplace netloc probe4_0_1 1 0 1 NJ 60
-preplace netloc probe5_0_1 1 0 1 NJ 80
+preplace port port-id_clk_0 -pg 1 -lvl 0 -x -20 -y -390 -defaultsOSRD
+preplace portBus probe0_0 -pg 1 -lvl 0 -x -20 -y -370 -defaultsOSRD
+preplace portBus probe1_0 -pg 1 -lvl 0 -x -20 -y -350 -defaultsOSRD
+preplace portBus probe2_0 -pg 1 -lvl 0 -x -20 -y -330 -defaultsOSRD
+preplace portBus probe3_0 -pg 1 -lvl 0 -x -20 -y -310 -defaultsOSRD
+preplace portBus probe4_0 -pg 1 -lvl 0 -x -20 -y -290 -defaultsOSRD
+preplace portBus probe5_0 -pg 1 -lvl 0 -x -20 -y -270 -defaultsOSRD
+preplace portBus probe6_0 -pg 1 -lvl 0 -x -20 -y -250 -defaultsOSRD
+preplace portBus probe7_0 -pg 1 -lvl 0 -x -20 -y -230 -defaultsOSRD
+preplace inst ila_0 -pg 1 -lvl 1 -x 100 -y -310 -defaultsOSRD
+preplace netloc clk_0_1 1 0 1 NJ -390
+preplace netloc probe0_0_1 1 0 1 NJ -370
+preplace netloc probe1_0_1 1 0 1 NJ -350
+preplace netloc probe2_0_1 1 0 1 NJ -330
+preplace netloc probe3_0_1 1 0 1 NJ -310
+preplace netloc probe4_0_1 1 0 1 NJ -290
+preplace netloc probe5_0_1 1 0 1 NJ -270
+preplace netloc probe6_0_1 1 0 1 NJ -250
+preplace netloc probe7_0_1 1 0 1 NJ -230
 levelinfo -pg 1 -20 100 200
-pagesize -pg 1 -db -bbox -sgen -170 -100 200 140
+pagesize -pg 1 -db -bbox -sgen -180 -450 200 140
 "
 }
 
