@@ -9,12 +9,12 @@ module ber_top #(
   parameter START_CNT       = START_SYN + 511*511
 )
 (
-//  // Ports to uBlaze
-//  output [63:0] o_accum_err_I ,
-//  output [63:0] o_accum_tot_I ,
-//  output [63:0] o_accum_err_Q ,
-//  output [63:0] o_accum_tot_Q ,
-//  //
+  // Ports to uBlaze
+  output [63:0] o_accum_err_I ,
+  output [63:0] o_accum_tot_I ,
+  output [63:0] o_accum_err_Q ,
+  output [63:0] o_accum_tot_Q ,
+  //
   output o_sync_done_I ,
   output o_sync_done_Q ,
   output o_ber_ok_led_I,
@@ -86,10 +86,10 @@ module ber_top #(
   ber_counter #(
     .PRBS_MAX_CYCLES(PRBS_MAX_CYCLES)
   ) u_bit_error_counter_I (
-    //// BER data to uBlaze
-    //.o_accum_err(o_accum_err_I),
-    //.o_accum_tot(o_accum_tot_I),
-    ////
+    // BER data to uBlaze
+    .o_accum_err(o_accum_err_I),
+    .o_accum_tot(o_accum_tot_I),
+    //
     .o_sync_done_led          (w_sync_done_I      ),
     .o_ber_ok_led             (w_ber_ok_led_I     ),
     .i_ctrl                   (i_en_rate1         ),
@@ -106,10 +106,10 @@ module ber_top #(
   ber_counter #(
     .PRBS_MAX_CYCLES(PRBS_MAX_CYCLES)
   ) u_bit_error_counter_Q (
-//    // BER data to uBlaze
-//    .o_accum_err(o_accum_err_Q),
-//    .o_accum_tot(o_accum_tot_Q),
-//    //
+    // BER data to uBlaze
+    .o_accum_err(o_accum_err_Q),
+    .o_accum_tot(o_accum_tot_Q),
+    //
     .o_sync_done_led          (w_sync_done_Q      ),
     .o_ber_ok_led             (w_ber_ok_led_Q     ),
     .i_ctrl                   (i_en_rate1         ),

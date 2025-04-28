@@ -5,10 +5,10 @@ module ber_counter #(
   parameter PRBS_MAX_CYCLES = 511
 )
 (
-//  // Ports to uBlaze
-//  output [63:0] o_accum_err       ,
-//  output [63:0] o_accum_tot       ,
-//  //
+  // Ports to uBlaze
+  output [63:0] o_accum_err       ,
+  output [63:0] o_accum_tot       ,
+  //
   output o_sync_done_led          ,
   output o_ber_ok_led             ,
   
@@ -120,9 +120,9 @@ module ber_counter #(
   assign o_ber_ok_led    = (64*r_accum_err < r_accum_tot) ? 1'b1 : 1'b0 ; // límite
 
 
-//  // Data assignments to uBlaze
-//  assign o_accum_err  = r_accum_err                                  ;
-//  assign o_accum_tot  = r_accum_tot                                  ;
+  // Data assignments to uBlaze
+  assign o_accum_err  = r_accum_err                                  ;
+  assign o_accum_tot  = r_accum_tot                                  ;
 
 
 endmodule
