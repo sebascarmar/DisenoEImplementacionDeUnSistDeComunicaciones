@@ -18,9 +18,9 @@ set_property -dict { PACKAGE_PIN F6    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_
 ## Misc. ChipKit Ports
 set_property -dict { PACKAGE_PIN C2    IOSTANDARD LVCMOS33 } [get_ports { i_reset }]; #IO_L16P_T2_35 Sch=ck_rst
 
-### USB-UART Interface
-#set_property -dict { PACKAGE_PIN A9   IOSTANDARD LVCMOS33 } [get_ports { i_rx_uart }]; #IO_L19N_T3_VREF_16 Sch=uart_rxd_out
-#set_property -dict { PACKAGE_PIN D10    IOSTANDARD LVCMOS33 } [get_ports { o_tx_uart }]; #IO_L14N_T2_SRCC_16 Sch=uart_txd_in
+## USB-UART Interface
+set_property -dict { PACKAGE_PIN A9   IOSTANDARD LVCMOS33 } [get_ports { i_rx_uart }]; #IO_L19N_T3_VREF_16 Sch=uart_rxd_out
+set_property -dict { PACKAGE_PIN D10    IOSTANDARD LVCMOS33 } [get_ports { o_tx_uart }]; #IO_L14N_T2_SRCC_16 Sch=uart_txd_in
 
 
 #connect_debug_port dbg_hub/clk [get_nets clk]
