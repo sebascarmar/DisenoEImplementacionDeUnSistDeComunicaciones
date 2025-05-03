@@ -2,10 +2,10 @@
 -- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
--- Date        : Sun Apr 27 20:53:12 2025
+-- Date        : Sun Apr 27 20:53:10 2025
 -- Host        : daniel-lmint running 64-bit Linux Mint 20.3
--- Command     : write_vhdl -force -mode synth_stub
---               /home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/ila/ip/ila_ila_0_1/ila_ila_0_1_stub.vhdl
+-- Command     : write_vhdl -force -mode synth_stub -rename_top ila_ila_0_1 -prefix
+--               ila_ila_0_1_ ila_ila_0_1_stub.vhdl
 -- Design      : ila_ila_0_1
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35ticsg324-1L

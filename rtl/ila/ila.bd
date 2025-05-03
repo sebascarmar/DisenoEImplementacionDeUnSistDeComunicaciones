@@ -116,6 +116,12 @@
           },
           "C_PROBE7_WIDTH": {
             "value": "32"
+          },
+          "C_PROBE8_WIDTH": {
+            "value": "1"
+          },
+          "C_PROBE9_WIDTH": {
+            "value": "1"
           }
         }
       }
