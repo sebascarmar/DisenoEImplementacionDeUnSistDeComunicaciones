@@ -91,8 +91,8 @@ int main(){
     int indice = 0;
     int error = 0;
     int contador_BE = 0;
+    int addr_read_limit = 0;
     unsigned char dato[4];
-    unsigned char trama_filtro[9];
     
     u32 byte_dato_3;   // Variables for received frame data
     u32 byte_dato_2;
@@ -101,7 +101,6 @@ int main(){
     u32 Error_bits[8];
     u32 resultado_dato;
     u32 value;
-    u8 opc_for_read;
 
     // UART and GPIO initialization
     XUartLite_Initialize(&uart_module, 0); // Initialize UART module
@@ -191,88 +190,42 @@ int main(){
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32) resultado_dato);
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
-
                     // Determine which operation (sub-opcode) to use for writing
                     if (resultado_dato == 0x03800009) {
                         // Input slicer data
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800001 & (0xFF7FFFFF)));
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800001);
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800001 & (0xFF7FFFFF)));
-                        opc_for_read = 1;
+                        addr_read_limit = 32768;
                     } else if (resultado_dato == 0x0380000A) {
                         // Output slicer data
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800002 & (0xFF7FFFFF)));
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800002);
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800002 & (0xFF7FFFFF)));
-                        opc_for_read = 2;
+                        addr_read_limit = 32768;
                     } else {
                         // Bit error data
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800003 & (0xFF7FFFFF)));
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800003);
                         XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800003 & (0xFF7FFFFF)));
-                        opc_for_read = 3;
+                        addr_read_limit = 32760; // because 32760 is a multiple of 9
                     }
                 }
 
     		// Read log data in RAM opc4
     		if (resultado_dato == 0x04800001) {
 
-    		    for (int j = 0; j < N; j ++ ){
-    		         XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
-    		         XGpio_DiscreteWrite(&GpioOutput,1, (u32)  0x04810000  | (j & 0x0000FFFF)                 );
-    		         XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
+    		    for (int j = 0; j < addr_read_limit; j ++ ){
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32)  0x04810000  | (j & 0x0000FFFF)                 );
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
    
-    		         value = XGpio_DiscreteRead(&GpioInput, 1);
-                        
-                // Capture input slicer IQ frame
-    		 	if (opc_for_read == 1) {
-    		 	    trama_filtro[0] = 0xA4;
-    		 	    trama_filtro[1] = 0x00;
-    		 	    trama_filtro[2] = 0x00;
-    		 	    trama_filtro[3] = 0x01;
-    		 	    trama_filtro[4] = (value & 0xFF);
-    		 	    trama_filtro[5] = (value >> 8) & 0xFF;
-    		 	    trama_filtro[6] = (value >> 16) & 0xFF;
-    		 	    trama_filtro[7] = (value >> 24) & 0xFF;
-    		 	    trama_filtro[8] = 0x44;
-    		 	} // Capture output slicer IQ frame
-    		 	else if (opc_for_read == 2) {
-    		 	    trama_filtro[0] = 0xA4;
-    		 	    trama_filtro[1] = 0x00;
-    		 	    trama_filtro[2] = 0x00;
-    		 	    trama_filtro[3] = 0x01;
-    		 	    trama_filtro[4] = (value & 0x0F);
-    		 	    trama_filtro[5] = (value >> 8) & 0x0F;
-    		 	    trama_filtro[6] = (value & 0xFF);
-    		 	    trama_filtro[7] = (value >> 8) & 0x0F;
-    		 	    trama_filtro[8] = 0x44;
-    		 	} // Capture taps frame IQ
-    		 	else if (opc_for_read == 3) {
-    		 	    trama_filtro[0] = 0xA4;
-    		 	    trama_filtro[1] = 0x00;
-    		 	    trama_filtro[2] = 0x00;
-    		 	    trama_filtro[3] = 0x01;
-    		 	    trama_filtro[4] = (value & 0xFF);
-    		 	    trama_filtro[5] = (value >> 8) & 0x03;
-    		 	    trama_filtro[6] = (value & 0xFF);
-    		 	    trama_filtro[7] = (value >> 8) & 0x03;
-    		 	    trama_filtro[8] = 0x44;
-    		 	}
-    		 	else {
-    		 	    trama_filtro[0] = 0xA4;
-    		 	    trama_filtro[1] = 0x00;
-    		 	    trama_filtro[2] = 0x00;
-    		 	    trama_filtro[3] = 0x01;
-    		 	    trama_filtro[4] = 0x00;
-    		 	    trama_filtro[5] = 0x00;
-    		 	    trama_filtro[6] = 0x00;
-    		 	    trama_filtro[7] = 0x00;
-    		 	    trama_filtro[8] = 0x44;
-    		 	}
+    		        value = XGpio_DiscreteRead(&GpioInput, 1);
 
+                        unsigned char trama_filtro [] = {0xA4, 0x00, 0x00, 0x01, (value & 0xFF), ((value >> 8) & 0xFF), ((value >> 16) & 0xFF), ((value >> 24) & 0xFF), 0x44};
+                            
     		 	XUartLite_Send(&uart_module,trama_filtro,9);
-
-    		 	for (volatile int i = 0; i < 70000; i++);
+    		 	for (volatile int i = 0; i < 70000; i++); // waiting 700us
     		 	XUartLite_ResetFifos(&uart_module);
 
                     }
@@ -290,7 +243,7 @@ int main(){
     		    XGpio_DiscreteWrite(&GpioOutput,1, (u32) (resultado_dato & (0xFF7FFFFF)));
     		 }
 
-                 // Read bits and errs opc6 OK 
+                 // Read bits and errs opc6
     		 if (resultado_dato == 0x06800001) {
 
     		     while (contador_BE < 8){
