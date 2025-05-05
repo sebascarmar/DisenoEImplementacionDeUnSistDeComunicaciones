@@ -51,24 +51,56 @@ opc_6  = b'\x06'
 #| OUTPUT:                                                         |
 #|         None                                                    |
 #|_________________________________________________________________|
-def save_data(data_I, data_Q, sub_opc_for_reading):
+
+def save_data(data_Q, data_I, sub_opc_for_reading):
 
     if (sub_opc_for_reading == b'\x09'): 
-        np.savetxt('file_rx_symI_dwr2.txt' , data_I , delimiter='\n')
-        np.savetxt('file_rx_symQ_dwr2.txt' , data_Q , delimiter='\n')
+        file_I = "file_rx_symI_dwr2.txt" 
+        file_Q = "file_rx_symQ_dwr2.txt" 
 
     elif (sub_opc_for_reading == b'\x0A'):
-        np.savetxt('file_rx_symI_dwr1.txt' , data_I , delimiter='\n')
-        np.savetxt('file_rx_symQ_dwr1.txt' , data_Q , delimiter='\n')
-
+        file_I = "file_rx_symI_dwr1.txt"
+        file_Q = "file_rx_symQ_dwr1.txt"
 
     elif (sub_opc_for_reading == b'\x0B'):     
-        np.savetxt('file_fse_taps_I.txt' , data_I , delimiter='\n')
-        np.savetxt('file_fse_taps_Q.txt' , data_Q , delimiter='\n')
+        file_I = "file_fse_taps_I.txt"
+        file_Q = "file_fse_taps_Q.txt"
 
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
 
+    with open(file_I, 'w') as file:
+        for data in data_I:
+            file.write(str(data) + '\n')  
+
+    print(f"Writing complete {file_I}")
+
+
+    with open(file_Q, 'w') as file:
+        for data in data_Q:
+            file.write(str(data) + '\n') 
+
+    print(f"Writing complete {file_Q}")
+
+
+#   def save_data(data_I, data_Q, sub_opc_for_reading):
+#   
+#       if (sub_opc_for_reading == b'\x09'): 
+#           np.savetxt('file_rx_symI_dwr2.txt' , data_I , delimiter='\n')
+#           np.savetxt('file_rx_symQ_dwr2.txt' , data_Q , delimiter='\n')
+#   
+#       elif (sub_opc_for_reading == b'\x0A'):
+#           np.savetxt('file_rx_symI_dwr1.txt' , data_I , delimiter='\n')
+#           np.savetxt('file_rx_symQ_dwr1.txt' , data_Q , delimiter='\n')
+#   
+#   
+#       elif (sub_opc_for_reading == b'\x0B'):     
+#           np.savetxt('file_fse_taps_I.txt' , data_I , delimiter='\n')
+#           np.savetxt('file_fse_taps_Q.txt' , data_Q , delimiter='\n')
+#   
+#       elif (sub_opc_for_reading == ' '):   
+#           print("Error: invalid sub_opc_for_reading value. No files were created.")
+#   
 
 #|_____Function to verify the frames of transmitted bits and errors as well as filter frames_____|
 #| INPUT:                                                                                        |   
@@ -115,8 +147,8 @@ def frame_check(frame):
 def data_frame_assembly(opc, sub_opc , filler_opc, device) :
 
     data = opc + enable + filler_opc + sub_opc    #for example: 0x03 + 0x80 + 0x00 + 0x01 = 0x203800001
-    print(data)
-    print()
+    #   print(f"Data for frame: {data}")
+    #   print()
     if (len(data)<=15):
         head = binascii.unhexlify(str(hex(0xA0+eval(hex(len(data))))).split("0x")[1])
         high = b'\x00'
@@ -127,7 +159,7 @@ def data_frame_assembly(opc, sub_opc , filler_opc, device) :
         frame_hex = head + high + low + dispo + data + cola
 
         frame_list = list(frame_hex)
-        print(frame_list)        
+        print(f"Frame for gpio: {frame_hex}")        
         print()
 
     # if (len(data)>15):
@@ -194,13 +226,14 @@ def data_ber_disassembly (frame):
     while ser.in_waiting > 0:
         read_data.append(ser.read(1)) 
 
-    print(f"Read data (raw): {[b.hex() for b in read_data]}")
+   # print(f"Read data (raw): {[b.hex() for b in read_data]}")
 
     # Valid frame check
     count = 0
     for _ in range(8):
         frame_aux = read_data[count:count + 9]
         frame_ok = frame_check(frame_aux)
+        print(f"Frame with total bits and errors {frame_aux}")
         if frame_ok != 1:
             print("Frame Error:", [b.hex() for b in frame_aux])
             exit()
@@ -227,7 +260,7 @@ def data_ber_disassembly (frame):
         # hex_val = data_bytes.hex()
         int_val = int.from_bytes(data_bytes, byteorder='little')  # could be 'little' depending on FPGA order
         # print(f"{label} -> HEX: 0x{hex_val.upper()} | DEC: {int_val}")
-        print(f"{label} -> {int_val}")
+        print(f"{label} {int_val}")
         return int_val
 
     print()
@@ -249,15 +282,21 @@ def data_ber_disassembly (frame):
 #| OUTPUT:                                                            |
 #|         None                                                       |
 #|____________________________________________________________________|
-def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading, N=32768):
 
+
+def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
+ 
+    if (sub_opc_for_reading == b'\x09' or sub_opc_for_reading == b'\x0A'):
+        N = 32768
+    else: 
+        N = 32760
+    # Clean buffer
     ser.reset_input_buffer()
     ser.reset_output_buffer()
-
+    # set list for storage values 
     frame_int_I = []
-    frame_int_Q = []
-    frame_float_I = []
-    frame_float_Q = []
+    frame_int_Q = []    
+    frame_payload = []
 
     for idx in range(N):
         # 2) Request the frame from the FPGA
@@ -265,6 +304,8 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading, N=32768):
 
         # 3) Wait to receive exactly 9 bytes (or timeout)
         buf = ser.read(9)
+        print(f"Frame {idx} with data from RAM: {buf}")    
+
         if len(buf) != 9:
                 print(f"[Warning] frame {idx}: received {len(buf)} bytes, skipping…")
                 print(f"[ {buf} ]")
@@ -278,54 +319,27 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading, N=32768):
         # 5) Extract the 4 bytes of payload
         payload = buf[4:8]
         raw = [b for b in payload]
+        
+        frame_payload.append(raw)
 
-        # 6) Decode according to the mode (same logic you already have)
-        if sub_opc_for_reading == b'\x09':      # S(8,7)
-                #scale = 1/(2**7)
-                I = int.from_bytes([raw[2]], byteorder='big', signed=True)
-                Q = int.from_bytes([raw[0]], byteorder='big', signed=True)
+        Q = int.from_bytes(raw[0:2], byteorder='little', signed=True)
+        I = int.from_bytes(raw[2:4], byteorder='little', signed=True)
 
-        elif sub_opc_for_reading == b'\x0A':    # S(12,9)
-                #scale = 1/(2**9)
-                I_raw = ((raw[3] & 0x0F) << 8) | raw[2]
-                Q_raw = ((raw[1] & 0x0F) << 8) | raw[0]
-                I = I_raw if I_raw < 2048 else I_raw - 4096
-                Q = Q_raw if Q_raw < 2048 else Q_raw - 4096
-
-        elif sub_opc_for_reading == b'\x0B':    # S(10,7)
-                #scale = 1/(2**7)
-                I_raw = ((raw[3] & 0x03) << 8) | raw[2]
-                Q_raw = ((raw[1] & 0x03) << 8) | raw[0]
-                I = I_raw if I_raw < 512 else I_raw - 1024
-                Q = Q_raw if Q_raw < 512 else Q_raw - 1024
-
-        else:
-                print(f"[Error] unknown sub-opcode {sub_opc_for_reading!r}")
-                break
-
-        # 7) Store integer and float values
-        frame_int_I.append(I)
+        # 6) Store integer and float values
         frame_int_Q.append(Q)
-
-        # Float_I = I * scale
-        # Float_Q = Q * scale
-        # frame_float_I.append(Float_I)
-        # frame_float_Q.append(Float_Q)
+        frame_int_I.append(I)
 
         # Sleep for 0.1s every 200 frames
         if (idx+1) % 200 == 0:
                 time.sleep(0.1)
             
     print("Reading complete\n")
-    print("Data I:", frame_int_I)
-    print("Data Q:", frame_int_Q)
+    print("Data Q :", frame_int_Q)
+    print("Data I: ", frame_int_I)
+    #   print("Payload: ", frame_payload)
     print() 
 
-    # print("\nDecoding complete")
-    # print("Frame Float I:", frame_float_I)
-    # print("Frame Float Q:", frame_float_Q)
-
-    save_data(frame_int_I, frame_int_Q, sub_opc_for_reading)
+    save_data(frame_int_Q, frame_int_I, frame_payload, sub_opc_for_reading)
 
 
 #|_____________________Function for sub-options_______________________|
