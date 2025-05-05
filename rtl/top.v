@@ -11,7 +11,6 @@
 `define RAM_PERFORMANCE  "LOW_LATENCY"
 `define INIT_FILE        ""           
 
-
 `timescale 1ns/1ps
 
 
@@ -42,7 +41,6 @@ module top #(
   input        i_clk         
 );
 
-
   // Internal wires
   wire                                  w_reset             ;
   wire                                  w_sw                ;
@@ -55,10 +53,9 @@ module top #(
   wire                                  w_ber_ok_led_I      ;
   wire                                  w_ber_ok_led_Q      ;
 //  wire                                  w_locked            ;
-  wire                                  clk                 ;
+//  wire                                  clk                 ;
   wire                                  locked              ;
-  wire                                  soft_reset          ;
-  wire        [          NBT_GPIOS-1:0] w_regf_to_gpio      ;	
+  wire signed [          NBT_GPIOS-1:0] w_regf_to_gpio      ;	
   wire        [          NBT_GPIOS-1:0] w_gpio_to_regf      ;	
   wire                                  w_rst_soft          ;
   wire                                  w_en_rx_soft        ; 
@@ -66,7 +63,7 @@ module top #(
   wire                                  w_en_read_from_ram  ;
   wire        [                    2:0] w_data_sel_for_log  ;
   wire        [  $clog2(RAM_DEPTH)-1:0] w_read_adrs         ;
-  wire        [         NBT_GPIOS-1 :0] w_data_ram_for_read ;			 
+  wire signed [         NBT_GPIOS-1 :0] w_data_ram_for_read ;			 
   wire signed [       NBT_I_EQLZR-1 :0] w_data_i_eqlzr_I    ;	
   wire signed [       NBT_I_EQLZR-1 :0] w_data_i_eqlzr_Q    ;	
   wire signed [       NBT_O_EQLZR-1 :0] w_data_o_eqlzr_I    ;									
@@ -82,13 +79,27 @@ module top #(
 
 
   // Select between control via VIO or physical FPGA inputs
-  assign w_reset  = w_select_from_vio ? ~w_reset_from_vio : ~i_reset;
-  assign w_sw     = w_select_from_vio ? w_sw_from_vio : i_sw        ;
+  assign w_reset  = (w_select_from_vio ? ~w_reset_from_vio : ~i_reset) || ~w_rst_soft;
+  assign w_sw     = w_select_from_vio ? w_sw_from_vio : i_sw                         ;
 
 
   //=======================================================
   //                  Instances                          //
   //=======================================================
+
+  //==========================================
+  //            clock manage  	            //
+  //==========================================
+
+//  clk_mngr
+//    u_clk_mngr (
+//    .clk_out1_0(clk     ),
+//    .locked_0  (w_locked),
+//    .reset     (~w_reset ),
+//    .sys_clock (i_clk   )
+//  );
+
+
   //==========================================
   //            VIO / ILA  	            //
   //==========================================
@@ -105,12 +116,11 @@ module top #(
     .probe6_0(w_regf_to_gpio  ),
     .probe7_0(w_gpio_to_regf  )
   );
-
-  // Virtual Input/Output IP Core
+  
   vio
     u_vio (
     .clk_0       (i_clk                 ),
-    .probe_in0_0 (w_reset || ~w_rst_soft),
+    .probe_in0_0 (w_reset               ),
     .probe_in1_0 (w_sw && w_en_rx_soft  ),
     .probe_in2_0 (w_sync_done_I         ),
     .probe_in3_0 (w_sync_done_Q         ),
@@ -125,19 +135,17 @@ module top #(
   //==========================================
   //               MicroBlaze               //
   //==========================================
-  uBlaze_a    
-     u_uBlaze_a 
-     (
-        .clock100        (clk           ),
-        .gpio_rtl_0_tri_i(w_regf_to_gpio),
-        .gpio_rtl_0_tri_o(w_gpio_to_regf),
-        .o_lock_clock    (locked        ),    
-        .reset           (i_reset       ),
-        .sys_clock       (i_clk         ),
-        .usb_uart_rxd    (i_rx_uart     ),
-        .usb_uart_txd    (o_tx_uart     )
-      );
-
+  uBlaze    
+    u_uBlaze 
+    (
+      .gpio_rtl_0_tri_i(w_regf_to_gpio),
+      .gpio_rtl_0_tri_o(w_gpio_to_regf),
+      .o_lock_clock    (locked        ),    
+      .reset           (i_reset       ),
+      .sys_clock       (i_clk         ),
+      .usb_uart_rxd    (i_rx_uart     ),
+      .usb_uart_txd    (o_tx_uart     )
+    );
 
   //==========================================
   //            Register file               //
@@ -179,7 +187,7 @@ module top #(
       .RAM_DEPTH      (RAM_DEPTH      ),                  
       .RAM_PERFORMANCE(RAM_PERFORMANCE),
       .INIT_FILE      (INIT_FILE      )             
-    ) u_block_ram_control (
+    ) u_block_ram_control ( 
       .o_data_for_read     (w_data_ram_for_read ),				
       .i_data_sel_for_log  (w_data_sel_for_log  ), 
       .i_en_write          (w_en_write          ),
@@ -221,19 +229,19 @@ module top #(
       .o_rgb_led1_g        (w_ber_ok_led_I        ),
       .o_rgb_led0_g        (w_ber_ok_led_Q        ),
       .i_sw                (w_sw && w_en_rx_soft  ),
-      .i_reset             (~w_reset || w_rst_soft),
+      .i_reset             (~w_reset              ),
       .clk                 (i_clk                 ) 
     );
 
 
   // Output assignments
-  //assign o_normal_led[2] = w_locked      ;
-  assign o_normal_led[1] = w_reset || ~w_rst_soft;
-  assign o_normal_led[0] = i_sw && w_en_rx_soft  ;
-  assign o_rgb_led3_b    = w_sync_done_I         ;
-  assign o_rgb_led2_b    = w_sync_done_Q         ;
-  assign o_rgb_led1_g    = w_ber_ok_led_I        ;
-  assign o_rgb_led0_g    = w_ber_ok_led_Q        ;
+//  assign o_normal_led[2] = w_locked            ;
+  assign o_normal_led[1] = w_reset             ;
+  assign o_normal_led[0] = i_sw && w_en_rx_soft;
+  assign o_rgb_led3_b    = w_sync_done_I       ;
+  assign o_rgb_led2_b    = w_sync_done_Q       ;
+  assign o_rgb_led1_g    = w_ber_ok_led_I      ;
+  assign o_rgb_led0_g    = w_ber_ok_led_Q      ;
 
 
 endmodule
