@@ -6,7 +6,7 @@ module block_ram_control
   parameter NBT_O_EQLZR     = 12           ,
   parameter NBT_TAPS        = 10           ,
   parameter NUM_TAPS        =  9           ,
-  parameter N_DELAY         = 250          ,
+  parameter N_DELAY         = 500          ,
   parameter RAM_WIDTH       = 32           ,            
   parameter RAM_DEPTH       = 32768        ,                  
   parameter RAM_PERFORMANCE = "LOW_LATENCY",
@@ -96,7 +96,7 @@ module block_ram_control
     else begin 
       // Delay counter to enable coefficients storage
       // Only for i_data_sel_for_log == 3'b011
-        if (r_count_delay < N_DELAY-1 && i_data_sel_for_log == 3'b011) begin 
+        if (r_count_delay < N_DELAY-1 && i_data_sel_for_log == 3'b011 && r_counter_adrs < 15'h7FF8) begin 
             r_counter_num_taps        <= 0;
             r_count_delay             <= r_count_delay + 1;
             r_en_periodic_tap_capture <= 0;
