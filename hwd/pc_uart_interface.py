@@ -55,16 +55,16 @@ opc_6  = b'\x06'
 def save_data(data_Q, data_I, sub_opc_for_reading):
 
     if (sub_opc_for_reading == b'\x09'): 
-        file_I = "file_rx_symI_dwr2.txt" 
-        file_Q = "file_rx_symQ_dwr2.txt" 
+        file_I = "file_rx_symI_dwr2_snr_12.txt" 
+        file_Q = "file_rx_symQ_dwr2_snr_12.txt" 
 
     elif (sub_opc_for_reading == b'\x0A'):
-        file_I = "file_rx_symI_dwr1.txt"
-        file_Q = "file_rx_symQ_dwr1.txt"
+        file_I = "file_rx_symI_dwr1_snr_12.txt"
+        file_Q = "file_rx_symQ_dwr1_snr_12.txt"
 
     elif (sub_opc_for_reading == b'\x0B'):     
-        file_I = "file_fse_taps_I.txt"
-        file_Q = "file_fse_taps_Q.txt"
+        file_I = "file_fse_taps_I_snr_12.txt"
+        file_Q = "file_fse_taps_Q_snr_12.txt"
 
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
@@ -159,23 +159,8 @@ def data_frame_assembly(opc, sub_opc , filler_opc, device) :
         frame_hex = head + high + low + dispo + data + cola
 
         frame_list = list(frame_hex)
-        print(f"Frame for gpio: {frame_hex}")        
+       # print(f"Frame for gpio: {frame_hex}")        
         print()
-
-    # if (len(data)>15):
-    #     dispo = opc + enable + b'\x00' + b'\x00' + b'\x00' + b'\x00' + sub_opc
-    #     head = b'\xB0'
-    #     cola = b'\x50'
-    #     high = b'\x01'
-    #     low  = b'\xff' 
-    #     dispo = binascii.unhexlify(device)
-
-    #     frame_hex_large = head + high + low + dispo + data + cola
-
-
-
-    #     print("Trama larga en Hex: ", frame_hex_large)
-    #     frame_list = list(frame_hex_large)
         
     return frame_list 
 
@@ -233,7 +218,7 @@ def data_ber_disassembly (frame):
     for _ in range(8):
         frame_aux = read_data[count:count + 9]
         frame_ok = frame_check(frame_aux)
-        print(f"Frame with total bits and errors {frame_aux}")
+        #print(f"Frame with total bits and errors {frame_aux}")
         if frame_ok != 1:
             print("Frame Error:", [b.hex() for b in frame_aux])
             exit()
@@ -255,22 +240,15 @@ def data_ber_disassembly (frame):
     total_data_Q = high_total_data_Q + low_total_data_Q
     err_data_Q   = high_err_data_Q   + low_err_data_Q
 
-    # Display in hexadecimal and decimal
-    def show_info(label, data_bytes):
-        # hex_val = data_bytes.hex()
-        int_val = int.from_bytes(data_bytes, byteorder='little')  # could be 'little' depending on FPGA order
-        # print(f"{label} -> HEX: 0x{hex_val.upper()} | DEC: {int_val}")
-        print(f"{label} {int_val}")
-        return int_val
-
     print()
-    show_info("Bits I", total_data_I)
-    show_info("Bits Q", total_data_Q)
-    show_info("Errores I", err_data_I)
-    show_info("Errores Q", err_data_Q)
+    print("Bits I:", int.from_bytes( total_data_I, byteorder='little'))
+    print("Bits Q:", int.from_bytes( total_data_Q, byteorder='little'))
+    print("Errores I:", int.from_bytes(err_data_I, byteorder='little'))
+    print("Errores Q:", int.from_bytes(err_data_Q, byteorder='little'))
+ 
+    print("\nBER_I: {:.3e}".format((int.from_bytes(err_data_I, byteorder='little')/int.from_bytes(total_data_I, byteorder='little'))))
+    print("BER_Q: {:.3e}".format((int.from_bytes(err_data_Q, byteorder='little')/int.from_bytes(total_data_Q, byteorder='little'))))
     print()
-
-
 
 #|____________Function to decode filter data__________________________|
 #| INPUT:                                                             |   
@@ -304,7 +282,7 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
 
         # 3) Wait to receive exactly 9 bytes (or timeout)
         buf = ser.read(9)
-        print(f"Frame {idx} with data from RAM: {buf}")    
+        # print(f"Frame {idx} with data from RAM: {buf}")    
 
         if len(buf) != 9:
                 print(f"[Warning] frame {idx}: received {len(buf)} bytes, skipping…")
@@ -339,7 +317,7 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
     #   print("Payload: ", frame_payload)
     print() 
 
-    save_data(frame_int_Q, frame_int_I, frame_payload, sub_opc_for_reading)
+    save_data(frame_int_Q, frame_int_I, sub_opc_for_reading)
 
 
 #|_____________________Function for sub-options_______________________|
