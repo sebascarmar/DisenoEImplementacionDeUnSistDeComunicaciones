@@ -4,7 +4,7 @@
 `define	NBT_TAPS           10	
 `define	NBT_GPIOS          32	
 `define	NBT_COUNT_BITS_ERR 64 
-`define N_DELAY           250
+`define N_DELAY           500
 // for RAM module 
 `define RAM_WIDTH        32                    
 `define RAM_DEPTH        32768                       
@@ -120,7 +120,7 @@ module top #(
   vio
     u_vio (
     .clk_0       (i_clk                 ),
-    .probe_in0_0 (w_reset               ),
+    .probe_in0_0 (w_reset || ~w_rst_soft),
     .probe_in1_0 (w_sw && w_en_rx_soft  ),
     .probe_in2_0 (w_sync_done_I         ),
     .probe_in3_0 (w_sync_done_Q         ),
@@ -236,12 +236,12 @@ module top #(
 
   // Output assignments
 //  assign o_normal_led[2] = w_locked            ;
-  assign o_normal_led[1] = w_reset             ;
-  assign o_normal_led[0] = i_sw && w_en_rx_soft;
-  assign o_rgb_led3_b    = w_sync_done_I       ;
-  assign o_rgb_led2_b    = w_sync_done_Q       ;
-  assign o_rgb_led1_g    = w_ber_ok_led_I      ;
-  assign o_rgb_led0_g    = w_ber_ok_led_Q      ;
+  assign o_normal_led[1] = w_reset || ~w_rst_soft ;
+  assign o_normal_led[0] = i_sw && w_en_rx_soft  ;
+  assign o_rgb_led3_b    = w_sync_done_I         ;
+  assign o_rgb_led2_b    = w_sync_done_Q         ;
+  assign o_rgb_led1_g    = w_ber_ok_led_I        ;
+  assign o_rgb_led0_g    = w_ber_ok_led_Q        ;
 
 
 endmodule
