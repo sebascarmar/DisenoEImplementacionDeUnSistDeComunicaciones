@@ -1,7 +1,7 @@
 //============================================================
 // SNR to Variance table in S(8,7) format
 // -----------------------------------------------------------
-// SNR (dB)     Variance σ²     σ² (hex)    S(8,7) format
+// SNR (dB)     Variance σ       σ (hex)    S(8,7) format
 // -----------------------------------------------------------
 //       7         0.21875         8'h1c         00011100
 //       8       0.1953125         8'h19         00011001
@@ -34,7 +34,7 @@ module tb_qpsk_comm_sys;
   parameter NOISE_SEED1_Q     = 64'd14533118196545751551;
   parameter NOISE_SEED2_Q     = 64'd18444914485018758400;
   parameter NOISE_SEED3_Q     = 64'd18425749998705519615;
-  parameter SIGMA             = 8'sh1c;
+  parameter SIGMA             = 8'sh1d;
   parameter NBT_SIGMA         = 8;
   parameter NBF_SIGMA         = 7;
   parameter NBT_NOISE         = 8;
@@ -82,8 +82,12 @@ module tb_qpsk_comm_sys;
   reg clk;
   reg i_reset;
   reg i_sw;
-  wire  [3:0] o_normal_led;
-
+  wire [1:0] o_normal_led;
+  wire       o_rgb_led3_b;
+  wire       o_rgb_led2_b;
+  wire       o_rgb_led1_g;
+  wire       o_rgb_led0_g;
+  
   // Instantiate the Device Under Test (DUT)
   qpsk_comm_sys #(
         .PRBS_SEED_I       (PRBS_SEED_I      ),
@@ -140,6 +144,10 @@ module tb_qpsk_comm_sys;
         .START_CNT         (START_CNT        )
   ) dut (
     .o_normal_led  (o_normal_led ),
+    .o_rgb_led3_b  (o_rgb_led3_b ),
+    .o_rgb_led2_b  (o_rgb_led2_b ),
+    .o_rgb_led1_g  (o_rgb_led1_g ),
+    .o_rgb_led0_g  (o_rgb_led0_g ),
     .i_sw          (i_sw         ),
     .i_reset       (i_reset      ),
     .clk           (clk          )
@@ -155,8 +163,6 @@ module tb_qpsk_comm_sys;
   integer file_rx_symQ_dwr1 ;
   integer file_rx_symI_slcr ;
   integer file_rx_symQ_slcr ;
-  integer file_error_I      ;
-  integer file_error_Q      ;
   integer file_fse_taps_I   ;
   integer file_fse_taps_Q   ;
 
@@ -174,8 +180,6 @@ module tb_qpsk_comm_sys;
   wire signed [            NBT_FSE_OUT-1:0] dwQ_r1                   ;
   wire signed [            NBT_FSE_OUT-1:0] symI_slcr                ;
   wire signed [            NBT_FSE_OUT-1:0] symQ_slcr                ;
-  wire signed [           NBT_TAPS_ERR-1:0] lms_errI                 ;
-  wire signed [           NBT_TAPS_ERR-1:0] lms_errQ                 ;
   wire signed [           NBT_FSE_TAPS-1:0] taps_I [NUM_FSE_TAPS-1:0];
   wire signed [           NBT_FSE_TAPS-1:0] taps_Q [NUM_FSE_TAPS-1:0];
   wire        [                       63:0] bit_err_I                ;
@@ -192,8 +196,6 @@ module tb_qpsk_comm_sys;
   assign dwQ_r1    = dut.u_adaptive_filter.u_dwsamp_r1_Q.r_dwsamp   ;
   assign symI_slcr = dut.u_adaptive_filter.o_os_data_I              ;
   assign symQ_slcr = dut.u_adaptive_filter.o_os_data_Q              ;
-  assign lms_errI  = dut.u_adaptive_filter.w_err_I                  ;
-  assign lms_errQ  = dut.u_adaptive_filter.w_err_Q                  ;
 
   assign latency   = dut.u_ber_IjQ.u_bit_error_counter_I.r_lat      ;
   assign bit_err_I = dut.u_ber_IjQ.u_bit_error_counter_I.r_accum_err;
@@ -225,8 +227,6 @@ module tb_qpsk_comm_sys;
       file_rx_symQ_dwr1 = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_rx_symQ_dwr1.txt", "wb");
       file_rx_symI_slcr = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_rx_symI_slcr.txt", "wb");
       file_rx_symQ_slcr = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_rx_symQ_slcr.txt", "wb");
-      file_error_I      = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_rx_error_I.txt"  , "wb");
-      file_error_Q      = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_rx_error_Q.txt"  , "wb");
       file_fse_taps_I   = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_fse_taps_I.txt"  , "wb");
       file_fse_taps_Q   = $fopen("./../../../../../../testbench/tb_qpsk_comm_sys/script_py/logs/file_fse_taps_Q.txt"  , "wb");
       
@@ -252,8 +252,6 @@ module tb_qpsk_comm_sys;
             $fwrite(file_rx_symQ_dwr1 , "%d\n", dwQ_r1   );
             $fwrite(file_rx_symI_slcr , "%d\n", symI_slcr);
             $fwrite(file_rx_symQ_slcr , "%d\n", symQ_slcr);
-            $fwrite(file_error_I      , "%d\n", lms_errI );
-            $fwrite(file_error_Q      , "%d\n", lms_errQ );
           end
           if (i%(4*log_step) == 0) begin
               for (k = 0; k < NUM_FSE_TAPS; k = k + 1) begin
@@ -297,8 +295,6 @@ module tb_qpsk_comm_sys;
       $fclose(file_rx_symQ_dwr1);
       $fclose(file_rx_symI_slcr);
       $fclose(file_rx_symQ_slcr);
-      $fclose(file_error_I     );
-      $fclose(file_error_Q     );
       $fclose(file_fse_taps_I  );
       $fclose(file_fse_taps_Q  );
       

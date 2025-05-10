@@ -108,14 +108,6 @@ rx_symI_slcr = rx_symI_slcr_from_ver / (2**NBF_FSE_OUT)
 rx_symQ_slcr = rx_symQ_slcr_from_ver / (2**NBF_FSE_OUT)
 
 
-# Error for LMS
-rx_err_lms_I_from_ver = np.loadtxt("logs/file_rx_error_I.txt", dtype=np.intp)
-rx_err_lms_Q_from_ver = np.loadtxt("logs/file_rx_error_Q.txt", dtype=np.intp)
-
-rx_err_lms_I = rx_err_lms_I_from_ver / (2**7)
-rx_err_lms_Q = rx_err_lms_Q_from_ver / (2**7)
-
-
 
 #####################################################################################
 ##                                      PLOTS                                       #
@@ -295,19 +287,3 @@ plt.ylim(-1.5,3.0)
 plt.grid(True)
 plt.show()
 
-
-## Evolution error for LMS over time
-plt.figure(figsize=[10,6])
-plt.plot(rx_err_lms_I)
-plt.title('LMS-Error - Lane I')
-plt.xlabel('Time [n]')
-plt.ylim(-2.0,2.0)
-plt.grid(True)
-
-plt.figure(figsize=[10,6])
-plt.plot(rx_err_lms_Q)
-plt.title('LMS-Error - Lane Q')
-plt.ylim(-2.0,2.0)
-plt.xlabel('Time [n]')
-plt.grid(True)
-plt.show()
