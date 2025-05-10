@@ -136,20 +136,14 @@ module top #(
   //               MicroBlaze               //
   //==========================================
   uBlaze    
-    u_uBlaze 
-    (
-      .gpio_rtl_0_tri_i(w_regf_to_gpio),
-      .gpio_rtl_0_tri_o(w_gpio_to_regf),
-      .o_lock_clock    (locked        ),    
-      .reset           (i_reset       ),
-      .sys_clock       (i_clk         ),
-      .usb_uart_rxd    (i_rx_uart     ),
-      .usb_uart_txd    (o_tx_uart     )
-    );
-
-  //==========================================
-  //            Register file               //
-  //==========================================
+    u_uBlaze (
+    .gpio_rtl_tri_i  (w_regf_to_gpio           ),
+    .gpio_rtl_tri_o  (w_gpio_to_regf           ),   
+    .reset           (~(w_reset || ~w_rst_soft)),
+    .Clk             (i_clk                    ),
+    .usb_uart_rxd    (i_rx_uart                ),
+    .usb_uart_txd    (o_tx_uart                )
+  );
 
   reg_file #(
     .NBT_GPIOS         (NBT_GPIOS         ),

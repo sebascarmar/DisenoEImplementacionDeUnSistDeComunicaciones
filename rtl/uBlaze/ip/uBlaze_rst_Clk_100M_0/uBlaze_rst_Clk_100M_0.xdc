@@ -1,7 +1,6 @@
 
-# file: uBlaze_clk_wiz_0_0_ooc.xdc
-# 
-# (c) Copyright 2008 - 2013 Xilinx, Inc. All rights reserved.
+# file: uBlaze_rst_Clk_100M_0.xdc
+# (c) Copyright 2009 - 2013 Xilinx, Inc. All rights reserved.
 # 
 # This file contains confidential and proprietary information
 # of Xilinx, Inc. and is protected under U.S. and
@@ -46,13 +45,5 @@
 # 
 # THIS COPYRIGHT NOTICE AND DISCLAIMER MUST BE RETAINED AS
 # PART OF THIS FILE AT ALL TIMES.
-# 
 
-#################
-#DEFAULT CLOCK CONSTRAINTS
-
-############################################################
-# Clock Period Constraints                                 #
-############################################################
-#create_clock -period 10.000 [get_ports clk_in1]
-
+set_false_path -to [get_pins -hier *cdc_to*/D]

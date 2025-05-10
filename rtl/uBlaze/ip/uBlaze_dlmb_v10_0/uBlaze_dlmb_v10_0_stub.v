@@ -2,11 +2,11 @@
 // Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
-// Date        : Fri Apr 25 22:08:57 2025
+// Date        : Sat May 10 15:21:36 2025
 // Host        : daniel-lmint running 64-bit Linux Mint 20.3
 // Command     : write_verilog -force -mode synth_stub -rename_top uBlaze_dlmb_v10_0 -prefix
-//               uBlaze_dlmb_v10_0_ uBlaze_a_dlmb_v10_0_stub.v
-// Design      : uBlaze_a_dlmb_v10_0
+//               uBlaze_dlmb_v10_0_ uBlaze_dlmb_v10_1_stub.v
+// Design      : uBlaze_dlmb_v10_1
 // Purpose     : Stub declaration of top-level module interface
 // Device      : xc7a35ticsg324-1L
 // --------------------------------------------------------------------------------

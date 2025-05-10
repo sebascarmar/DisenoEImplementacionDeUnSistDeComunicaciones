@@ -2,18 +2,18 @@
 // Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
-// Date        : Fri Apr 25 22:09:37 2025
+// Date        : Sat May 10 15:23:14 2025
 // Host        : daniel-lmint running 64-bit Linux Mint 20.3
-// Command     : write_verilog -force -mode funcsim -rename_top uBlaze_rst_clk_wiz_0_100M_0 -prefix
-//               uBlaze_rst_clk_wiz_0_100M_0_ uBlaze_a_rst_clk_wiz_0_100M_0_sim_netlist.v
-// Design      : uBlaze_a_rst_clk_wiz_0_100M_0
+// Command     : write_verilog -force -mode funcsim -rename_top uBlaze_rst_Clk_100M_0 -prefix
+//               uBlaze_rst_Clk_100M_0_ uBlaze_rst_Clk_100M_0_sim_netlist.v
+// Design      : uBlaze_rst_Clk_100M_0
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
 // Device      : xc7a35ticsg324-1L
 // --------------------------------------------------------------------------------
 `timescale 1 ps / 1 ps
 
-module uBlaze_rst_clk_wiz_0_100M_0_cdc_sync
+module uBlaze_rst_Clk_100M_0_cdc_sync
    (lpf_asr_reg,
     scndry_out,
     lpf_asr,
@@ -109,7 +109,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_cdc_sync
 endmodule
 
 (* ORIG_REF_NAME = "cdc_sync" *) 
-module uBlaze_rst_clk_wiz_0_100M_0_cdc_sync_0
+module uBlaze_rst_Clk_100M_0_cdc_sync_0
    (lpf_exr_reg,
     scndry_out,
     lpf_exr,
@@ -208,7 +208,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_cdc_sync_0
         .O(lpf_exr_reg));
 endmodule
 
-module uBlaze_rst_clk_wiz_0_100M_0_lpf
+module uBlaze_rst_Clk_100M_0_lpf
    (lpf_int,
     slowest_sync_clk,
     dcm_locked,
@@ -243,7 +243,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_lpf
   wire p_3_in6_in;
   wire slowest_sync_clk;
 
-  uBlaze_rst_clk_wiz_0_100M_0_cdc_sync \ACTIVE_LOW_AUX.ACT_LO_AUX 
+  uBlaze_rst_Clk_100M_0_cdc_sync \ACTIVE_LOW_AUX.ACT_LO_AUX 
        (.asr_lpf(asr_lpf),
         .aux_reset_in(aux_reset_in),
         .lpf_asr(lpf_asr),
@@ -252,7 +252,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_lpf
         .p_2_in(p_2_in),
         .scndry_out(p_3_in1_in),
         .slowest_sync_clk(slowest_sync_clk));
-  uBlaze_rst_clk_wiz_0_100M_0_cdc_sync_0 \ACTIVE_LOW_EXT.ACT_LO_EXT 
+  uBlaze_rst_Clk_100M_0_cdc_sync_0 \ACTIVE_LOW_EXT.ACT_LO_EXT 
        (.exr_lpf(exr_lpf),
         .ext_reset_in(ext_reset_in),
         .lpf_exr(lpf_exr),
@@ -362,7 +362,7 @@ endmodule
 (* C_AUX_RESET_HIGH = "1'b0" *) (* C_AUX_RST_WIDTH = "4" *) (* C_EXT_RESET_HIGH = "1'b0" *) 
 (* C_EXT_RST_WIDTH = "4" *) (* C_FAMILY = "artix7" *) (* C_NUM_BUS_RST = "1" *) 
 (* C_NUM_INTERCONNECT_ARESETN = "1" *) (* C_NUM_PERP_ARESETN = "1" *) (* C_NUM_PERP_RST = "1" *) 
-module uBlaze_rst_clk_wiz_0_100M_0_proc_sys_reset
+module uBlaze_rst_Clk_100M_0_proc_sys_reset
    (slowest_sync_clk,
     ext_reset_in,
     aux_reset_in,
@@ -437,7 +437,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_proc_sys_reset
         .D(Bsr_out),
         .Q(bus_struct_reset),
         .R(1'b0));
-  uBlaze_rst_clk_wiz_0_100M_0_lpf EXT_LPF
+  uBlaze_rst_Clk_100M_0_lpf EXT_LPF
        (.aux_reset_in(aux_reset_in),
         .dcm_locked(dcm_locked),
         .ext_reset_in(ext_reset_in),
@@ -468,7 +468,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_proc_sys_reset
         .D(Pr_out),
         .Q(peripheral_reset),
         .R(1'b0));
-  uBlaze_rst_clk_wiz_0_100M_0_sequence_psr SEQ
+  uBlaze_rst_Clk_100M_0_sequence_psr SEQ
        (.Bsr_out(Bsr_out),
         .MB_out(MB_out),
         .Pr_out(Pr_out),
@@ -478,7 +478,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_proc_sys_reset
         .slowest_sync_clk(slowest_sync_clk));
 endmodule
 
-module uBlaze_rst_clk_wiz_0_100M_0_sequence_psr
+module uBlaze_rst_Clk_100M_0_sequence_psr
    (MB_out,
     Bsr_out,
     Pr_out,
@@ -548,7 +548,7 @@ module uBlaze_rst_clk_wiz_0_100M_0_sequence_psr
         .D(Core_i_1_n_0),
         .Q(MB_out),
         .S(lpf_int));
-  uBlaze_rst_clk_wiz_0_100M_0_upcnt_n SEQ_COUNTER
+  uBlaze_rst_Clk_100M_0_upcnt_n SEQ_COUNTER
        (.Q(seq_cnt),
         .seq_clr(seq_clr),
         .seq_cnt_en(seq_cnt_en),
@@ -718,9 +718,9 @@ module uBlaze_rst_clk_wiz_0_100M_0_sequence_psr
         .R(lpf_int));
 endmodule
 
-(* CHECK_LICENSE_TYPE = "uBlaze_a_rst_clk_wiz_0_100M_0,proc_sys_reset,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "proc_sys_reset,Vivado 2023.1" *) 
+(* CHECK_LICENSE_TYPE = "uBlaze_rst_Clk_100M_0,proc_sys_reset,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "proc_sys_reset,Vivado 2023.1" *) 
 (* NotValidForBitStream *)
-module uBlaze_rst_clk_wiz_0_100M_0
+module uBlaze_rst_Clk_100M_0
    (slowest_sync_clk,
     ext_reset_in,
     aux_reset_in,
@@ -731,7 +731,7 @@ module uBlaze_rst_clk_wiz_0_100M_0
     peripheral_reset,
     interconnect_aresetn,
     peripheral_aresetn);
-  (* x_interface_info = "xilinx.com:signal:clock:1.0 clock CLK" *) (* x_interface_parameter = "XIL_INTERFACENAME clock, ASSOCIATED_RESET mb_reset:bus_struct_reset:interconnect_aresetn:peripheral_aresetn:peripheral_reset, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, PHASE 0.0, CLK_DOMAIN /clk_wiz_0_clk_out1, INSERT_VIP 0" *) input slowest_sync_clk;
+  (* x_interface_info = "xilinx.com:signal:clock:1.0 clock CLK" *) (* x_interface_parameter = "XIL_INTERFACENAME clock, ASSOCIATED_RESET mb_reset:bus_struct_reset:interconnect_aresetn:peripheral_aresetn:peripheral_reset, FREQ_HZ 100000000, FREQ_TOLERANCE_HZ 0, PHASE 0.0, CLK_DOMAIN uBlaze_Clk, INSERT_VIP 0" *) input slowest_sync_clk;
   (* x_interface_info = "xilinx.com:signal:reset:1.0 ext_reset RST" *) (* x_interface_parameter = "XIL_INTERFACENAME ext_reset, BOARD.ASSOCIATED_PARAM RESET_BOARD_INTERFACE, POLARITY ACTIVE_LOW, INSERT_VIP 0" *) input ext_reset_in;
   (* x_interface_info = "xilinx.com:signal:reset:1.0 aux_reset RST" *) (* x_interface_parameter = "XIL_INTERFACENAME aux_reset, POLARITY ACTIVE_LOW, INSERT_VIP 0" *) input aux_reset_in;
   (* x_interface_info = "xilinx.com:signal:reset:1.0 dbg_reset RST" *) (* x_interface_parameter = "XIL_INTERFACENAME dbg_reset, POLARITY ACTIVE_HIGH, INSERT_VIP 0" *) input mb_debug_sys_rst;
@@ -762,7 +762,7 @@ module uBlaze_rst_clk_wiz_0_100M_0
   (* C_NUM_INTERCONNECT_ARESETN = "1" *) 
   (* C_NUM_PERP_ARESETN = "1" *) 
   (* C_NUM_PERP_RST = "1" *) 
-  uBlaze_rst_clk_wiz_0_100M_0_proc_sys_reset U0
+  uBlaze_rst_Clk_100M_0_proc_sys_reset U0
        (.aux_reset_in(aux_reset_in),
         .bus_struct_reset(bus_struct_reset),
         .dcm_locked(dcm_locked),
@@ -775,7 +775,7 @@ module uBlaze_rst_clk_wiz_0_100M_0
         .slowest_sync_clk(slowest_sync_clk));
 endmodule
 
-module uBlaze_rst_clk_wiz_0_100M_0_upcnt_n
+module uBlaze_rst_Clk_100M_0_upcnt_n
    (Q,
     seq_clr,
     seq_cnt_en,

@@ -2,11 +2,11 @@
 -- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
--- Date        : Fri Apr 25 22:09:01 2025
+-- Date        : Sat May 10 15:22:35 2025
 -- Host        : daniel-lmint running 64-bit Linux Mint 20.3
 -- Command     : write_vhdl -force -mode funcsim -rename_top uBlaze_mdm_1_0 -prefix
---               uBlaze_mdm_1_0_ uBlaze_a_mdm_1_0_sim_netlist.vhdl
--- Design      : uBlaze_a_mdm_1_0
+--               uBlaze_mdm_1_0_ uBlaze_mdm_1_1_sim_netlist.vhdl
+-- Design      : uBlaze_mdm_1_1
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
 -- Device      : xc7a35ticsg324-1L
@@ -10601,7 +10601,7 @@ entity uBlaze_mdm_1_0 is
   attribute NotValidForBitStream : boolean;
   attribute NotValidForBitStream of uBlaze_mdm_1_0 : entity is true;
   attribute CHECK_LICENSE_TYPE : string;
-  attribute CHECK_LICENSE_TYPE of uBlaze_mdm_1_0 : entity is "uBlaze_a_mdm_1_0,MDM,{}";
+  attribute CHECK_LICENSE_TYPE of uBlaze_mdm_1_0 : entity is "uBlaze_mdm_1_1,MDM,{}";
   attribute downgradeipidentifiedwarnings : string;
   attribute downgradeipidentifiedwarnings of uBlaze_mdm_1_0 : entity is "yes";
   attribute x_core_info : string;

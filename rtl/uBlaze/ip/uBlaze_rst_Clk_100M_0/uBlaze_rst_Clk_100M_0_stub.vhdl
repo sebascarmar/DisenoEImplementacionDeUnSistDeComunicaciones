@@ -2,18 +2,18 @@
 -- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
--- Date        : Fri Apr 25 22:09:37 2025
+-- Date        : Sat May 10 15:23:14 2025
 -- Host        : daniel-lmint running 64-bit Linux Mint 20.3
--- Command     : write_vhdl -force -mode synth_stub -rename_top uBlaze_rst_clk_wiz_0_100M_0 -prefix
---               uBlaze_rst_clk_wiz_0_100M_0_ uBlaze_a_rst_clk_wiz_0_100M_0_stub.vhdl
--- Design      : uBlaze_a_rst_clk_wiz_0_100M_0
+-- Command     : write_vhdl -force -mode synth_stub -rename_top uBlaze_rst_Clk_100M_0 -prefix
+--               uBlaze_rst_Clk_100M_0_ uBlaze_rst_Clk_100M_0_stub.vhdl
+-- Design      : uBlaze_rst_Clk_100M_0
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35ticsg324-1L
 -- --------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
-entity uBlaze_rst_clk_wiz_0_100M_0 is
+entity uBlaze_rst_Clk_100M_0 is
   Port ( 
     slowest_sync_clk : in STD_LOGIC;
     ext_reset_in : in STD_LOGIC;
@@ -27,9 +27,9 @@ entity uBlaze_rst_clk_wiz_0_100M_0 is
     peripheral_aresetn : out STD_LOGIC_VECTOR ( 0 to 0 )
   );
 
-end uBlaze_rst_clk_wiz_0_100M_0;
+end uBlaze_rst_Clk_100M_0;
 
-architecture stub of uBlaze_rst_clk_wiz_0_100M_0 is
+architecture stub of uBlaze_rst_Clk_100M_0 is
 attribute syn_black_box : boolean;
 attribute black_box_pad_pin : string;
 attribute syn_black_box of stub : architecture is true;

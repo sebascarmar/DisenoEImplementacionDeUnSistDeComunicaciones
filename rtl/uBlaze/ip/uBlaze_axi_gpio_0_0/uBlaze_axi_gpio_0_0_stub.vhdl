@@ -2,11 +2,11 @@
 -- Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
--- Date        : Fri Apr 25 22:08:13 2025
+-- Date        : Sat May 10 15:21:39 2025
 -- Host        : daniel-lmint running 64-bit Linux Mint 20.3
 -- Command     : write_vhdl -force -mode synth_stub -rename_top uBlaze_axi_gpio_0_0 -prefix
---               uBlaze_axi_gpio_0_0_ uBlaze_a_axi_gpio_0_1_stub.vhdl
--- Design      : uBlaze_a_axi_gpio_0_1
+--               uBlaze_axi_gpio_0_0_ uBlaze_axi_gpio_0_1_stub.vhdl
+-- Design      : uBlaze_axi_gpio_0_1
 -- Purpose     : Stub declaration of top-level module interface
 -- Device      : xc7a35ticsg324-1L
 -- --------------------------------------------------------------------------------

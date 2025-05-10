@@ -2,11 +2,11 @@
 // Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2023.1 (lin64) Build 3865809 Sun May  7 15:04:56 MDT 2023
-// Date        : Fri Apr 25 22:09:01 2025
+// Date        : Sat May 10 15:22:34 2025
 // Host        : daniel-lmint running 64-bit Linux Mint 20.3
 // Command     : write_verilog -force -mode funcsim -rename_top uBlaze_mdm_1_0 -prefix
-//               uBlaze_mdm_1_0_ uBlaze_a_mdm_1_0_sim_netlist.v
-// Design      : uBlaze_a_mdm_1_0
+//               uBlaze_mdm_1_0_ uBlaze_mdm_1_1_sim_netlist.v
+// Design      : uBlaze_mdm_1_1
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
 // Device      : xc7a35ticsg324-1L
@@ -11567,7 +11567,7 @@ module uBlaze_mdm_1_0_MDM_Core
         .O(\Use_E2.BSCANE2_I_i_2_n_0 ));
 endmodule
 
-(* CHECK_LICENSE_TYPE = "uBlaze_a_mdm_1_0,MDM,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "MDM,Vivado 2023.1" *) 
+(* CHECK_LICENSE_TYPE = "uBlaze_mdm_1_1,MDM,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "MDM,Vivado 2023.1" *) 
 (* NotValidForBitStream *)
 module uBlaze_mdm_1_0
    (Debug_SYS_Rst,
