@@ -15,10 +15,10 @@ from classes.prbs9 import prbs9
 
 #### Sweep
 SWEEP_TIMES = 7
-START_SWP   = 7
+START_SWP   = 6
 
 #### General
-NSYMB = 850000
+NSYMB = 400000 # 1000000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -28,17 +28,18 @@ SEED_I =  0x1AA
 SEED_Q =  0x1FE
 
 #### Channel
+SNR_db   = 7.184
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
-f_offset     = 12e3 # Hz
+f_offset     = 0.0 # Hz
 fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
-NTAPS_FSE    = 33
+NTAPS_FSE    = 9
 lms_step     = 0.5e-3
 lms_leak     = 1e-3
-Kp           = 1e-3
+Kp           = 0 if(f_offset==0) else 1e-3
 Ki           = Kp/1000
 
 #### BER counter
@@ -373,15 +374,18 @@ th_ber_full = np.full_like(x_axis_full, np.nan, dtype=float)
 th_ber_full[START_SWP: len(th_ber)] = th_ber[START_SWP:] 
 
 # Plot
-plt.figure(figsize=[14,6])
-plt.title('BER vs SNR')
+plt.figure(figsize=[10,10])
+plt.title('BER vs SNR | (data from float sim.)')
 plt.semilogy(x_axis_full, th_ber_full, 'r', linewidth=2.0)
 plt.semilogy(x_axis_full, bersI_full, 'b', linewidth=2.0)
 plt.semilogy(x_axis_full, bersQ_full, 'g', linewidth=2.0)
 plt.xlabel('SNR(dB)')
 plt.ylabel('BER')
 plt.grid(True)
-# plt.xlim(0,SWEEP_TIMES+START_SWP)
-# plt.ylim(0.0001,1)
+#plt.ylim([1e-5, 0.7e-1])
+plt.xlim([6.8, 12.2])
+#plt.gca().set_aspect('equal', adjustable='box')
+plt.axis('equal')
 plt.legend(['SNR theo','SNR I','SNR Q'])
 plt.show()
+
