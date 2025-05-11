@@ -14,8 +14,8 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### Sweep
-SWEEP_TIMES = 7
-START_SWP   = 6
+SWEEP_TIMES = 6
+START_SWP   = 7
 
 #### General
 NSYMB = 400000 # 1000000
@@ -47,7 +47,7 @@ START_SYN = 249879
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-# np.random.seed(1)  # set the seed: 3-0-4-1
+np.random.seed(1)  # set the seed: 3-0-4-1
 
 
 bersI_contadas = np.zeros(SWEEP_TIMES+START_SWP)
