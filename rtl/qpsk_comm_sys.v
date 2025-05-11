@@ -1,7 +1,7 @@
 //============================================================
 // SNR to Variance table in S(8,7) format
 // -----------------------------------------------------------
-// SNR (dB)     Variance σ²     σ² (hex)    S(8,7) format
+// SNR (dB)      Variance σ     σ (hex)    S(8,7) format
 // -----------------------------------------------------------
 //       7         0.21875         8'h1c         00011100
 //       8       0.1953125         8'h19         00011001
@@ -20,7 +20,7 @@
 
 // TRANSMITTER FILTER
 //`define TXFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_txf.dat"
-`define TXFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_txf.dat"
+`define TXFILT_COEFF_FILE "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_txf.dat"
 `define NBT_TXFILT_COEF   8
 `define NBF_TXFILT_COEF   7
 `define NBT_TXFILT_OUT    8
@@ -35,7 +35,6 @@
 `define NOISE_SEED1_Q 64'd14533118196545751551 
 `define NOISE_SEED2_Q 64'd18444914485018758400 
 `define NOISE_SEED3_Q 64'd18425749998705519615 
-`define SIGMA         8'sh1c                 
 `define NBT_SIGMA     8 
 `define NBF_SIGMA     7 
 `define NBT_NOISE     8
@@ -46,7 +45,7 @@
 // CHANNEL FILTER
 `define NUM_CHFILT_COEF  17
 //`define CHFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
-`define CHFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_chfilt.dat"
+`define CHFILT_COEFF_FILE "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt.dat"
 `define NBT_CHFILT_COEF   8
 `define NBF_CHFILT_COEF   7
 `define NBT_CHFILT_OUT    8
@@ -55,7 +54,7 @@
 // ANTI-ALIAS FILTER
 `define NUM_AAFILT_COEF  17
 //`define AAFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat"
-`define AAFILT_COEFF_FILE "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/fixed_point/logs/coeffs_aafilt.dat"
+`define AAFILT_COEFF_FILE "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_aafilt.dat"
 `define NBT_AAFILT_COEF   8
 `define NBF_AAFILT_COEF   7
 `define NBT_AAFILT_OUT    8
@@ -103,7 +102,7 @@ module qpsk_comm_sys
   parameter NOISE_SEED1_Q     = `NOISE_SEED1_Q    ,
   parameter NOISE_SEED2_Q     = `NOISE_SEED2_Q    ,
   parameter NOISE_SEED3_Q     = `NOISE_SEED3_Q    ,
-  parameter SIGMA             = `SIGMA            ,
+//  parameter SIGMA             = `SIGMA            ,
   parameter NBT_SIGMA         = `NBT_SIGMA        , 
   parameter NBF_SIGMA         = `NBF_SIGMA        , 
   parameter NBT_NOISE         = `NBT_NOISE        , 
@@ -156,15 +155,16 @@ module qpsk_comm_sys
   output                                          o_control_for_rate_2,
   output                                          o_control_for_rate_1,
   //
-  output [1:0] o_normal_led,
-  output       o_rgb_led3_b,
-  output       o_rgb_led2_b,
-  output       o_rgb_led1_g,
-  output       o_rgb_led0_g,
+  output       [1:0] o_normal_led,
+  output             o_rgb_led3_b,
+  output             o_rgb_led2_b,
+  output             o_rgb_led1_g,
+  output             o_rgb_led0_g,
 
-  input        i_sw        ,
-  input        i_reset     ,
-  input        clk
+  input signed [7:0] i_sigma     , 
+  input              i_sw        ,
+  input              i_reset     ,
+  input              clk
  );
   
   
@@ -293,16 +293,17 @@ module qpsk_comm_sys
     .Z1_Q     (NOISE_SEED1_Q), 
     .Z2_Q     (NOISE_SEED2_Q), 
     .Z3_Q     (NOISE_SEED3_Q), 
-    .SIGMA    (SIGMA        ), 
+//    .SIGMA    (SIGMA        ), 
     .NBT_SIGMA(NBT_SIGMA    ), 
     .NBF_SIGMA(NBF_SIGMA    ), 
     .NBT_NOISE(NBT_NOISE    ), 
     .NBF_NOISE(NBF_NOISE    ) 
   ) u_ch_gng_top (
-    .o_noise_I(w_noiseI_to_add),
-    .o_noise_Q(w_noiseQ_to_add),
-    .i_reset  (i_reset        ),
-    .clk      (clk            )
+    .o_noise_I  (w_noiseI_to_add),
+    .o_noise_Q  (w_noiseQ_to_add),
+    .i_sigma    (i_sigma        ),
+    .i_reset    (i_reset        ),
+    .clk        (clk            )
   );
   
   // Add noise to signal
