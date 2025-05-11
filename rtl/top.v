@@ -1,3 +1,4 @@
+`define SIGMA             8'sh1C
 `define	NBT_I_EQLZR         8	
 `define	NBT_O_EQLZR        12	
 `define	NUM_TAPS            9	
@@ -15,6 +16,7 @@
 
 
 module top #(
+  parameter SIGMA              = `SIGMA             , 
   parameter NBT_I_EQLZR        = `NBT_I_EQLZR       ,	 
   parameter NBT_O_EQLZR        = `NBT_O_EQLZR       ,
   parameter NBT_TAPS           = `NBT_TAPS          ,
@@ -58,6 +60,7 @@ module top #(
   wire        [          NBT_GPIOS-1:0] w_gpio_to_regf      ;	
   wire                                  w_rst_soft          ;
   wire                                  w_en_rx_soft        ; 
+  wire signed [                    7:0] w_sigma             ; 
   wire                                  w_en_write          ; 
   wire                                  w_en_read_from_ram  ;
   wire        [                    2:0] w_data_sel_for_log  ;
@@ -147,6 +150,7 @@ module top #(
 
   //////////////// Register file
   reg_file #(
+    .SIGMA             (SIGMA             ), 
     .NBT_GPIOS         (NBT_GPIOS         ),
     .RAM_DEPTH         (RAM_DEPTH         ),
     .NBT_COUNT_BITS_ERR(NBT_COUNT_BITS_ERR) 
@@ -158,6 +162,7 @@ module top #(
     .o_en_read_from_ram (w_en_read_from_ram    ),
     .o_rst_soft         (w_rst_soft            ),
     .o_en_rx_soft       (w_en_rx_soft          ),  
+    .o_sigma            (w_sigma               ), 
     .i_accum_err_Q      (w_accum_err_Q         ),
     .i_accum_err_I      (w_accum_err_I         ),
     .i_accum_bit_Q      (w_accum_bit_Q         ),
@@ -179,7 +184,7 @@ module top #(
     .RAM_WIDTH      (RAM_WIDTH      ),            
     .RAM_DEPTH      (RAM_DEPTH      ),                  
     .RAM_PERFORMANCE(RAM_PERFORMANCE),
-    .INIT_FILE      (INIT_FILE      )             
+    .INIT_FILE      (INIT_FILE      )   
   ) u_block_ram_control ( 
     .o_data_for_read     (w_data_ram_for_read    ),				
     .i_data_sel_for_log  (w_data_sel_for_log     ), 
@@ -222,6 +227,7 @@ module top #(
     .o_rgb_led2_b        (w_sync_done_Q            ),
     .o_rgb_led1_g        (w_ber_ok_led_I           ),
     .o_rgb_led0_g        (w_ber_ok_led_Q           ),
+    .i_sigma             (w_sigma                  ), 
     .i_sw                (w_sw && w_en_rx_soft     ),
     .i_reset             (~(w_reset || ~w_rst_soft)),
     .clk                 (i_clk                    ) 
