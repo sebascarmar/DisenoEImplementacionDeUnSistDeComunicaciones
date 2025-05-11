@@ -41,6 +41,7 @@ opc_3  = b'\x03'
 opc_4  = b'\x04'
 opc_5  = b'\x05'
 opc_6  = b'\x06'
+opc_7  = b'\x07' 
 
 
 #|___Function to save the data collected from the filter outputs___|
@@ -187,7 +188,9 @@ def data_frame_disassembly (frame):
         read_data.append(chr(ord(ser.read(1))))
 
     opc = "".join(read_data[head:large-1])
-    print("Message received: ", opc)
+    
+    if (len(opc) >0):
+        print("Message received: ", opc)
     print()
     print()
 
@@ -260,8 +263,6 @@ def data_ber_disassembly (frame):
 #| OUTPUT:                                                            |
 #|         None                                                       |
 #|____________________________________________________________________|
-
-
 def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
  
     if (sub_opc_for_reading == b'\x09' or sub_opc_for_reading == b'\x0A'):
@@ -320,17 +321,38 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
     save_data(frame_int_Q, frame_int_I, sub_opc_for_reading)
 
 
-#|_____________________Function for sub-options_______________________|
-#| INPUT:                                                             |
-#|        opc = Variable indicating the chosen option. Some options   |
-#|        have a submenu for sub-options, such as the option to set   |
-#|        parts of the system.                                        |
+#|____________________Function to get snr for hw______________________|
+#| INPUT:                                                             |  
+#|          index from snr value                                      |   
 #| OUTPUT:                                                            |
-#|         sub_opc = Variable indicating a sub-option depending on    |
-#|         the main option selected.                                  |
-#|         filler_opc = Returns a value, either zero or a specific one, |
-#|         depending on the chosen option and sub-option.             |
+#|          snr value in hex                                          |
 #|____________________________________________________________________|
+def get_snr_for_hw(snr_idx):
+    # SNR values: 1 dB to 20 dB
+    snr_values = np.array([
+                  0.4453125, 0.390625, 0.3515625, 0.3125   ,
+                  0.28125  , 0.25    , 0.21875  , 0.1953125,
+                  0.171875 , 0.15625 , 0.140625 , 0.125    , 
+                  0.109375 , 0.09375 , 0.0859375, 0.078125 ,
+                  0.0703125, 0.0625  , 0.0546875, 0.046875
+                 ])
+    
+    scaled_val = int(snr_values[(snr_idx-1)]*2**7)
+
+    return scaled_val.to_bytes(1, byteorder='big')
+    
+
+#|_____________________Function for sub-options________________________|
+#| INPUT:                                                              |
+#|        opc = Variable indicating the chosen option. Some options    |
+#|        have a submenu for sub-options, such as the option to set    |
+#|        parts of the system.                                         |
+#| OUTPUT:                                                             |
+#|         sub_opc = Variable indicating a sub-option depending on     |
+#|         the main option selected.                                   |
+#|         filler_opc = Returns a value, either zero or a specific one,|
+#|         depending on the chosen option and sub-option.              |
+#|_____________________________________________________________________|
 def sub_menu(opc):
 
     if(opc == '2'):
@@ -343,15 +365,40 @@ def sub_menu(opc):
         option = input("Enter an option: ")
 
         while (option != '1' and option != '2' and option != '3'): 
-            option = input("Invalid option. Enter and option (1-3): ")   
+            option = input("Invalid option. Enter an option (1-3): ")   
         print()
         if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\xFF'
     
     elif(opc == '3'):
+
+        print("|( 3 ): Select SNR______________|")
+        print("|    ( 1 ): Enter values (7-17) |")
+        print("|    ( 2 ): Return to main menu |")
+        print("|_______________________________|")
+        option = input("Enter an option: ")
+
+        while (option != '1' and option != '2'): 
+            option = input("Invalid option. Enter an option (1-2): ")   
+        print()
+
+        if (option == '1'): 
+            snr_opc = int (input("Enter an int. value (7-17): "))
+
+            while snr_opc < 7 or snr_opc > 17: 
+                snr_opc = int(input("Invalid option. Enter a value between 7 and 20: "))  
+            print()
+            snr_value = get_snr_for_hw(snr_opc)
+            
+            return snr_value
+
+        if (option == '2'): return b'\xFF'
+
         
-        print("|( 3 ): Store DSP data in memory___|")
+    elif(opc == '4'):
+        
+        print("|( 4 ): Store DSP data in memory___|")
         print("|    ( 1 ): Store input equalizer  |")
         print("|    ( 2 ): Store outpu equalizer  |")
         print("|    ( 3 ): Store FSE taps         |")
@@ -360,7 +407,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
 
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
-            option = input("Invalid option. Enter and option (1-4): ")   
+            option = input("Invalid option. Enter an option (1-4): ")   
         print()
         if (option == '1'): return b'\x09' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x0A' # [1] enbl + [2:0] subop = 1|010 
@@ -376,67 +423,74 @@ def sub_menu(opc):
 device              = '01' # Device number being used
 sub_opc             = ''   # Sub-option variable, used only for some options
 sub_opc_for_reading = ''   # Auxiliary variable used only for logged data storage  
+
 while 1 :
 
     print("|******************* MAIN MENU ********************|")
-    print("| ( 1 ): Reset QPSK system communication           |")
-    print("| ( 2 ): Turn receiver ON/OFF                      |")  
-    print("| ( 3 ): Store DSP data in memory                  |")  
-    print("| ( 4 ): Read stored data                          |")
-    print("| ( 5 ): Store transmitted bits and errors         |")
-    print("| ( 6 ): Read transmitted bits and errors          |")
-    print("| ( 7 ): Exit                                      |")
+    print("| ( 1 ): Reset                                     |")
+    print("| ( 2 ): Turn receiver ON/OFF                      |") 
+    print("| ( 3 ): Select SNR                                |") 
+    print("| ( 4 ): Store DSP data in memory                  |")  
+    print("| ( 5 ): Read stored data                          |")
+    print("| ( 6 ): Store total and error bits                |")
+    print("| ( 7 ): Read total and error bits                 |")
+    print("| ( 8 ): Exit                                      |")
     print("|__________________________________________________|")
     input_opc = input("Enter an option: ")
 
 
     while (input_opc != '1' and input_opc != '2' and input_opc != '3' and input_opc != '4' and 
-           input_opc != '5' and input_opc != '6' and input_opc != '7'): 
-        input_opc = input("Invalid option. Enter and option (1-7): ")   
+           input_opc != '5' and input_opc != '6' and input_opc != '7' and input_opc != '8'): 
+        input_opc = input("Invalid option. Enter and option (1-8): ")   
     print()
 
 
-    if(input_opc == '1'):                                                # 1 - Reset para el sistema                                         
+    if(input_opc == '1'):                                              # 1 - Reset para el sistema                                         
         frame = data_frame_assembly (opc_1, b'\x01', b'\x00', device)  
         data_frame_disassembly (frame)  
 
-    elif(input_opc == '2'):                                             # 2 - Trun receiver ON/OFF               
+    elif(input_opc == '2'):                                            # 2 - Turn receiver ON/OFF               
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_2, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
-        
-    elif(input_opc == '3'):                                             # 3 - Storing DSP data in memory          
+
+    elif(input_opc == '3'):                                            # 3 - Select snr 
+        sub_opc = sub_menu(input_opc) 
+        if (sub_opc != b'\xFF'):
+            frame = data_frame_assembly (opc_3, sub_opc, b'\x00', device)  
+            data_frame_disassembly (frame)   
+
+    elif(input_opc == '4'):                                            # 4 - Store DSP data in memory          
         sub_opc = sub_menu(input_opc)  
         if (sub_opc != b'\xFF'):
-            frame = data_frame_assembly (opc_3, b'\x00', b'\x00', device) # End storing 
+            frame = data_frame_assembly (opc_4, b'\x00', b'\x00', device) # End storing 
             data_frame_disassembly (frame)
 
-            frame = data_frame_assembly (opc_3, sub_opc, b'\x00', device) # Storing data 
+            frame = data_frame_assembly (opc_4, sub_opc, b'\x00', device) # Storing data 
             data_frame_disassembly (frame)  
        
             sub_opc_for_reading = sub_opc
 
-    elif(input_opc == '4'):                                            # 4 - Reading stored data  
-        
-        frame = data_frame_assembly (opc_4, b'\x01', b'\x00', device)   
+    elif(input_opc == '5'):                                            # 5 - Read stored data         
+        frame = data_frame_assembly (opc_5, b'\x01', b'\x00', device)   
         
         print("Receiving data. Please wait...\n")
         data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
 
-    elif(input_opc == '5'):                                            # 5 - Storing transmitted bits and errors           
-        frame = data_frame_assembly (opc_5, b'\x01', b'\x00', device)          
+    elif(input_opc == '6'):                                            # 6 - Store total and error bits           
+        frame = data_frame_assembly (opc_6, b'\x01', b'\x00', device)          
         data_frame_disassembly (frame)
 
-    elif(input_opc == '6'):                                            # 6 - Readign transmitted bits and errors 
-        frame = data_frame_assembly (opc_6, b'\x01', b'\x00', device)         
+    elif(input_opc == '7'):                                            # 7 - Read total and error bits            
+        frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)         
         data_ber_disassembly (frame)
 
-    elif (input_opc  == '7'): 
-        ser.close(); break                       # 7 - End program
+    elif (input_opc  == '8'): 
+        ser.close(); break                                             # 8 - End program
 
     else: 
-        print("Invalid option (1 - 7)")
+        print("Invalid option (1 - 8)")
         print()
 
 
