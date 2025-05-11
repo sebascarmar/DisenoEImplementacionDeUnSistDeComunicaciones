@@ -24,18 +24,18 @@ SEED_I =  0x1AA
 SEED_Q =  0x1FE
 
 #### Channel
-SNR_db   = 7
+SNR_db   = 7.184
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
-f_offset     = 12e3 # Hz
+f_offset     = 0.0 # Hz
 fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
 
 #### Receiver
 fc_aa_filter = 0.5*BR # Cut-off frecuency of anti-alias filter [Hz]
 OS_DSP       = 2
-NTAPS_FSE    = 11
+NTAPS_FSE    = 9
 lms_step     = 0.5e-3
 lms_leak     = 1e-3
-Kp           = 1e-3
+Kp           = 0 if(f_offset==0) else 1e-3
 Ki           = Kp/1000
 
 #### BER counter
@@ -350,76 +350,111 @@ print("theo_ber: ", th_ber)
 
 
 ###############################  PRINCIPAL GRAPHICS ###############################
-# Group of constellations: FSE, FCR, Downsampled to rate 1, and Sliced
-plt.figure(figsize=[8,8])
-plt.suptitle('Constellation Diagrams: FSE, FCR, Downsampled to rate 1, and Sliced')
-plt.subplot(2,2,1) # FSE Output
-plt.plot(rx_symI_fse[len(rx_symI_fse)-8000:],
-        rx_symQ_fse[len(rx_symQ_fse)-8000:],
-        color='salmon', marker='.', linestyle='',
-        label="FSE Output")
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
-plt.grid(True)
-plt.ylabel('Imag (Q)')
-plt.legend(loc="upper left")
-#-------------------------------------------------------
-plt.subplot(2,2,2) # after downsampling to rate 1
-plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
-        rx_symQ_dw_r1[len(rx_symQ_dw_r1)-4000:],
-        color='seagreen', marker='.', linestyle='',
-        label='dowsamp. (rate 1)')
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
-plt.grid(True)
-plt.legend(loc="upper left")
-#-------------------------------------------------------
-plt.subplot(2,2,3) # FCR Output
-plt.plot(rx_symI_fcr[len(rx_symI_fcr)-4000:],
-        rx_symQ_fcr[len(rx_symQ_fcr)-4000:],
-        color='dodgerblue', marker='.', linestyle='',
-        label="FCR Output")
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
+### DSP input and output constellations
+plt.figure(figsize=[8,4])
+plt.suptitle(f'Constellation Diagrams | SNR={SNR_db} dB (data from float sim.)')
+plt.subplot(1,2,1)
+plt.plot(rx_symI_dw_r2, rx_symQ_dw_r2, color='chocolate', marker='.', linestyle='', label='DSP in')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.xlabel('Real (I)')
 plt.ylabel('Imag (Q)')
-plt.legend(loc="upper left")
-#-------------------------------------------------------
-plt.subplot(2,2,4) # after the slicer
-plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
-        rx_symQ_slcr[len(rx_symQ_slcr)-4000:],
-        color='magenta', marker='.', linestyle='',
-        label="sliced")
-plt.xlim((-2, 2))
-plt.ylim((-2, 2))
-plt.axis('equal')
+plt.legend()
+plt.subplot(1,2,2)
+plt.plot(rx_symI_dw_r1, rx_symQ_dw_r1, color='seagreen', marker='.', linestyle='', label='DSP out')
+plt.xlim((-3, 3))
+plt.ylim((-3, 3))
+plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.xlabel('Real (I)')
-plt.legend(loc="upper left")
-#plt.show()
+plt.legend()
+
+
+### DSP input and output vs. time
+plt.figure(figsize=[10,6])
+plt.suptitle(f'DSP input and output | SNR={SNR_db} dB (data from float sim.)')
+plt.subplot(2,1,1)
+plt.plot(rx_symI_dw_r2, color='chocolate', marker='.', linestyle='', label="DSP in")
+plt.ylim((-3, 3))
+plt.ylabel('Real (I)')
+plt.grid(True)
+plt.legend()
+plt.subplot(2,1,2)
+plt.plot(rx_symI_dw_r1, color='seagreen', marker='.', linestyle='', label="DSP out")
+plt.ylim((-3, 3))
+plt.xlabel('Time [n]')
+plt.ylabel('Real (I)')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+
+### Frequency response
+# Get frequencies and magnitudes
+last_fse_taps = fse_coeff[:,len(fse_coeff)-1]
+
+f_fse, h_fse = signal.freqz(last_fse_taps, worN=800, fs=50e6)
+# Find the -3 dB point
+fc_idx = np.where(20*np.log10(np.abs(h_fse)) <= (20*np.log10(np.abs(h_fse[50])) - 3.01))[0][0]
+actual_fc_fse = f_fse[fc_idx]
+
+# Bode
+plt.figure(figsize=(8, 5))
+plt.plot(f_fse, 20*np.log10(np.abs(h_fse)), color='saddlebrown')
+plt.axhline(y=20*np.log10(np.abs(h_fse[50]))-3.01,
+            color='black',linestyle='dashed',linewidth=2.0,
+            label=f"{20*np.log10(np.abs(h_fse[50]))-3.01:.2f}dB")
+plt.axvline(x=actual_fc_fse,color='gray',linewidth=2.0,
+            label=f"{actual_fc_fse / 1e6:.2f}MHz")
+plt.axvline(x=12.5e6,color='coral',linewidth=2.0,
+            label=f"{12.5e6 / 1e6:.2f}MHz")
+plt.title(f'FSE I Bode | SNR={SNR_db} dB (data from float sim.)')
+plt.xlabel("Frequency [Hz]")
+plt.ylabel("Magnitud [dB]")
+plt.legend(loc="lower left")
+plt.ylim(-30.0,20.0)
+plt.grid(True)
+plt.legend()
+
+
+### Impulse response
+## Time axis (centered around zero)
+t = np.linspace(-0.5*(1/(50e6))*(len(last_fse_taps)-1),
+                0.5*(1/(50e6))*(len(last_fse_taps)-1),
+                len(last_fse_taps))
+# Impulse response of the transmitter filter
+plt.figure(figsize=[7,4])
+plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
+        linestyle='-', linewidth=2.0)
+plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
+plt.title(f'Impulse Response of FSE I Taps | SNR={SNR_db} dB (data from float sim.)')
+plt.xlabel('Sample [s]')
+plt.ylabel('Magnitud')
+plt.ylim(-1.5,4.0)
+plt.grid(True)
+plt.show()
 
 
 # Evolution of FSE coeffcients over time
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff.T)
-plt.title('FSE coefficients (I lane) - decimated')
+plt.title(f'FSE I decimated taps | SNR={SNR_db} dB (data from float sim.)')
+plt.ylim(-1.5, 4.0)
 plt.grid(True)
-#plt.show()
-
-
-# Integral error vs time (FCR)
-plt.figure(figsize=[10,4])
-plt.title('Integral error')
-plt.plot(int_err_log*BR/(2*np.pi),
-        color='olive', marker='.')
-plt.grid(True)
-plt.xlabel('Time [n]')
-plt.ylabel('[Hz]')
 plt.show()
+
+
+## Integral error vs time (FCR)
+#plt.figure(figsize=[10,4])
+#plt.title('Integral error')
+#plt.plot(int_err_log*BR/(2*np.pi),
+#        color='olive', marker='.')
+#plt.grid(True)
+#plt.xlabel('Time [n]')
+#plt.ylabel('[Hz]')
+#plt.show()
 
 # ####################################################################################
 # #       PROGRESSION OF SIGNAL PROCESSING STAGES IN THE COMMUNICATION SYSTEM        #
