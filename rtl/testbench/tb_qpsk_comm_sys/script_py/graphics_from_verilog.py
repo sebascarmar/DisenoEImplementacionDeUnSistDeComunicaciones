@@ -113,118 +113,47 @@ rx_symQ_slcr = rx_symQ_slcr_from_ver / (2**NBF_FSE_OUT)
 ##                                      PLOTS                                       #
 #####################################################################################
 
-############################ PRE-FSE ###############################
-# Group of constellations: Downsampled to rate 2 and FSE output
+############################# DSP signals ##########################
+### DSP input and output constellations
 plt.figure(figsize=[8,4])
-plt.suptitle('Constellation Diagrams: Downsampled to rate 1 and FSE Output')
-plt.subplot(1,2,1) # after downsampling to rate 2
-plt.plot(rx_symI_dw_r2[len(rx_symI_dw_r2)-8000:],
-         rx_symQ_dw_r2[len(rx_symQ_dw_r2)-8000:],
-         color='chocolate', marker='.', linestyle='',
-         label='dowsamp. (rate 2)')
+plt.suptitle('Constellation Diagrams | SNR={:.3f} dB (data from testbench)'.format(SNR_dB))
+plt.subplot(1,2,1)
+plt.plot(rx_symI_dw_r2, rx_symQ_dw_r2, color='chocolate', marker='.', linestyle='', label='DSP in')
 plt.xlim((-3, 3))
 plt.ylim((-3, 3))
 plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
+plt.xlabel('Real (I)')
 plt.ylabel('Imag (Q)')
-plt.xlabel('Real (I)')
-plt.legend(loc="upper left")
-#-------------------------------------------------------
-plt.subplot(1,2,2) # FSE Output
-plt.plot(rx_symI_fse[len(rx_symI_fse)-8000:],
-         rx_symQ_fse[len(rx_symQ_fse)-8000:],
-         color='salmon', marker='.', linestyle='',
-         label="FSE Output")
+plt.legend()
+plt.subplot(1,2,2)
+plt.plot(rx_symI_dw_r1, rx_symQ_dw_r1, color='seagreen', marker='.', linestyle='', label='DSP out')
 plt.xlim((-3, 3))
 plt.ylim((-3, 3))
 plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
 plt.xlabel('Real (I)')
-plt.legend(loc="upper left")
-#plt.show()
+plt.legend()
 
-
-# Downsamp. symbols at rate 1 and FSE Output vs. Time
+### DSP input and output vs. time
 plt.figure(figsize=[10,6])
-plt.suptitle('Downsampled symbs (rate 2) and FSE Output')
+plt.suptitle('DSP input and output | SNR={:.3f} dB (data from testbench)'.format(SNR_dB))
 plt.subplot(2,1,1)
-plt.plot(rx_symI_dw_r2 ,
-         color='chocolate', marker='.', linestyle='',
-         label="Dws - rate 2")
-plt.ylabel('Real (I)')
+plt.plot(rx_symI_dw_r2, color='chocolate', marker='.', linestyle='', label="DSP in")
 plt.ylim((-3, 3))
-plt.grid(True)
-plt.legend(loc="upper right")
-plt.subplot(2,1,2) # FSE Output
-plt.plot(rx_symI_fse,
-         color='salmon', marker='.', linestyle='',
-         label="FSE Output")
 plt.ylabel('Real (I)')
+plt.grid(True)
+plt.legend()
+plt.subplot(2,1,2)
+plt.plot(rx_symI_dw_r1, color='seagreen', marker='.', linestyle='', label="DSP out")
+plt.ylim((-3, 3))
 plt.xlabel('Time [n]')
-plt.ylim((-3, 3))
+plt.ylabel('Real (I)')
 plt.grid(True)
-plt.legend(loc="upper right")
+plt.legend()
 plt.show()
 
-
-########################### POST-FSE ###############################
-
-# Group of constellations: Downsampled to rate 1, and Sliced
-plt.figure(figsize=[8,4])
-plt.suptitle('Constellation Diagrams: Downsampled to rate 2 and FSE Output')
-plt.subplot(1,2,1) # after downsampling to rate 1
-plt.plot(rx_symI_dw_r1[len(rx_symI_dw_r1)-4000:],
-         rx_symQ_dw_r1[len(rx_symQ_dw_r1)-4000:],
-         color='seagreen', marker='.', linestyle='',
-         label='dowsamp. (rate 1)')
-plt.xlim((-3, 3))
-plt.ylim((-3, 3))
-plt.gca().set_aspect('equal', adjustable='box')
-plt.grid(True)
-plt.ylabel('Imag (Q)')
-plt.xlabel('Real (I)')
-plt.legend(loc="upper left")
-#-------------------------------------------------------
-plt.subplot(1,2,2) # after the slicer
-plt.plot(rx_symI_slcr[len(rx_symI_slcr)-4000:],
-         rx_symQ_slcr[len(rx_symQ_slcr)-4000:],
-         color='magenta', marker='.', linestyle='',
-         label="sliced")
-plt.xlim((-3, 3))
-plt.ylim((-3, 3))
-plt.gca().set_aspect('equal', adjustable='box')
-plt.grid(True)
-plt.xlabel('Real (I)')
-plt.legend(loc="upper left")
-# plt.show()
-
-
-# Group of data vs time: Downsampled to rate 1 and Sliced
-plt.figure(figsize=[10,6])
-plt.suptitle('Downsampled to rate 1 and Sliced vs time')
-plt.subplot(2,1,1) # after downsampling to rate 1
-plt.plot(rx_symI_dw_r1,
-        color='seagreen', marker='.', linestyle='',
-        label='dowsamp. (rate 1)')
-plt.ylabel('Real (I)')
-plt.ylim((-3, 3))
-plt.grid(True)
-plt.legend(loc="upper right")
-#-------------------------------------------------------
-plt.subplot(2,1,2) # after the slicer
-plt.plot(rx_symI_slcr,
-        color='magenta', marker='.', linestyle='',
-        label="sliced")
-plt.ylabel('Real (I)')
-plt.xlabel('Time [n]')
-plt.ylim((-3, 3))
-plt.grid(True)
-plt.legend(loc="upper right")
-plt.show()
-
-
-
-##################### Adapatvie Filter graphics ####################
+################# Frequency and impulse response  ##################
 
 # Get frequencies and magnitudes
 last_fse_taps = fse_coeff_I[:NTAPS_FSE, (int(NSYMB/log_step))-1]
@@ -234,7 +163,7 @@ f_fse, h_fse = signal.freqz(last_fse_taps, worN=800, fs=50e6)
 fc_idx = np.where(20*np.log10(np.abs(h_fse)) <= (20*np.log10(np.abs(h_fse[50])) - 3.01))[0][0]
 actual_fc_fse = f_fse[fc_idx]
 
-## Frequency response of the channel filter
+## Frequency response
 plt.figure(figsize=(8, 5))
 plt.plot(f_fse, 20*np.log10(np.abs(h_fse)), color='saddlebrown')
 plt.axhline(y=20*np.log10(np.abs(h_fse[50]))-3.01,
@@ -244,11 +173,11 @@ plt.axvline(x=actual_fc_fse,color='gray',linewidth=2.0,
             label=f"{actual_fc_fse / 1e6:.2f}MHz")
 plt.axvline(x=12.5e6,color='coral',linewidth=2.0,
             label=f"{12.5e6 / 1e6:.2f}MHz")
-plt.title("Bode - FSE I")
+plt.title(f'FSE I Bode | SNR={SNR_dB:.3f} dB (data from testbench)')
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Magnitud [dB]")
 plt.legend(loc="lower left")
-plt.ylim(-6.0,16.0)
+plt.ylim(-30.0,20.0)
 plt.grid(True)
 #plt.show()
 
@@ -262,10 +191,10 @@ plt.figure(figsize=[7,4])
 plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
          linestyle='-', linewidth=2.0)
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-plt.title('FSE I Coefficients')
+plt.title(f'Impulse Response of FSE I Taps | SNR={SNR_dB:.3f} dB (data from testbench)')
 plt.xlabel('Sample [s]')
 plt.ylabel('Magnitud')
-plt.ylim(-1.5,3.0)
+plt.ylim(-1.5,4.0)
 plt.grid(True)
 plt.show()
 
@@ -274,16 +203,16 @@ plt.show()
 ## Evolution of FSE coeffcients over time
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff_I.T)
-plt.title('FSE coefficients (I lane) - decimated')
+plt.title(f'FSE I decimated taps | SNR={SNR_dB:.3f} dB (data from testbench)')
 plt.xlabel('Time [n]')
-plt.ylim(-1.5,3.0)
+plt.ylim(-1.5,4.0)
 plt.grid(True)
 
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff_Q.T)
-plt.title('FSE coefficients (Q lane) - decimated')
+plt.title(f'FSE Q decimated taps | SNR={SNR_dB:.3f} dB (data from testbench)')
 plt.xlabel('Time [n]')
-plt.ylim(-1.5,3.0)
+plt.ylim(-1.5,4.0)
 plt.grid(True)
 plt.show()
 

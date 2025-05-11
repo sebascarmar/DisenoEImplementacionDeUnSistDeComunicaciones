@@ -9,15 +9,18 @@ th_ber = np.array([1.111e-02, 5.217e-03, 1.805e-03, 6.840e-04, 1.875e-04, 3.145e
 
 
 # Plot
-plt.figure(figsize=[14,6])
-plt.title('BER vs SNR - (Results from Verilog testbench)')
+plt.figure(figsize=[10,10])
+plt.title('BER vs SNR | (data from testbench)')
 plt.semilogy(snr, th_ber, 'r', linewidth=2.0)
 plt.semilogy(snr, bersI, 'b', linewidth=2.0)
 plt.semilogy(snr, bersQ, 'g', linewidth=2.0)
-plt.xlabel('SNR(dB)')
+plt.xlabel('SNR [dB]')
 plt.ylabel('BER')
 plt.grid(True)
-plt.ylim(1e-5,0.7e-1)
-plt.xlim(6.9,12.1)
+#plt.ylim([1e-5, 0.7e-1])
+plt.xlim([6.8, 12.2])
+#plt.gca().set_aspect('equal', adjustable='box')
+plt.axis('equal')
 plt.legend(['SNR theo','SNR I','SNR Q'])
 plt.show()
+
