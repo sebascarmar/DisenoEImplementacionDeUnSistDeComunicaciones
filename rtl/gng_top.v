@@ -1,7 +1,7 @@
 //============================================================
 // SNR to Variance table in S(8,7) format
 // -----------------------------------------------------------
-// SNR (dB)     Variance σ²     σ² (hex)    S(8,7) format
+// SNR (dB)      Variance σ     σ (hex)    S(8,7) format
 // -----------------------------------------------------------
 //       7         0.21875         8'h1c         00011100
 //       8       0.1953125         8'h19         00011001
@@ -22,8 +22,6 @@ module gng_top #(
     parameter Z2_Q      = 64'd18444914485018758400, // GNG seed 2 for Q
     parameter Z3_Q      = 64'd18425749998705519615, // GNG seed 3 for Q
     
-    parameter SIGMA     = 8'sh1c                  ,
-    
     parameter NBT_SIGMA =  8, // Total bits for the standard deviation for a desired SNR
     parameter NBF_SIGMA =  7, // Fractional bits for the standard deviation for a desired SNR
     parameter NBT_NOISE =  8, // Total bits for the output noise
@@ -32,8 +30,9 @@ module gng_top #(
 (
     output signed [NBT_NOISE-1 : 0] o_noise_I, // Output noise in S(8,7) format
     output signed [NBT_NOISE-1 : 0] o_noise_Q, // Output noise in S(8,7) format
-    
-    input                           i_reset  , // Active low reset 
+
+    input  signed [          7 : 0] i_sigma,  
+    input                           i_reset,   // Active low reset 
     input                           clk        // System clock                 
 );
   
@@ -80,8 +79,9 @@ module gng_top #(
   );
   
   // Scale the noise based on the SNR, represented by the std. deviation
-  assign w_noise_fres_I = w_gng_I * SIGMA; // S(24,18)
-  assign w_noise_fres_Q = w_gng_Q * SIGMA; // S(24,18)
+  //
+  assign w_noise_fres_I = w_gng_I * i_sigma; // S(24,18)
+  assign w_noise_fres_Q = w_gng_Q * i_sigma; // S(24,18)
   
   
   // Output assignment with saturation and truncation S(24,18) -> S(8,7)  
