@@ -1,14 +1,12 @@
 
-//==========================================
-//            Register file               //
-//==========================================
-
+//////////////// Register file
 module reg_file #(
+  parameter SIGMA              = 8'sh1C,
   parameter NBT_GPIOS          = 32   ,
   parameter RAM_DEPTH          = 32768,
   parameter NBT_COUNT_BITS_ERR = 64
 )(
-    //  Input 
+    //  Output 
   output        [ $clog2(RAM_DEPTH)-1:0] o_read_adrs       ,
   output signed [         NBT_GPIOS-1:0] o_regf_to_gpio    ,
   output        [                   2:0] o_data_sel_for_log,
@@ -16,7 +14,8 @@ module reg_file #(
   output                                 o_en_read_from_ram,
   output                                 o_rst_soft        ,
   output                                 o_en_rx_soft      ,
-  //  Output   
+  output signed                   [7:0]  o_sigma           ,   
+  //  Input   
   input        [NBT_COUNT_BITS_ERR-1:0] i_accum_err_Q      ,
   input        [NBT_COUNT_BITS_ERR-1:0] i_accum_err_I      ,
   input        [NBT_COUNT_BITS_ERR-1:0] i_accum_bit_Q      ,
@@ -34,6 +33,7 @@ module reg_file #(
   // Register 
   reg                          r_rst_soft              ;
   reg                          r_en_rx_soft            ;  
+  reg signed            [7:0]  r_sigma                 ;
   reg                          r_en_read_bits_and_errs ;
   reg                          r_en_write              ;
   reg                          r_en_read_from_ram      ;
@@ -47,10 +47,13 @@ module reg_file #(
   reg [NBT_COUNT_BITS_ERR-1:0] r_accum_bit_I           ;
 
 
+  // Initial value SNR 
+  initial r_sigma = SIGMA; 
+
   always @(posedge clk)	begin      
     if(i_reset== 1'b1) begin
         r_rst_soft               <= 1'b1;
-        r_en_rx_soft             <= 1'b1; 
+        r_en_rx_soft             <= 1'b1;
         r_en_read_bits_and_errs  <= 1'b0;
         r_en_write               <= 1'b0;
         r_en_read_from_ram       <= 1'b0;
@@ -71,6 +74,7 @@ module reg_file #(
               8'h01: begin
                   r_rst_soft               <= i_gpio_to_regf[0]       ;// 0 Reset for sys comm (nedge)
                   r_en_rx_soft             <= r_en_rx_soft            ;
+                  r_sigma                  <= r_sigma                 ;
                   r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ; 
                   r_en_write               <= r_en_write              ; 
                   r_en_read_from_ram       <= r_en_read_from_ram      ; 
@@ -88,6 +92,7 @@ module reg_file #(
                   r_en_rx_soft             <= i_gpio_to_regf[0]       ;// 0 Reset for sys comm (nedge)
 
                   r_rst_soft               <= r_rst_soft              ;
+                  r_sigma                  <= r_sigma                 ;
                   r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ; 
                   r_en_write               <= r_en_write              ; 
                   r_en_read_from_ram       <= r_en_read_from_ram      ; 
@@ -102,8 +107,7 @@ module reg_file #(
               end
               
               8'h03: begin
-                  r_data_sel_for_log       <= i_gpio_to_regf[2:0]     ;	// 3 Login data in RAM,
-                  r_en_write               <= i_gpio_to_regf[3]       ;	// Signal enbl for write data in RAM
+                  r_sigma                  <= i_gpio_to_regf[7:0]     ;	// 3 Selec SNR value,
                   
                   r_rst_soft               <= r_rst_soft              ;
                   r_en_rx_soft             <= r_en_rx_soft            ;
@@ -116,29 +120,49 @@ module reg_file #(
                   r_accum_err_I            <= r_accum_err_I           ; 
                   r_accum_bit_Q            <= r_accum_bit_Q           ; 
                   r_accum_bit_I            <= r_accum_bit_I           ; 
+              end
+
+              8'h04: begin
+                  r_data_sel_for_log       <= i_gpio_to_regf[2:0]     ;	// 4 Login data in RAM,
+                  r_en_write               <= i_gpio_to_regf[3]       ;	// Signal enbl for write data in RAM
+                  
+                  r_rst_soft               <= r_rst_soft              ;
+                  r_sigma                  <= r_sigma                 ;
+                  r_en_rx_soft             <= r_en_rx_soft            ;
+                  r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ; 
+                  r_en_read_from_ram       <= r_en_read_from_ram      ; 
+                  r_log_bits_and_errs      <= r_log_bits_and_errs     ; 
+                  r_mux_read_bits_and_errs <= r_mux_read_bits_and_errs; 
+                  r_read_adrs              <= r_read_adrs             ; 
+                  r_accum_err_Q            <= r_accum_err_Q           ; 
+                  r_accum_err_I            <= r_accum_err_I           ; 
+                  r_accum_bit_Q            <= r_accum_bit_Q           ; 
+                  r_accum_bit_I            <= r_accum_bit_I           ; 
               end								 
               
-              8'h04: begin // 4 Read data from RAM
+              8'h05: begin // 5 Read data from RAM
                   r_en_read_from_ram                 <= i_gpio_to_regf[16]                   ;      
                   r_read_adrs[$clog2(RAM_DEPTH)-1:0] <= i_gpio_to_regf[$clog2(RAM_DEPTH)-1:0];// Addrs for read in RAM
                   
-                  r_rst_soft                <= r_rst_soft              ;
-                  r_en_rx_soft              <= r_en_rx_soft            ;
-                  r_en_read_bits_and_errs   <= r_en_read_bits_and_errs ;  
-                  r_en_write                <= r_en_write              ;  
-                  r_log_bits_and_errs       <= r_log_bits_and_errs     ;  
-                  r_data_sel_for_log        <= r_data_sel_for_log      ;  
-                  r_mux_read_bits_and_errs  <= r_mux_read_bits_and_errs;  
-                  r_accum_err_Q             <= r_accum_err_Q           ;  
-                  r_accum_err_I             <= r_accum_err_I           ;  
-                  r_accum_bit_Q             <= r_accum_bit_Q           ;  
-                  r_accum_bit_I             <= r_accum_bit_I           ;  				
+                  r_rst_soft               <= r_rst_soft              ;
+                  r_sigma                  <= r_sigma                 ;
+                  r_en_rx_soft             <= r_en_rx_soft            ;
+                  r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ;  
+                  r_en_write               <= r_en_write              ;  
+                  r_log_bits_and_errs      <= r_log_bits_and_errs     ;  
+                  r_data_sel_for_log       <= r_data_sel_for_log      ;  
+                  r_mux_read_bits_and_errs <= r_mux_read_bits_and_errs;  
+                  r_accum_err_Q            <= r_accum_err_Q           ;  
+                  r_accum_err_I            <= r_accum_err_I           ;  
+                  r_accum_bit_Q            <= r_accum_bit_Q           ;  
+                  r_accum_bit_I            <= r_accum_bit_I           ;  				
               end
              
-              8'h05: begin 
+              8'h06: begin 
                   r_log_bits_and_errs	   <= i_gpio_to_regf[0]       ;
                   
                   r_rst_soft               <= r_rst_soft              ; 
+                  r_sigma                  <= r_sigma                 ;
                   r_en_rx_soft             <= r_en_rx_soft            ;
                   r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ;
                   r_en_write               <= r_en_write              ;
@@ -149,11 +173,12 @@ module reg_file #(
                   r_accum_bit_I            <= r_accum_bit_I           ;
               end
               
-              8'h06: begin
-                  r_mux_read_bits_and_errs <= i_gpio_to_regf[2:0];  // 6 Read bits and err
+              8'h07: begin
+                  r_mux_read_bits_and_errs <= i_gpio_to_regf[2:0];  // 7 Read bits and err
                   r_en_read_bits_and_errs  <= i_gpio_to_regf[16] ;
                   
                   r_rst_soft              <= r_rst_soft         ; 
+                  r_sigma                 <= r_sigma            ;
                   r_en_rx_soft            <= r_en_rx_soft       ;
                   r_en_write              <= r_en_write         ;
                   r_en_read_from_ram      <= r_en_read_from_ram ;
@@ -167,6 +192,7 @@ module reg_file #(
               
               default: begin 
                   r_rst_soft               <= r_rst_soft              ;                        
+                  r_sigma                  <= r_sigma                 ;
                   r_en_rx_soft             <= r_en_rx_soft            ;
                   r_en_read_bits_and_errs  <= r_en_read_bits_and_errs ; 
                   r_en_write               <= r_en_write              ; 
@@ -182,7 +208,7 @@ module reg_file #(
               end  
           endcase
   
-          if (i_gpio_to_regf[31:24] == 8'h05 && r_log_bits_and_errs) begin
+          if (i_gpio_to_regf[31:24] == 8'h06 && r_log_bits_and_errs) begin
               r_accum_err_Q  <= i_accum_err_Q;	 
               r_accum_err_I  <= i_accum_err_I;	 
               r_accum_bit_Q  <= i_accum_bit_Q; 	 
@@ -227,5 +253,6 @@ module reg_file #(
   assign  o_read_adrs        = r_read_adrs       ; 
   assign  o_rst_soft         = r_rst_soft        ;                             
   assign  o_en_rx_soft       = r_en_rx_soft      ; 
+  assign  o_sigma            = r_sigma           ;
 
 endmodule
