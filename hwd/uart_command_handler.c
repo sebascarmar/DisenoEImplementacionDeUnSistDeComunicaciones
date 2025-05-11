@@ -177,7 +177,6 @@ int main(){
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32) resultado_dato);
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
                 }
-
                 // Case 2: Enable adaptive filter
                 if (resultado_dato == 0x02800001 || resultado_dato == 0x02800000) {
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
@@ -185,40 +184,55 @@ int main(){
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
                 }
 
-                // Case 3: Write data to RAM
-                if (resultado_dato == 0x03800009 || resultado_dato == 0x0380000A || resultado_dato == 0x0380000B) {
+                // Case 3: Set SNR value 
+                if ((resultado_dato & 0xFFFFFF00) == 0x03800000) {
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32) resultado_dato);
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
+
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x01800000 & (0xFF7FFFFF)));
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x01800000);
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x01800000 & (0xFF7FFFFF)));
+
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x01800001 & (0xFF7FFFFF)));
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x01800001);
+                    XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x01800001 & (0xFF7FFFFF)));
+                }
+
+                // Case 4: Write data to RAM
+                if (resultado_dato == 0x04800009 || resultado_dato == 0x0480000A || resultado_dato == 0x0480000B) {
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32) resultado_dato);
                     XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(resultado_dato & (0xFF7FFFFF)));
                     // Determine which operation (sub-opcode) to use for writing
-                    if (resultado_dato == 0x03800009) {
+                    if (resultado_dato == 0x04800009) {
                         // Input slicer data
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800001 & (0xFF7FFFFF)));
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800001);
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800001 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800001 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x04800001);
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800001 & (0xFF7FFFFF)));
                         addr_read_limit = 32768;
-                    } else if (resultado_dato == 0x0380000A) {
+                    } else if (resultado_dato == 0x0480000A) {
                         // Output slicer data
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800002 & (0xFF7FFFFF)));
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800002);
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800002 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800002 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x04800002);
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800002 & (0xFF7FFFFF)));
                         addr_read_limit = 32768;
                     } else {
                         // Bit error data
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800003 & (0xFF7FFFFF)));
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x03800003);
-                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x03800003 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800003 & (0xFF7FFFFF)));
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32) 0x04800003);
+                        XGpio_DiscreteWrite(&GpioOutput, 1, (u32)(0x04800003 & (0xFF7FFFFF)));
                         addr_read_limit = 32760; // because 32760 is a multiple of 9
                     }
                 }
 
-    		// Read log data in RAM opc4
-    		if (resultado_dato == 0x04800001) {
+    		// Read log data in RAM opc5
+    		if (resultado_dato == 0x05800001) {
 
     		    for (int j = 0; j < addr_read_limit; j ++ ){
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32)  0x04810000  | (j & 0x0000FFFF)                 );
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x04810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x05810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32)   0x05810000  | (j & 0x0000FFFF)                );
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) ((0x05810000 | (j & 0x0000FFFF)) & (0xFF7FFFFF)));
    
     		        value = XGpio_DiscreteRead(&GpioInput, 1);
 
@@ -230,26 +244,26 @@ int main(){
 
                     }
     		  // end for()
-    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x04800000 & (0xFF7FFFFF)));
-    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32)  0x04800000                );
-    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x04800000 & (0xFF7FFFFF)));
+    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x05800000 & (0xFF7FFFFF)));
+    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32)  0x05800000                );
+    		  XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x05800000 & (0xFF7FFFFF)));
     		  XUartLite_ResetFifos(&uart_module);
     		} // end if (resultado_dato == 0x04800001)
     
-    		  // Storage bits and errs opc5
-    		 if (resultado_dato == 0x05800001) {
+    		  // Storage bits and errs opc6
+    		 if (resultado_dato == 0x06800001) {
     		    XGpio_DiscreteWrite(&GpioOutput,1, (u32) (resultado_dato & (0xFF7FFFFF)));
     		    XGpio_DiscreteWrite(&GpioOutput,1, (u32)  resultado_dato                );
     		    XGpio_DiscreteWrite(&GpioOutput,1, (u32) (resultado_dato & (0xFF7FFFFF)));
     		 }
 
-                 // Read bits and errs opc6
-    		 if (resultado_dato == 0x06800001) {
+                 // Read bits and errs opc7
+    		 if (resultado_dato == 0x07800001) {
 
     		     while (contador_BE < 8){
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x06810000 | (contador_BE & 0x0000000F)));
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x06810000 | (contador_BE & 0x0000000F)));
-    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x06810000 | (contador_BE & 0x0000000F)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x07810000 | (contador_BE & 0x0000000F)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x07810000 | (contador_BE & 0x0000000F)));
+    		        XGpio_DiscreteWrite(&GpioOutput,1, (u32) (0x07810000 | (contador_BE & 0x0000000F)));
     			Error_bits[contador_BE] = XGpio_DiscreteRead(&GpioInput, 1);
     
     			unsigned char trama_EB [] = {0xA4, 0x00, 0x00, 0x01, (Error_bits[contador_BE] & 0xFF), ((Error_bits[contador_BE]>>8) & 0xFF), ((Error_bits[contador_BE]>>16) & 0xFF), ((Error_bits[contador_BE]>>24) & 0xFF), 0x44};
@@ -261,7 +275,7 @@ int main(){
     			  contador_BE += 1;
     		     } // end while
 
-    		 } // end if (0x06800000)
+    		 } // end if (0x07800000)
 
     	    }// end if (dato[0] == 0x44 && error == 0)
     	    else {
