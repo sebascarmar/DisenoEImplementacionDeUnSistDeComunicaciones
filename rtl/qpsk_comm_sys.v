@@ -44,8 +44,11 @@
 
 // CHANNEL FILTER
 `define NUM_CHFILT_COEF  17
-//`define CHFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
-`define CHFILT_COEFF_FILE "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt.dat"
+//`define CHFIL_COEF_FILE_0 "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
+`define CHFIL_COEF_FILE_0 "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_12M.dat"
+`define CHFIL_COEF_FILE_1 "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_impulso.dat"
+`define CHFIL_COEF_FILE_2 "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_10M.dat"
+`define CHFIL_COEF_FILE_3 "/home/danielito/Escritorio/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_12M.dat"
 `define NBT_CHFILT_COEF   8
 `define NBF_CHFILT_COEF   7
 `define NBT_CHFILT_OUT    8
@@ -110,7 +113,10 @@ module qpsk_comm_sys
   parameter NBT_NOISY_SYM     = `NBT_NOISY_SYM    ,
   parameter NBF_NOISY_SYM     = `NBF_NOISY_SYM    ,
   parameter NUM_CHFILT_COEF   = `NUM_CHFILT_COEF  , 
-  parameter CHFILT_COEFF_FILE = `CHFILT_COEFF_FILE, 
+  parameter CHFIL_COEF_FILE_0 = `CHFIL_COEF_FILE_0, 
+  parameter CHFIL_COEF_FILE_1 = `CHFIL_COEF_FILE_1, 
+  parameter CHFIL_COEF_FILE_2 = `CHFIL_COEF_FILE_2, 
+  parameter CHFIL_COEF_FILE_3 = `CHFIL_COEF_FILE_3, 
   parameter NBT_CHFILT_COEF   = `NBT_CHFILT_COEF  , 
   parameter NBF_CHFILT_COEF   = `NBF_CHFILT_COEF  , 
   parameter NBT_CHFILT_OUT    = `NBT_CHFILT_OUT   , 
@@ -155,15 +161,16 @@ module qpsk_comm_sys
   output                                          o_control_for_rate_2,
   output                                          o_control_for_rate_1,
   //
-  output       [1:0] o_normal_led,
-  output             o_rgb_led3_b,
-  output             o_rgb_led2_b,
-  output             o_rgb_led1_g,
-  output             o_rgb_led0_g,
+  output       [1:0] o_normal_led ,
+  output             o_rgb_led3_b ,
+  output             o_rgb_led2_b ,
+  output             o_rgb_led1_g ,
+  output             o_rgb_led0_g ,
 
-  input signed [7:0] i_sigma     , 
-  input              i_sw        ,
-  input              i_reset     ,
+  input        [1:0] i_sel_ch_taps, 
+  input signed [7:0] i_sigma      , 
+  input              i_sw         ,
+  input              i_reset      ,
   input              clk
  );
   
@@ -312,38 +319,46 @@ module qpsk_comm_sys
 
 
   //////////////// FIR Channel filters to model ISI
-  fir_filter #(
-    .NUM_COEFF (NUM_CHFILT_COEF  ), 
-    .FILE_COEFF(CHFILT_COEFF_FILE),
-    .NBT_IN    (NBT_NOISY_SYM    ), 
-    .NBF_IN    (NBF_NOISY_SYM    ), 
-    .NBT_COEFF (NBT_CHFILT_COEF  ),
-    .NBF_COEFF (NBF_CHFILT_COEF  ), 
-    .NBT_OUT   (NBT_CHFILT_OUT   ), 
-    .NBF_OUT   (NBF_CHFILT_OUT   ) 
+  fir_filter_multi #(
+    .NUM_COEFF   (NUM_CHFILT_COEF  ), 
+    .FILE_COEFF_0(CHFIL_COEF_FILE_0),
+    .FILE_COEFF_1(CHFIL_COEF_FILE_1),
+    .FILE_COEFF_2(CHFIL_COEF_FILE_2),
+    .FILE_COEFF_3(CHFIL_COEF_FILE_3),
+    .NBT_IN      (NBT_NOISY_SYM    ), 
+    .NBF_IN      (NBF_NOISY_SYM    ), 
+    .NBT_COEFF   (NBT_CHFILT_COEF  ),
+    .NBF_COEFF   (NBF_CHFILT_COEF  ), 
+    .NBT_OUT     (NBT_CHFILT_OUT   ), 
+    .NBF_OUT     (NBF_CHFILT_OUT   ) 
   ) u_ch_filt_I (
-    .o_os_data(w_ch_filtI_to_aa_filtI),
-    .i_is_data(w_ch_nsigI_to_chfiltI ),
-    .i_en     (1'b1                  ),
-    .i_reset  (w_reset               ),
-    .clk      (clk                   ) 
+    .o_os_data (w_ch_filtI_to_aa_filtI),
+    .i_sel_taps(i_sel_ch_taps         ),
+    .i_is_data (w_ch_nsigI_to_chfiltI ),
+    .i_en      (1'b1                  ),
+    .i_reset   (w_reset               ),
+    .clk       (clk                   ) 
   );
 
-  fir_filter #(
-    .NUM_COEFF (NUM_CHFILT_COEF  ), 
-    .FILE_COEFF(CHFILT_COEFF_FILE),
-    .NBT_IN    (NBT_NOISY_SYM    ), 
-    .NBF_IN    (NBF_NOISY_SYM    ), 
-    .NBT_COEFF (NBT_CHFILT_COEF  ),
-    .NBF_COEFF (NBF_CHFILT_COEF  ), 
-    .NBT_OUT   (NBT_CHFILT_OUT   ), 
-    .NBF_OUT   (NBF_CHFILT_OUT   ) 
+  fir_filter_multi #(
+    .NUM_COEFF   (NUM_CHFILT_COEF  ), 
+    .FILE_COEFF_0(CHFIL_COEF_FILE_0),
+    .FILE_COEFF_1(CHFIL_COEF_FILE_1),
+    .FILE_COEFF_2(CHFIL_COEF_FILE_2),
+    .FILE_COEFF_3(CHFIL_COEF_FILE_3),
+    .NBT_IN      (NBT_NOISY_SYM    ), 
+    .NBF_IN      (NBF_NOISY_SYM    ), 
+    .NBT_COEFF   (NBT_CHFILT_COEF  ),
+    .NBF_COEFF   (NBF_CHFILT_COEF  ), 
+    .NBT_OUT     (NBT_CHFILT_OUT   ), 
+    .NBF_OUT     (NBF_CHFILT_OUT   ) 
   ) u_ch_filt_Q (
-    .o_os_data(w_ch_filtQ_to_aa_filtQ),
-    .i_is_data(w_ch_nsigQ_to_chfiltQ ),
-    .i_en     (1'b1                  ),
-    .i_reset  (w_reset               ),
-    .clk      (clk                   ) 
+    .o_os_data (w_ch_filtQ_to_aa_filtQ),
+    .i_sel_taps(i_sel_ch_taps         ),
+    .i_is_data (w_ch_nsigQ_to_chfiltQ ),
+    .i_en      (1'b1                  ),
+    .i_reset   (w_reset               ),
+    .clk       (clk                   ) 
   );
 
 
