@@ -60,6 +60,7 @@ module top #(
   wire        [          NBT_GPIOS-1:0] w_gpio_to_regf      ;	
   wire                                  w_rst_soft          ;
   wire                                  w_en_rx_soft        ; 
+  wire        [                    1:0] w_sel_ch_taps       ;
   wire signed [                    7:0] w_sigma             ; 
   wire                                  w_en_write          ; 
   wire                                  w_en_read_from_ram  ;
@@ -163,6 +164,7 @@ module top #(
     .o_rst_soft         (w_rst_soft            ),
     .o_en_rx_soft       (w_en_rx_soft          ),  
     .o_sigma            (w_sigma               ), 
+    .o_sel_ch_taps      (w_sel_ch_taps         ),
     .i_accum_err_Q      (w_accum_err_Q         ),
     .i_accum_err_I      (w_accum_err_I         ),
     .i_accum_bit_Q      (w_accum_bit_Q         ),
@@ -227,6 +229,7 @@ module top #(
     .o_rgb_led2_b        (w_sync_done_Q            ),
     .o_rgb_led1_g        (w_ber_ok_led_I           ),
     .o_rgb_led0_g        (w_ber_ok_led_Q           ),
+    .i_sel_ch_taps       (w_sel_ch_taps            ),  
     .i_sigma             (w_sigma                  ), 
     .i_sw                (w_sw && w_en_rx_soft     ),
     .i_reset             (~(w_reset || ~w_rst_soft)),
