@@ -34,7 +34,7 @@ module tb_qpsk_comm_sys;
   parameter NOISE_SEED1_Q     = 64'd14533118196545751551;
   parameter NOISE_SEED2_Q     = 64'd18444914485018758400;
   parameter NOISE_SEED3_Q     = 64'd18425749998705519615;
-  parameter SIGMA             = 8'sh1d;
+  parameter SIGMA             = 8'sh12;
   parameter NBT_SIGMA         = 8;
   parameter NBF_SIGMA         = 7;
   parameter NBT_NOISE         = 8;
@@ -43,7 +43,10 @@ module tb_qpsk_comm_sys;
   parameter NBF_NOISY_SYM     = 7;
   // CHANNEL FILTER
   parameter NUM_CHFILT_COEF   = 17;
-  parameter CHFILT_COEFF_FILE = "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat";
+  parameter CHFIL_COEF_FILE_0 = "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_12M.dat";
+  parameter CHFIL_COEF_FILE_1 = "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_impulso.dat";
+  parameter CHFIL_COEF_FILE_2 = "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_10M.dat";
+  parameter CHFIL_COEF_FILE_3 = "/home/sebastian/Repositorios/CorreccionDeEfectosDeCanal/rtl/coeffs_chfilt_12M.dat";
   parameter NBT_CHFILT_COEF   =  8;
   parameter NBF_CHFILT_COEF   =  7;
   parameter NBT_CHFILT_OUT    =  8;
@@ -79,14 +82,16 @@ module tb_qpsk_comm_sys;
 
 
   // Signals
-  reg clk;
-  reg i_reset;
-  reg i_sw;
-  wire [1:0] o_normal_led;
-  wire       o_rgb_led3_b;
-  wire       o_rgb_led2_b;
-  wire       o_rgb_led1_g;
-  wire       o_rgb_led0_g;
+  reg        clk          ;
+  reg        i_reset      ;
+  reg        i_sw         ;
+  reg  [1:0] i_sel_ch_taps;
+  reg  [7:0] i_sigma      ;
+  wire [1:0] o_normal_led ;
+  wire       o_rgb_led3_b ;
+  wire       o_rgb_led2_b ;
+  wire       o_rgb_led1_g ;
+  wire       o_rgb_led0_g ;
   
   // Instantiate the Device Under Test (DUT)
   qpsk_comm_sys #(
@@ -113,7 +118,10 @@ module tb_qpsk_comm_sys;
         .NBT_NOISY_SYM     (NBT_NOISY_SYM    ),
         .NBF_NOISY_SYM     (NBF_NOISY_SYM    ),
         .NUM_CHFILT_COEF   (NUM_CHFILT_COEF  ),
-        .CHFILT_COEFF_FILE (CHFILT_COEFF_FILE),
+        .CHFIL_COEF_FILE_0 (CHFIL_COEF_FILE_0),
+        .CHFIL_COEF_FILE_1 (CHFIL_COEF_FILE_1),
+        .CHFIL_COEF_FILE_2 (CHFIL_COEF_FILE_2),
+        .CHFIL_COEF_FILE_3 (CHFIL_COEF_FILE_3),
         .NBT_CHFILT_COEF   (NBT_CHFILT_COEF  ),
         .NBF_CHFILT_COEF   (NBF_CHFILT_COEF  ),
         .NBT_CHFILT_OUT    (NBT_CHFILT_OUT   ),
@@ -148,6 +156,8 @@ module tb_qpsk_comm_sys;
     .o_rgb_led2_b  (o_rgb_led2_b ),
     .o_rgb_led1_g  (o_rgb_led1_g ),
     .o_rgb_led0_g  (o_rgb_led0_g ),
+    .i_sel_ch_taps (i_sel_ch_taps),
+    .i_sigma       (i_sigma      ),
     .i_sw          (i_sw         ),
     .i_reset       (i_reset      ),
     .clk           (clk          )
@@ -166,7 +176,7 @@ module tb_qpsk_comm_sys;
   integer file_fse_taps_I   ;
   integer file_fse_taps_Q   ;
 
-  integer nsymb    = 1000000;
+  integer nsymb    = 2000000;
   integer log_step = 500    ;
 
 
@@ -235,6 +245,8 @@ module tb_qpsk_comm_sys;
       clk     = 0;
       i_reset = 0;
       i_sw    = 0;
+      i_sel_ch_taps = 2'b00;
+      i_sigma       = 8'h1c;
      
       #100;
       i_reset = 1;
