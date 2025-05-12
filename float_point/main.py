@@ -24,7 +24,7 @@ SEED_I =  0x1AA
 SEED_Q =  0x1FE
 
 #### Channel
-SNR_db   = 7.184
+SNR_db = 7
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
 f_offset     = 0.0 # Hz
 fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
@@ -342,17 +342,17 @@ for i in range(START_CNT,len(rx_slcr_Q)-lat_comp):
 
 th_ber = fn.theoric_ber(M, SNR_db)
 
-print("SNR=", SNR_db, " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
+print("SNR = {:.3f} dB".format(SNR_db), " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
 print("Kp=", Kp, " | Ki=", Ki, " | fc_ch=", fc_ch_filter, " | fc_aaf=",fc_aa_filter, )
-print("BER_I: ", bit_err_I/bit_tot_I)
-print("BER_Q: ", bit_err_Q/bit_tot_Q)
-print("theo_ber: ", th_ber)
+print( "BER_I: {:.3e}".format((bit_err_I/bit_tot_I)) )
+print( "BER_Q: {:.3e}".format((bit_err_Q/bit_tot_Q)) )
+print( "theo_ber: {:.3e}".format(th_ber) )
 
 
 ###############################  PRINCIPAL GRAPHICS ###############################
 ### DSP input and output constellations
 plt.figure(figsize=[8,4])
-plt.suptitle(f'Constellation Diagrams | SNR={SNR_db} dB (data from float sim.)')
+plt.suptitle('Constellation Diagrams | SNR={:.3f} dB (data from testbench)'.format(SNR_db))
 plt.subplot(1,2,1)
 plt.plot(rx_symI_dw_r2, rx_symQ_dw_r2, color='chocolate', marker='.', linestyle='', label='DSP in')
 plt.xlim((-3, 3))
@@ -374,7 +374,7 @@ plt.legend()
 
 ### DSP input and output vs. time
 plt.figure(figsize=[10,6])
-plt.suptitle(f'DSP input and output | SNR={SNR_db} dB (data from float sim.)')
+plt.suptitle('DSP input and output | SNR={:.3f} dB (data from testbench)'.format(SNR_db))
 plt.subplot(2,1,1)
 plt.plot(rx_symI_dw_r2, color='chocolate', marker='.', linestyle='', label="DSP in")
 plt.ylim((-3, 3))
@@ -410,7 +410,7 @@ plt.axvline(x=actual_fc_fse,color='gray',linewidth=2.0,
             label=f"{actual_fc_fse / 1e6:.2f}MHz")
 plt.axvline(x=12.5e6,color='coral',linewidth=2.0,
             label=f"{12.5e6 / 1e6:.2f}MHz")
-plt.title(f'FSE I Bode | SNR={SNR_db} dB (data from float sim.)')
+plt.title(f'FSE I Bode | SNR={SNR_db:.3f} dB (data from float sim.)')
 plt.xlabel("Frequency [Hz]")
 plt.ylabel("Magnitud [dB]")
 plt.legend(loc="lower left")
@@ -429,7 +429,7 @@ plt.figure(figsize=[7,4])
 plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
         linestyle='-', linewidth=2.0)
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-plt.title(f'Impulse Response of FSE I Taps | SNR={SNR_db} dB (data from float sim.)')
+plt.title(f'Impulse Response of FSE I Taps | SNR={SNR_db:.3f} dB (data from float sim.)')
 plt.xlabel('Sample [s]')
 plt.ylabel('Magnitud')
 plt.ylim(-1.5,4.0)
@@ -440,7 +440,7 @@ plt.show()
 # Evolution of FSE coeffcients over time
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff.T)
-plt.title(f'FSE I decimated taps | SNR={SNR_db} dB (data from float sim.)')
+plt.title(f'FSE I decimated taps | SNR={SNR_db:.3f} dB (data from float sim.)')
 plt.ylim(-1.5, 4.0)
 plt.grid(True)
 plt.show()
