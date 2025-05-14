@@ -32,7 +32,6 @@ ser.isOpen()
 ser.timeout=None
 #print(ser.timeout)
 
-
 #### Codes for options 
 enable = b'\x80'
 opc_1  = b'\x01' 
@@ -45,6 +44,14 @@ opc_7  = b'\x07'
 opc_8  = b'\x08' 
 opc_9  = b'\x09' 
 opc_10 = b'\x0A' 
+#### for store totals and error bits
+snr_select = 7
+bits_I = 0 
+bits_Q = 0 
+errs_I = 0 
+errs_Q = 0 
+variance_value = 0
+
 
 
 #|___Function to save the data collected from the filter outputs___|
@@ -58,17 +65,19 @@ opc_10 = b'\x0A'
 
 def save_data(data_Q, data_I, sub_opc_for_reading):
 
+    global snr_select 
+
     if (sub_opc_for_reading == b'\x09'): 
-        file_I = "file_rx_symI_dwr2_snr_12.txt" 
-        file_Q = "file_rx_symQ_dwr2_snr_12.txt" 
+        file_I = f"file_rx_symI_dwr2_snr_{snr_select}.txt" 
+        file_Q = f"file_rx_symQ_dwr2_snr_{snr_select}.txt" 
 
     elif (sub_opc_for_reading == b'\x0A'):
-        file_I = "file_rx_symI_dwr1_snr_12.txt"
-        file_Q = "file_rx_symQ_dwr1_snr_12.txt"
+        file_I = f"file_rx_symI_dwr1_snr_{snr_select}.txt"
+        file_Q = f"file_rx_symQ_dwr1_snr_{snr_select}.txt"
 
     elif (sub_opc_for_reading == b'\x0B'):     
-        file_I = "file_fse_taps_I_snr_12.txt"
-        file_Q = "file_fse_taps_Q_snr_12.txt"
+        file_I = f"file_fse_taps_I_snr_{snr_select}.txt"
+        file_Q = f"file_fse_taps_Q_snr_{snr_select}.txt"
 
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
@@ -87,24 +96,16 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
     print(f"Writing complete {file_Q}")
 
 
-#   def save_data(data_I, data_Q, sub_opc_for_reading):
-#   
-#       if (sub_opc_for_reading == b'\x09'): 
-#           np.savetxt('file_rx_symI_dwr2.txt' , data_I , delimiter='\n')
-#           np.savetxt('file_rx_symQ_dwr2.txt' , data_Q , delimiter='\n')
-#   
-#       elif (sub_opc_for_reading == b'\x0A'):
-#           np.savetxt('file_rx_symI_dwr1.txt' , data_I , delimiter='\n')
-#           np.savetxt('file_rx_symQ_dwr1.txt' , data_Q , delimiter='\n')
-#   
-#   
-#       elif (sub_opc_for_reading == b'\x0B'):     
-#           np.savetxt('file_fse_taps_I.txt' , data_I , delimiter='\n')
-#           np.savetxt('file_fse_taps_Q.txt' , data_Q , delimiter='\n')
-#   
-#       elif (sub_opc_for_reading == ' '):   
-#           print("Error: invalid sub_opc_for_reading value. No files were created.")
-#   
+def save_total_and_err_bits(snr_sweep):
+
+    file_be = f"sweep_with_snr_{snr_sweep}.txt"  
+    with open(file_be, "w") as f: 
+        f.write(f"{variance_value}\n")
+        f.write(f"{bits_I}\n")
+        f.write(f"{bits_Q}\n")
+        f.write(f"{errs_I}\n")
+        f.write(f"{errs_Q}\n")
+
 
 #|_____Function to verify the frames of transmitted bits and errors as well as filter frames_____|
 #| INPUT:                                                                                        |   
@@ -164,7 +165,7 @@ def data_frame_assembly(opc, sub_opc , filler_opc, device) :
 
         frame_list = list(frame_hex)
        # print(f"Frame for gpio: {frame_hex}")        
-        print()
+       # print()
         
     return frame_list 
 
@@ -206,7 +207,9 @@ def data_frame_disassembly (frame):
 #|         None                                                                 |
 #|______________________________________________________________________________|   
 def data_ber_disassembly (frame):
+
     # send frame
+    global bits_I, bits_Q, errs_I, errs_Q
     ser.write(frame)
     time.sleep(2)
 
@@ -247,14 +250,22 @@ def data_ber_disassembly (frame):
     err_data_Q   = high_err_data_Q   + low_err_data_Q
 
     print()
-    print("Bits I:", int.from_bytes( total_data_I, byteorder='little'))
-    print("Bits Q:", int.from_bytes( total_data_Q, byteorder='little'))
+    print("Bits I:",    int.from_bytes( total_data_I, byteorder='little'))
+    print("Bits Q:",    int.from_bytes( total_data_Q, byteorder='little'))
     print("Errores I:", int.from_bytes(err_data_I, byteorder='little'))
     print("Errores Q:", int.from_bytes(err_data_Q, byteorder='little'))
  
     print("\nBER_I: {:.3e}".format((int.from_bytes(err_data_I, byteorder='little')/int.from_bytes(total_data_I, byteorder='little'))))
     print("BER_Q: {:.3e}".format((int.from_bytes(err_data_Q, byteorder='little')/int.from_bytes(total_data_Q, byteorder='little'))))
     print()
+
+    # for salving data 
+    bits_I = int.from_bytes(total_data_I, byteorder='little')
+    bits_Q = int.from_bytes(total_data_Q, byteorder='little')
+    errs_I = int.from_bytes(err_data_I,   byteorder='little')
+    errs_Q = int.from_bytes(err_data_Q,   byteorder='little')
+
+
 
 #|____________Function to decode filter data__________________________|
 #| INPUT:                                                             |   
@@ -315,9 +326,9 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
         if (idx+1) % 200 == 0:
                 time.sleep(0.1)
             
-    print("Reading complete\n")
-    print("Data Q :", frame_int_Q)
-    print("Data I: ", frame_int_I)
+    #   print("Reading complete\n")
+    #   print("Data Q :", frame_int_Q)
+    #   print("Data I: ", frame_int_I)
     #   print("Payload: ", frame_payload)
     print() 
 
@@ -332,18 +343,47 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
 #|____________________________________________________________________|
 def get_snr_for_hw(snr_idx):
     # SNR values: 1 dB to 20 dB
-    snr_values = np.array([
+    global variance_value
+    variance_values = np.array([
                   0.4453125, 0.390625, 0.3515625, 0.3125   ,
                   0.28125  , 0.25    , 0.21875  , 0.1953125,
                   0.171875 , 0.15625 , 0.140625 , 0.125    , 
                   0.109375 , 0.09375 , 0.0859375, 0.078125 ,
                   0.0703125, 0.0625  , 0.0546875, 0.046875
                  ])
-    
-    scaled_val = int(snr_values[(snr_idx-1)]*2**7)
+    scaled_val = int(variance_values[(snr_idx-1)]*2**7)
+
+    # for salve value in option 5 
+    variance_value = variance_values[(snr_idx-1)]
 
     return scaled_val.to_bytes(1, byteorder='big')
-    
+
+
+def snr_sweep_option(start_val, end_val, time_val):
+ 
+    for snr in range (start_val, (end_val+1)):
+        print(f"SNR sweep value = {snr} dB")
+        
+        global snr_select 
+        snr_select = snr 
+
+        # 1) set snr value
+        frame = data_frame_assembly (opc_3, get_snr_for_hw(snr), b'\x00', device)  
+        data_frame_disassembly (frame)   
+
+        time.sleep(time_val*60)
+
+        # 2) Capture totals and error bits             
+        frame = data_frame_assembly (opc_8, b'\x01', b'\x00', device)          
+        data_frame_disassembly (frame)
+
+        # 3) Get totals and error bits  
+        frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
+        data_ber_disassembly (frame)
+
+        # 4) save data
+        save_total_and_err_bits(snr)
+
 
 #|_____________________Function for sub-options________________________|
 #| INPUT:                                                              |
@@ -358,7 +398,7 @@ def get_snr_for_hw(snr_idx):
 #|_____________________________________________________________________|
 def sub_menu(opc):
 
-    if( opc == '2' ):
+    if(opc == '2'):
         print("|( 2 ): Turn receiver ON/OFF_______|")
         print("|    ( 1 ): ON                     |")
         print("|    ( 2 ): OFF                    |")
@@ -373,7 +413,7 @@ def sub_menu(opc):
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\xFF'
     
-    elif( opc == '3' ):
+    elif(opc == '3'):
         print("|( 3 ): Select SNR______________|")
         print("|    ( 1 ): Enter values (7-17) |")
         print("|    ( 2 ): Return to Main Menu |")
@@ -391,12 +431,47 @@ def sub_menu(opc):
                 snr_opc = int(input("Invalid option. Enter a value between 7 and 20: "))  
             print()
             snr_value = get_snr_for_hw(snr_opc)
-            
+           
+            global snr_select
+            snr_select = snr_value
+
             return snr_value
 
         if (option == '2'): return b'\xFF'
 
-    elif( opc == '4' ):
+    elif(opc == '5'): 
+        print("| (  5 ): SNR sweep_______________________________|")  
+        print("|    ( 1 ): Enter parameters                      |")
+        print("|    ( 2 ): Return to Main Menu                   |")
+        print("|_________________________________________________|")
+        option = input("Enter an option: ")
+
+        while (option != '1' and option != '2'): 
+            option = input("Invalid option. Enter an option (1-2): ")   
+        print()
+
+        if (option =='1'):
+
+            start_val = int(input("Enter start value for SNR sweep (min value = 7): "))
+            while (start_val < 7): 
+                 start_val = int(input("Incorrect value. Enter a valid value: "))   
+            print()
+
+            end_val = int(input("Enter finish value for SNR sweep (max value = 17): "))
+            while (end_val > 17): 
+                 end_val   = int(input("Incorrect value. Enter a valid value: "))   
+            print()
+
+            time_val = int(input("Waiting time in minutes for each SNR: "))
+            while (time_val < 1): 
+                  time_val = int(input("Incorrect value. Enter a valid value: "))   
+            print()
+
+            snr_sweep_option(start_val, end_val, time_val)
+
+        if (option =='2'):  return b'\xFF'
+
+    elif(opc == '4'):
         print("|( 4 ): Select channel filter______|")
         print("|    ( 1 ): fc = 12 MHz            |")
         print("|    ( 2 ): impulse                |")
@@ -413,7 +488,7 @@ def sub_menu(opc):
         if (option == '3'): return b'\x02' # [1] enbl + [2:0] subop = 1|011  
         if (option == '4'): return b'\xFF'
 
-    elif( opc == '6' ):
+    elif(opc == '6'):
         print("|( 6 ): Store DSP data in memory___|")
         print("|    ( 1 ): Store DSP input        |")
         print("|    ( 2 ): Store DSP output       |")
@@ -447,7 +522,7 @@ while 1 :
     print("| (  2 ): Turn receiver ON/OFF                     |") 
     print("| (  3 ): Select SNR                               |") 
     print("| (  4 ): Select channel filter                    |")
-    print("| (  5 ): Comming soon ...                         |")  
+    print("| (  5 ): SNR sweep                                |")  
     print("| (  6 ): Store DSP data in memory                 |")  
     print("| (  7 ): Read stored data                         |")
     print("| (  8 ): Store total and error bits               |")
@@ -462,7 +537,6 @@ while 1 :
            input_opc != '9' and input_opc != '10'): 
         input_opc = input("Invalid option. Enter and option (1-10): ")   
     print()
-
 
     if(input_opc == '1'):                                              # 1 - Reset para el sistema                                         
         frame = data_frame_assembly (opc_1, b'\x01', b'\x00', device)  
@@ -487,7 +561,7 @@ while 1 :
             data_frame_disassembly (frame)   
 
     elif(input_opc == '5'):
-        print("Todavia no hay nada maquinola....\n")
+        sub_opc = sub_menu(input_opc)
 
     elif(input_opc == '6'):                                            # 6 - Store DSP data in memory          
         sub_opc = sub_menu(input_opc)  
@@ -496,7 +570,7 @@ while 1 :
             data_frame_disassembly (frame)
             frame = data_frame_assembly (opc_6, sub_opc, b'\x00', device) # Set option and store option
             data_frame_disassembly (frame)  
-       
+
             sub_opc_for_reading = sub_opc
 
     elif(input_opc == '7'):                                            # 7 - Read stored data         
