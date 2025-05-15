@@ -465,19 +465,19 @@ def sub_menu(opc):
         
         if (option =='1'):
            
-            start_val = int(input("From (7 dB min): "))
+            start_val = int(input("- From (7 dB min): "))
             while (start_val < 7): 
-                 start_val = int(input("Incorrect value. From (7 dB min): "))   
+                 start_val = int(input("  Incorrect value. From (7 dB min): "))   
             print()
             
-            end_val = int(input("To (17 dB max): "))
+            end_val   = int(input("- To  (17 dB max): "))
             while (end_val > 17): 
-                 end_val   = int(input("Incorrect value. To (17 dB max): "))   
+                 end_val   = int(input("  Incorrect value. To  (17 dB max): "))   
             print()
             
-            time_val = int(input("Wait time [min]: "))
+            time_val  = int(input("- Wait time [min]: "))
             while (time_val < 1): 
-                  time_val = int(input("Incorrect value. Waiting time [min]: "))   
+                  time_val = int(input("  Incorrect value. Wait time [min]: "))   
             print()
             
             snr_sweep_option(start_val, end_val, time_val)
