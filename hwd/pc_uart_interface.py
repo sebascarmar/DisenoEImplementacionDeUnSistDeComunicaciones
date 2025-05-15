@@ -438,10 +438,10 @@ def sub_menu(opc):
         print()
         
         if (option == '1'): 
-            snr_opc = int (input("Enter an int. value (7-17 [dB]): "))
-
+            snr_opc = int(float(input("Enter an int. value (7-17 [dB]): ")))
+            
             while snr_opc < 7 or snr_opc > 17: 
-                snr_opc = int(input("Invalid option. Enter a value between 7 and 20: "))  
+                snr_opc = int(float(input("Invalid value. Enter an int. value (7-17 [dB]): ")))
             print()
             snr_value = get_snr_for_hw(snr_opc)
            
