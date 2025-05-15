@@ -43,7 +43,6 @@ opc_6  = b'\x06'
 opc_7  = b'\x07' 
 opc_8  = b'\x08' 
 opc_9  = b'\x09' 
-opc_10 = b'\x0A' 
 #### for store totals and error bits
 snr_select = 7
 bits_I = 0 
@@ -399,10 +398,10 @@ def snr_sweep_option(start_val, end_val, time_val):
 def sub_menu(opc):
 
     if(opc == '2'):
-        print("|( 2 ): Turn receiver ON/OFF_______|")
-        print("|    ( 1 ): ON                     |")
-        print("|    ( 2 ): OFF                    |")
-        print("|    ( 3 ): Return to Main Menu    |")
+        print("| (2) Set Receiver State (ON/OFF)  |") 
+        print("|    (1): ON                       |")
+        print("|    (2): OFF                      |")
+        print("|    (3): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
 
@@ -414,9 +413,9 @@ def sub_menu(opc):
         if (option == '3'): return b'\xFF'
     
     elif(opc == '3'):
-        print("|( 3 ): Select SNR______________|")
-        print("|    ( 1 ): Enter values (7-17) |")
-        print("|    ( 2 ): Return to Main Menu |")
+        print("| (3) Set SNR Value             |") 
+        print("|    (1): Enter a value         |")
+        print("|    (2): Return to Main Menu   |")
         print("|_______________________________|")
         option = input("Enter an option: ")
 
@@ -425,7 +424,7 @@ def sub_menu(opc):
         print()
 
         if (option == '1'): 
-            snr_opc = int (input("Enter an int. value (7-17): "))
+            snr_opc = int (input("Enter an int. value (7-17 [dB]): "))
 
             while snr_opc < 7 or snr_opc > 17: 
                 snr_opc = int(input("Invalid option. Enter a value between 7 and 20: "))  
@@ -440,9 +439,9 @@ def sub_menu(opc):
         if (option == '2'): return b'\xFF'
 
     elif(opc == '5'): 
-        print("| (  5 ): SNR sweep_______________________________|")  
-        print("|    ( 1 ): Enter parameters                      |")
-        print("|    ( 2 ): Return to Main Menu                   |")
+        print("| (5) Run SNR Sweep                               |")  
+        print("|    (1): Set range and wait time                 |")
+        print("|    (2): Return to Main Menu                     |")
         print("|_________________________________________________|")
         option = input("Enter an option: ")
 
@@ -452,19 +451,19 @@ def sub_menu(opc):
 
         if (option =='1'):
 
-            start_val = int(input("Enter start value for SNR sweep (min value = 7): "))
+            start_val = int(input("From (7 dB min): "))
             while (start_val < 7): 
-                 start_val = int(input("Incorrect value. Enter a valid value: "))   
+                 start_val = int(input("Incorrect value. From (7 dB min): "))   
             print()
 
-            end_val = int(input("Enter finish value for SNR sweep (max value = 17): "))
+            end_val = int(input("To (17 dB max): "))
             while (end_val > 17): 
-                 end_val   = int(input("Incorrect value. Enter a valid value: "))   
+                 end_val   = int(input("Incorrect value. To (17 dB max): "))   
             print()
 
-            time_val = int(input("Waiting time in minutes for each SNR: "))
+            time_val = int(input("Wait time [min]: "))
             while (time_val < 1): 
-                  time_val = int(input("Incorrect value. Enter a valid value: "))   
+                  time_val = int(input("Incorrect value. Waiting time [min]: "))   
             print()
 
             snr_sweep_option(start_val, end_val, time_val)
@@ -472,11 +471,11 @@ def sub_menu(opc):
         if (option =='2'):  return b'\xFF'
 
     elif(opc == '4'):
-        print("|( 4 ): Select channel filter______|")
-        print("|    ( 1 ): fc = 12 MHz            |")
-        print("|    ( 2 ): impulse                |")
-        print("|    ( 3 ): fc = 10 MHz            |")
-        print("|    ( 4 ): Return to Main Menu    |")
+        print("| (4) Select Channel Filter        |")
+        print("|    (1): fc = 12 MHz              |")
+        print("|    (2): impulse                  |")
+        print("|    (3): fc = 10 MHz              |")
+        print("|    (4): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
 
@@ -489,11 +488,11 @@ def sub_menu(opc):
         if (option == '4'): return b'\xFF'
 
     elif(opc == '6'):
-        print("|( 6 ): Store DSP data in memory___|")
-        print("|    ( 1 ): Store DSP input        |")
-        print("|    ( 2 ): Store DSP output       |")
-        print("|    ( 3 ): Store FSE taps         |")
-        print("|    ( 4 ): Return to Main Menu    |")
+        print("| (6) Save DSP Data to Memory      |")  
+        print("|    (1): Store DSP input          |")
+        print("|    (2): Store DSP output         |")
+        print("|    (3): Store FSE taps           |")
+        print("|    (4): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
 
@@ -518,24 +517,22 @@ sub_opc_for_reading = ''   # Auxiliary variable used only for logged data storag
 while 1 :
 
     print("|******************* MAIN MENU ********************|")
-    print("| (  1 ): Reset                                    |")
-    print("| (  2 ): Turn receiver ON/OFF                     |") 
-    print("| (  3 ): Select SNR                               |") 
-    print("| (  4 ): Select channel filter                    |")
-    print("| (  5 ): SNR sweep                                |")  
-    print("| (  6 ): Store DSP data in memory                 |")  
-    print("| (  7 ): Read stored data                         |")
-    print("| (  8 ): Store total and error bits               |")
-    print("| (  9 ): Read total and error bits                |")
-    print("| ( 10 ): Exit                                     |")
+    print("| (1) Reset System                                 |")
+    print("| (2) Set Receiver State (ON/OFF)                  |") 
+    print("| (3) Set SNR Value                                |") 
+    print("| (4) Select Channel Filter                        |")
+    print("| (5) Run SNR Sweep                                |")  
+    print("| (6) Save DSP Data to Memory                      |")  
+    print("| (7) Read Stored Data                             |")
+    print("| (8) Get BER Values                               |")
+    print("| (9) Exit                                         |")
     print("|__________________________________________________|")
     input_opc = input("Enter an option: ")
-
 
     while (input_opc != '1' and input_opc != '2' and input_opc != '3' and input_opc != '4' and 
            input_opc != '5' and input_opc != '6' and input_opc != '7' and input_opc != '8' and 
            input_opc != '9' and input_opc != '10'): 
-        input_opc = input("Invalid option. Enter and option (1-10): ")   
+        input_opc = input("Invalid option. Enter and option (1-9): ")   
     print()
 
     if(input_opc == '1'):                                              # 1 - Reset para el sistema                                         
@@ -583,15 +580,18 @@ while 1 :
         frame = data_frame_assembly (opc_8, b'\x01', b'\x00', device)          
         data_frame_disassembly (frame)
 
-    elif(input_opc == '9'):                                            # 9 - Read total and error bits            
         frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
         data_ber_disassembly (frame)
 
-    elif (input_opc  == '10'): 
+#    elif(input_opc == '9'):                                            # 9 - Read total and error bits            
+#        frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
+#        data_ber_disassembly (frame)
+
+    elif (input_opc  == '9'): 
         ser.close(); break                                             # 10 - End program
 
     else: 
-        print("Invalid option (1 - 10)")
+        print("Invalid option (1-9)")
         print()
 
 
