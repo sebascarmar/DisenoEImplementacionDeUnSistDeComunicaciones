@@ -420,7 +420,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2' and option != '3'): 
-            option = input("Invalid option. Enter an option (1-3): ")   
+            option = input("Invalid value. Enter an option (1-3): ")   
         print()
         if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
@@ -434,7 +434,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2'): 
-            option = input("Invalid option. Enter an option (1-2): ")   
+            option = input("Invalid value. Enter an option (1-2): ")   
         print()
         
         if (option == '1'): 
@@ -460,7 +460,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2'): 
-            option = input("Invalid option. Enter an option (1-2): ")   
+            option = input("Invalid value. Enter an option (1-2): ")   
         print()
         
         if (option =='1'):
@@ -494,7 +494,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
-            option = input("Invalid option. Enter an option (1-4): ")   
+            option = input("Invalid value. Enter an option (1-4): ")   
         print()
         if (option == '1'): return b'\x00' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x01' # [1] enbl + [2:0] subop = 1|010 
@@ -511,7 +511,7 @@ def sub_menu(opc):
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
-            option = input("Invalid option. Enter an option (1-4): ")   
+            option = input("Invalid value. Enter an option (1-4): ")   
         print()
         if (option == '1'): return b'\x09' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x0A' # [1] enbl + [2:0] subop = 1|010 
@@ -601,7 +601,7 @@ while 1 :
         ser.close(); break                                             
         
     else: 
-        print("Invalid option (1-9)")
+        print("Invalid value (1-9)")
         print()
 
 
