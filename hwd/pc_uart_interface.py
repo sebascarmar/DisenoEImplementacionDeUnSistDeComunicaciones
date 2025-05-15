@@ -1,14 +1,13 @@
 ####################################################################################
-#   Autor: Juarez Daniel
-#   Año: 2025
-#   Nombre: uart_test.py  For the communication between the PC and the micro 
-#                         embedded in the FPGA
-#   Descripcion: 
-#               This script communicates between the PC and the FPGA in this way.          
+#   Autor      : Juarez Daniel
+#   Año        : 2025
+#   Nombre     : pc_uart_interface.py
+#   Use        : To communicate the PC with the micro embedded in the FPGA
+#   Description: This script communicates between the PC and the FPGA in this way.          
 #               you can reset, set, and request data from the FPGA and store them in 
 #               csv files to be later plotted either in python or other software.    
 #               or other software.    
-###################################################################################
+####################################################################################
 
 #### Library
 import time
@@ -53,14 +52,14 @@ variance_value = 0
 
 
 
-#|___Function to save the data collected from the filter outputs___|
-#| INPUT:                                                          |   
-#|       data_I  and data_Q = Data obtained from RAM reading       |
-#|       sub_opc_for_reading = Depending on its value, it will be  |
-#|       the name used to store the data                           |
-#| OUTPUT:                                                         |
-#|         None                                                    |
-#|_________________________________________________________________|
+#|____________Function to save the data collected from the filter outputs__________|
+#| INPUT:                                                                          |   
+#|       data_I  and data_Q = Data obtained from RAM reading                       |
+#|       sub_opc_for_reading = Depending on its value, it will be                  |
+#|       the name used to store the data                                           |
+#| OUTPUT:                                                                         |
+#|         None                                                                    |
+#|_________________________________________________________________________________|
 
 def save_data(data_Q, data_I, sub_opc_for_reading):
 
@@ -69,15 +68,15 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
     if (sub_opc_for_reading == b'\x09'): 
         file_I = f"file_rx_symI_dwr2_snr_{snr_select}.txt" 
         file_Q = f"file_rx_symQ_dwr2_snr_{snr_select}.txt" 
-
+        
     elif (sub_opc_for_reading == b'\x0A'):
         file_I = f"file_rx_symI_dwr1_snr_{snr_select}.txt"
         file_Q = f"file_rx_symQ_dwr1_snr_{snr_select}.txt"
-
+        
     elif (sub_opc_for_reading == b'\x0B'):     
         file_I = f"file_fse_taps_I_snr_{snr_select}.txt"
         file_Q = f"file_fse_taps_Q_snr_{snr_select}.txt"
-
+        
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
 
@@ -106,12 +105,14 @@ def save_total_and_err_bits(snr_sweep):
         f.write(f"{errs_Q}\n")
 
 
-#|_____Function to verify the frames of transmitted bits and errors as well as filter frames_____|
-#| INPUT:                                                                                        |   
-#|       frame_ok = A complete frame sent by the FPGA to Python, can be from the filter, bits, or errors |
-#| OUTPUT:                                                                                       |
-#|         Var OK = 1 for correct frame, OK = 0 for error in received frame                      |
-#|______________________________________________________________________________________________ |
+#|____Function to verify the frames of tx bits and err. as well as filt. frames____|
+#| INPUT:                                                                          |   
+#|       frame_ok = A complete frame sent by the FPGA to Python, can be from the   |
+#|       filter, bits, or errors                                                   |
+#| OUTPUT:                                                                         |
+#|         Var OK = 1 for correct frame, OK = 0 for error in received frame        |
+#|_________________________________________________________________________________|
+
 def frame_check(frame):
 
     if len(frame) < 9:
@@ -124,7 +125,7 @@ def frame_check(frame):
         else:
             vals.append(int(b))
 
-    # Ahora comparamos
+    # Compare
     if vals[0] != 0xA4:
         return False
     if vals[1] != 0x00:
@@ -141,13 +142,14 @@ def frame_check(frame):
 
 #|_______________Function to assemble the frame to send to the FPGA________________|
 #| INPUT:                                                                          |   
-#|        opc = Variable indicating the operation to perform on the FPGA's RF      |
-#|        sub_opc = Sub-option variable for specific operations on the FPGA        |
-#|        filler_opc = Variable that can be 0 or a specific value in certain options |
-#|        device = Variable indicating the device number being worked with    |
+#|       opc = Variable indicating the operation to perform on the FPGA's RF       |
+#|       sub_opc = Sub-option variable for specific operations on the FPGA         |
+#|       filler_opc = Variable that can be 0 or a specific value in certain options|
+#|       device = Variable indicating the device number being worked with          |
 #| OUTPUT:                                                                         |
-#|        frame_list = Returns the assembled frame to be written to the UART port  |
+#|       frame_list = Returns the assembled frame to be written to the UART port   |
 #|_________________________________________________________________________________|
+
 def data_frame_assembly(opc, sub_opc , filler_opc, device) :
 
     data = opc + enable + filler_opc + sub_opc    #for example: 0x03 + 0x80 + 0x00 + 0x01 = 0x203800001
@@ -161,7 +163,7 @@ def data_frame_assembly(opc, sub_opc , filler_opc, device) :
         cola = binascii.unhexlify(str(hex(0x40+eval(hex(len(data))))).split("0x")[1])
         
         frame_hex = head + high + low + dispo + data + cola
-
+        
         frame_list = list(frame_hex)
        # print(f"Frame for gpio: {frame_hex}")        
        # print()
@@ -169,14 +171,15 @@ def data_frame_assembly(opc, sub_opc , filler_opc, device) :
     return frame_list 
 
 
-#|____Function to decode any error in sending frames to the FPGA___|
-#| INPUT:                                                          |   
-#|         frame = the assembled frame to be sent through the port |
-#|         and also waits to see if the FPGA microcontroller sends |
-#|         an error message                                        |
-#| OUTPUT:                                                         |
-#|         None                                                    |
-#|_________________________________________________________________|
+#|____________Function to decode any error in sending frames to the FPGA___________|
+#| INPUT:                                                                          |   
+#|         frame = the assembled frame to be sent through the port                 |
+#|         and also waits to see if the FPGA microcontroller sends                 |
+#|         an error message                                                        |
+#| OUTPUT:                                                                         |
+#|         None                                                                    |
+#|_________________________________________________________________________________|
+
 def data_frame_disassembly (frame):
 
     for i in range (2000):
@@ -197,14 +200,15 @@ def data_frame_disassembly (frame):
     print()
     print()
 
-#___Function to decode transmitted errors and bits___#  
-#| INPUT:                                                                       |   
-#|       frame_I and frame_Q = Data obtained from RAM reading                   |
-#|       sub_opc_for_reading = Depending on its value, it will be the name      |
-#|       used to store the data                                                 |
-#| OUTPUT:                                                                      |
-#|         None                                                                 |
-#|______________________________________________________________________________|   
+#____________________Function to decode transmitted errors and bits________________# 
+#| INPUT:                                                                          |   
+#|       frame_I and frame_Q = Data obtained from RAM reading                      |
+#|       sub_opc_for_reading = Depending on its value, it will be the name         |
+#|       used to store the data                                                    |
+#| OUTPUT:                                                                         |
+#|         None                                                                    |
+#|_________________________________________________________________________________|   
+
 def data_ber_disassembly (frame):
 
     # send frame
@@ -266,16 +270,17 @@ def data_ber_disassembly (frame):
 
 
 
-#|____________Function to decode filter data__________________________|
-#| INPUT:                                                             |   
-#|        frame = Frame sent for reading data stored in RAM.          |
-#|        It also decodes the data sent by the FPGA per frame         |
-#|        and retrieves the output values of the filter.              |
-#|        sub_opc_for_reading = Auxiliary variable passed to another  |
-#|        function responsible for saving the data sent to Python.    |
-#| OUTPUT:                                                            |
-#|         None                                                       |
-#|____________________________________________________________________|
+#|______________________Function to decode filter data_____________________________|
+#| INPUT:                                                                          |   
+#|        frame = Frame sent for reading data stored in RAM.                       |
+#|        It also decodes the data sent by the FPGA per frame                      |
+#|        and retrieves the output values of the filter.                           |
+#|        sub_opc_for_reading = Auxiliary variable passed to another               |
+#|        function responsible for saving the data sent to Python.                 |
+#| OUTPUT:                                                                         |
+#|         None                                                                    |
+#|_________________________________________________________________________________|
+
 def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
  
     if (sub_opc_for_reading == b'\x09' or sub_opc_for_reading == b'\x0A'):
@@ -293,34 +298,34 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
     for idx in range(N):
         # 2) Request the frame from the FPGA
         ser.write(frame_request)
-
+        
         # 3) Wait to receive exactly 9 bytes (or timeout)
         buf = ser.read(9)
         # print(f"Frame {idx} with data from RAM: {buf}")    
-
+        
         if len(buf) != 9:
                 print(f"[Warning] frame {idx}: received {len(buf)} bytes, skipping…")
                 print(f"[ {buf} ]")
                 continue
-
+        
         # 4) Verify header and tail
         if frame_check(list(buf)) != 1:
                 print(f"[Warning] frame {idx}: checksum failed, skipping…")
                 continue
-
+        
         # 5) Extract the 4 bytes of payload
         payload = buf[4:8]
         raw = [b for b in payload]
         
         frame_payload.append(raw)
-
+        
         Q = int.from_bytes(raw[0:2], byteorder='little', signed=True)
         I = int.from_bytes(raw[2:4], byteorder='little', signed=True)
-
+        
         # 6) Store integer and float values
         frame_int_Q.append(Q)
         frame_int_I.append(I)
-
+        
         # Sleep for 0.1s every 200 frames
         if (idx+1) % 200 == 0:
                 time.sleep(0.1)
@@ -334,12 +339,13 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
     save_data(frame_int_Q, frame_int_I, sub_opc_for_reading)
 
 
-#|____________________Function to get snr for hw______________________|
-#| INPUT:                                                             |  
-#|          index from snr value                                      |   
-#| OUTPUT:                                                            |
-#|          snr value in hex                                          |
-#|____________________________________________________________________|
+#|_________________________Function to get snr for hw______________________________|
+#| INPUT:                                                                          |  
+#|          index from snr value                                                   |   
+#| OUTPUT:                                                                         |
+#|          snr value in hex                                                       |
+#|_________________________________________________________________________________|
+
 def get_snr_for_hw(snr_idx):
     # SNR values: 1 dB to 20 dB
     global variance_value
@@ -358,6 +364,13 @@ def get_snr_for_hw(snr_idx):
     return scaled_val.to_bytes(1, byteorder='big')
 
 
+#|_________________________Function to run a SNR sweep_____________________________|
+#| INPUT:                                                                          |  
+#|                                                                                 |   
+#| OUTPUT:                                                                         |
+#|                                                                                 |
+#|_________________________________________________________________________________|
+
 def snr_sweep_option(start_val, end_val, time_val):
  
     for snr in range (start_val, (end_val+1)):
@@ -365,36 +378,37 @@ def snr_sweep_option(start_val, end_val, time_val):
         
         global snr_select 
         snr_select = snr 
-
+        
         # 1) set snr value
         frame = data_frame_assembly (opc_3, get_snr_for_hw(snr), b'\x00', device)  
         data_frame_disassembly (frame)   
-
+        
         time.sleep(time_val*60)
-
+        
         # 2) Capture totals and error bits             
         frame = data_frame_assembly (opc_8, b'\x01', b'\x00', device)          
         data_frame_disassembly (frame)
-
+        
         # 3) Get totals and error bits  
         frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
         data_ber_disassembly (frame)
-
+        
         # 4) save data
         save_total_and_err_bits(snr)
 
 
-#|_____________________Function for sub-options________________________|
-#| INPUT:                                                              |
-#|        opc = Variable indicating the chosen option. Some options    |
-#|        have a submenu for sub-options, such as the option to set    |
-#|        parts of the system.                                         |
-#| OUTPUT:                                                             |
-#|         sub_opc = Variable indicating a sub-option depending on     |
-#|         the main option selected.                                   |
-#|         filler_opc = Returns a value, either zero or a specific one,|
-#|         depending on the chosen option and sub-option.              |
-#|_____________________________________________________________________|
+#|__________________________Function for sub-options_______________________________|
+#| INPUT:                                                                          |
+#|        opc = Variable indicating the chosen option. Some options                |
+#|        have a submenu for sub-options, such as the option to set                |
+#|        parts of the system.                                                     |
+#| OUTPUT:                                                                         |
+#|         sub_opc = Variable indicating a sub-option depending on                 |
+#|         the main option selected.                                               |
+#|         filler_opc = Returns a value, either zero or a specific one,            |
+#|         depending on the chosen option and sub-option.                          |
+#|_________________________________________________________________________________|
+
 def sub_menu(opc):
 
     if(opc == '2'):
@@ -404,25 +418,25 @@ def sub_menu(opc):
         print("|    (3): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
-
+        
         while (option != '1' and option != '2' and option != '3'): 
             option = input("Invalid option. Enter an option (1-3): ")   
         print()
         if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\xFF'
-    
+       
     elif(opc == '3'):
         print("| (3) Set SNR Value             |") 
         print("|    (1): Enter a value         |")
         print("|    (2): Return to Main Menu   |")
         print("|_______________________________|")
         option = input("Enter an option: ")
-
+        
         while (option != '1' and option != '2'): 
             option = input("Invalid option. Enter an option (1-2): ")   
         print()
-
+        
         if (option == '1'): 
             snr_opc = int (input("Enter an int. value (7-17 [dB]): "))
 
@@ -433,43 +447,43 @@ def sub_menu(opc):
            
             global snr_select
             snr_select = snr_value
-
+            
             return snr_value
-
+        
         if (option == '2'): return b'\xFF'
-
+        
     elif(opc == '5'): 
         print("| (5) Run SNR Sweep                               |")  
         print("|    (1): Set range and wait time                 |")
         print("|    (2): Return to Main Menu                     |")
         print("|_________________________________________________|")
         option = input("Enter an option: ")
-
+        
         while (option != '1' and option != '2'): 
             option = input("Invalid option. Enter an option (1-2): ")   
         print()
-
+        
         if (option =='1'):
-
+           
             start_val = int(input("From (7 dB min): "))
             while (start_val < 7): 
                  start_val = int(input("Incorrect value. From (7 dB min): "))   
             print()
-
+            
             end_val = int(input("To (17 dB max): "))
             while (end_val > 17): 
                  end_val   = int(input("Incorrect value. To (17 dB max): "))   
             print()
-
+            
             time_val = int(input("Wait time [min]: "))
             while (time_val < 1): 
                   time_val = int(input("Incorrect value. Waiting time [min]: "))   
             print()
-
+            
             snr_sweep_option(start_val, end_val, time_val)
-
+            
         if (option =='2'):  return b'\xFF'
-
+        
     elif(opc == '4'):
         print("| (4) Select Channel Filter        |")
         print("|    (1): fc = 12 MHz              |")
@@ -478,7 +492,7 @@ def sub_menu(opc):
         print("|    (4): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
-
+        
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
             option = input("Invalid option. Enter an option (1-4): ")   
         print()
@@ -486,7 +500,7 @@ def sub_menu(opc):
         if (option == '2'): return b'\x01' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x02' # [1] enbl + [2:0] subop = 1|011  
         if (option == '4'): return b'\xFF'
-
+        
     elif(opc == '6'):
         print("| (6) Save DSP Data to Memory      |")  
         print("|    (1): Store DSP input          |")
@@ -495,7 +509,7 @@ def sub_menu(opc):
         print("|    (4): Return to Main Menu      |")
         print("|__________________________________|")
         option = input("Enter an option: ")
-
+        
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
             option = input("Invalid option. Enter an option (1-4): ")   
         print()
@@ -505,10 +519,10 @@ def sub_menu(opc):
         if (option == '4'): return b'\xFF'
     
 
-#|___________________Main script entry point_____________________________|
-#| This is the starting point of the Main Menu where the desired option  |
-#| to perform is selected.                                               |
-#|_______________________________________________________________________|
+#|_______________________Main script entry point___________________________________|
+#| This is the starting point of the Main Menu where the desired option            |
+#| to perform is selected.                                                         |
+#|_________________________________________________________________________________|
 #___Variables___#
 device              = '01' # Device number being used
 sub_opc             = ''   # Sub-option variable, used only for some options
@@ -531,35 +545,35 @@ while 1 :
 
     while (input_opc != '1' and input_opc != '2' and input_opc != '3' and input_opc != '4' and 
            input_opc != '5' and input_opc != '6' and input_opc != '7' and input_opc != '8' and 
-           input_opc != '9' and input_opc != '10'): 
-        input_opc = input("Invalid option. Enter and option (1-9): ")   
+           input_opc != '9'): 
+        input_opc = input("Invalid value. Enter and option (1-9): ")   
     print()
 
-    if(input_opc == '1'):                                              # 1 - Reset para el sistema                                         
+    if(input_opc == '1'):                                              # 1 - Reset 
         frame = data_frame_assembly (opc_1, b'\x01', b'\x00', device)  
         data_frame_disassembly (frame)  
-
+        
     elif(input_opc == '2'):                                            # 2 - Turn receiver ON/OFF               
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_2, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
-
-    elif(input_opc == '3'):                                            # 3 - Select snr 
+        
+    elif(input_opc == '3'):                                            # 3 -  Set SNR value
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_3, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
-
+        
     elif(input_opc == '4'):                                            # 4 - Select channel filter 
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_4, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
-
+        
     elif(input_opc == '5'):
         sub_opc = sub_menu(input_opc)
-
+        
     elif(input_opc == '6'):                                            # 6 - Store DSP data in memory          
         sub_opc = sub_menu(input_opc)  
         if (sub_opc != b'\xFF'):
@@ -567,29 +581,25 @@ while 1 :
             data_frame_disassembly (frame)
             frame = data_frame_assembly (opc_6, sub_opc, b'\x00', device) # Set option and store option
             data_frame_disassembly (frame)  
-
+            
             sub_opc_for_reading = sub_opc
-
+        
     elif(input_opc == '7'):                                            # 7 - Read stored data         
         frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)   
         
         print("Receiving data. Please wait...\n")
         data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
-
-    elif(input_opc == '8'):                                            # 8 - Store total and error bits           
+        
+    elif(input_opc == '8'):                                            # 8 - Get BER values
         frame = data_frame_assembly (opc_8, b'\x01', b'\x00', device)          
         data_frame_disassembly (frame)
-
+        
         frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
         data_ber_disassembly (frame)
-
-#    elif(input_opc == '9'):                                            # 9 - Read total and error bits            
-#        frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
-#        data_ber_disassembly (frame)
-
-    elif (input_opc  == '9'): 
-        ser.close(); break                                             # 10 - End program
-
+        
+    elif (input_opc  == '9'):                                          # 9 - Exit
+        ser.close(); break                                             
+        
     else: 
         print("Invalid option (1-9)")
         print()
