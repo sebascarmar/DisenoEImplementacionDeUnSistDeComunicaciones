@@ -91,7 +91,7 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
         for data in data_Q:
             file.write(str(data) + '\n') 
 
-    print(f"Writing complete {file_Q}")
+    print(f"Writing complete {file_Q}\n\n\n")
 
 
 def save_total_and_err_bits(snr_sweep):
@@ -197,8 +197,7 @@ def data_frame_disassembly (frame):
     
     if (len(opc) >0):
         print("Message received: ", opc)
-    print()
-    print()
+
 
 #____________________Function to decode transmitted errors and bits________________# 
 #| INPUT:                                                                          |   
@@ -252,15 +251,12 @@ def data_ber_disassembly (frame):
     total_data_Q = high_total_data_Q + low_total_data_Q
     err_data_Q   = high_err_data_Q   + low_err_data_Q
 
-    print()
-    print("Bits I:",    int.from_bytes( total_data_I, byteorder='little'))
-    print("Bits Q:",    int.from_bytes( total_data_Q, byteorder='little'))
-    print("Errores I:", int.from_bytes(err_data_I, byteorder='little'))
-    print("Errores Q:", int.from_bytes(err_data_Q, byteorder='little'))
- 
-    print("\nBER_I: {:.3e}".format((int.from_bytes(err_data_I, byteorder='little')/int.from_bytes(total_data_I, byteorder='little'))))
-    print("BER_Q: {:.3e}".format((int.from_bytes(err_data_Q, byteorder='little')/int.from_bytes(total_data_Q, byteorder='little'))))
-    print()
+    print("Total bits:",    int.from_bytes( total_data_I, byteorder='little'))
+    #   print("Bits Q:",    int.from_bytes( total_data_Q, byteorder='little'))
+    #   print("Errores I:", int.from_bytes(err_data_I, byteorder='little'))
+    #   print("Errores Q:", int.from_bytes(err_data_Q, byteorder='little'))
+    print("BER I     : {:.3e}".format((int.from_bytes(err_data_I, byteorder='little')/int.from_bytes(total_data_I, byteorder='little'))))
+    print("BER Q     : {:.3e}".format((int.from_bytes(err_data_Q, byteorder='little')/int.from_bytes(total_data_Q, byteorder='little'))))
 
     # for salving data 
     bits_I = int.from_bytes(total_data_I, byteorder='little')
@@ -334,7 +330,7 @@ def data_frame_IQ_disassembly  (frame_request, sub_opc_for_reading):
     #   print("Data Q :", frame_int_Q)
     #   print("Data I: ", frame_int_I)
     #   print("Payload: ", frame_payload)
-    print() 
+    #   print("\n\n") 
 
     save_data(frame_int_Q, frame_int_I, sub_opc_for_reading)
 
@@ -374,7 +370,7 @@ def get_snr_for_hw(snr_idx):
 def snr_sweep_option(start_val, end_val, time_val):
  
     for snr in range (start_val, (end_val+1)):
-        print(f"SNR sweep value = {snr} dB")
+        print(f"Sweeping for SNR = {snr} dB...")
         
         global snr_select 
         snr_select = snr 
@@ -395,6 +391,8 @@ def snr_sweep_option(start_val, end_val, time_val):
         
         # 4) save data
         save_total_and_err_bits(snr)
+        print()
+    print("\n\n")    
 
 
 #|__________________________Function for sub-options_______________________________|
@@ -424,8 +422,10 @@ def sub_menu(opc):
         print()
         if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
-        if (option == '3'): return b'\xFF'
-       
+        if (option == '3'): 
+                print("\n")
+                return b'\xFF'
+
     elif(opc == '3'):
         print("| (3) Set SNR Value             |") 
         print("|    (1): Enter a value         |")
@@ -446,12 +446,14 @@ def sub_menu(opc):
             snr_value = get_snr_for_hw(snr_opc)
            
             global snr_select
-            snr_select = snr_value
+            snr_select = snr_opc
             
             return snr_value
         
-        if (option == '2'): return b'\xFF'
-        
+        if (option == '2'): 
+                print("\n")
+                return b'\xFF'
+
     elif(opc == '5'): 
         print("| (5) Run SNR Sweep                               |")  
         print("|    (1): Set range and wait time                 |")
@@ -468,12 +470,12 @@ def sub_menu(opc):
             start_val = int(input("- From (7 dB min): "))
             while (start_val < 7): 
                  start_val = int(input("  Incorrect value. From (7 dB min): "))   
-            print()
+           # print()
             
             end_val   = int(input("- To  (17 dB max): "))
             while (end_val > 17): 
                  end_val   = int(input("  Incorrect value. To  (17 dB max): "))   
-            print()
+            #print()
             
             time_val  = int(input("- Wait time [min]: "))
             while (time_val < 1): 
@@ -482,8 +484,10 @@ def sub_menu(opc):
             
             snr_sweep_option(start_val, end_val, time_val)
             
-        if (option =='2'):  return b'\xFF'
-        
+        if (option =='2'):  
+                print("\n")
+                return b'\xFF'
+
     elif(opc == '4'):
         print("| (4) Select Channel Filter        |")
         print("|    (1): fc = 12 MHz              |")
@@ -499,7 +503,9 @@ def sub_menu(opc):
         if (option == '1'): return b'\x00' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x01' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x02' # [1] enbl + [2:0] subop = 1|011  
-        if (option == '4'): return b'\xFF'
+        if (option == '4'): 
+                print("\n")
+                return b'\xFF'
         
     elif(opc == '6'):
         print("| (6) Save DSP Data to Memory      |")  
@@ -516,8 +522,9 @@ def sub_menu(opc):
         if (option == '1'): return b'\x09' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x0A' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x0B' # [1] enbl + [2:0] subop = 1|011  
-        if (option == '4'): return b'\xFF'
-    
+        if (option == '4'):
+                print("\n")
+                return b'\xFF'   
 
 #|_______________________Main script entry point___________________________________|
 #| This is the starting point of the Main Menu where the desired option            |
@@ -583,11 +590,12 @@ while 1 :
             data_frame_disassembly (frame)  
             
             sub_opc_for_reading = sub_opc
-        
+            print("\n\n") 
+
     elif(input_opc == '7'):                                            # 7 - Read stored data         
         frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)   
         
-        print("Receiving data. Please wait...\n")
+        print("Receiving data. Please wait...")
         data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
         
     elif(input_opc == '8'):                                            # 8 - Get BER values
@@ -596,7 +604,8 @@ while 1 :
         
         frame = data_frame_assembly (opc_9, b'\x01', b'\x00', device)         
         data_ber_disassembly (frame)
-        
+        print("\n\n")
+
     elif (input_opc  == '9'):                                          # 9 - Exit
         ser.close(); break                                             
         
