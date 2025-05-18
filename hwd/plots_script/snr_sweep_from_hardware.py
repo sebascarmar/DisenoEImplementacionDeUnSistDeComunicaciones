@@ -80,14 +80,14 @@ for i in range(len(ber_i_hwd)):
 
 ################## plots 
 plt.figure(figsize=[7, 7])  
-plt.title('BER vs SNR | Noise')
+plt.title('BER vs SNR (data from hardware)')
 plt.semilogy(snr_exact, ber_th, color='red', linewidth=2.0)
 plt.semilogy(snr_exact, (ber_i_hwd+ber_q_hwd)/2, color='blue', linewidth=2.0)
 plt.xlabel('SNR [dB]')
 plt.ylabel('BER')
 plt.grid(True, which='both')
-plt.xlim([6.8, 10.5])
-plt.ylim([6e-4, 2e-2])
+#plt.xlim(snr_exact[0]-1, snr_exact[len(snr_exact)-1]+1)
+#plt.ylim([6e-4, 2e-2])
 ax = plt.gca()
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
 ax.grid(True, which='major', linestyle='-', linewidth=0.8)
