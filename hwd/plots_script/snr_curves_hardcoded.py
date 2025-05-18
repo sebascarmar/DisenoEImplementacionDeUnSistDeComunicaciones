@@ -146,4 +146,4 @@ ax.grid(True, which='minor', linestyle='--', linewidth=0.5)
 
 plt.legend(['BER theo', 'BER (impulse)', 'BER (12MHz)', 'BER (10MHz)'])
 plt.tight_layout()
-plt.show()                                    
+plt.show()                                  
