@@ -192,11 +192,11 @@ for snr in range(snr_min, (snr_max+1)):
         plt.tight_layout()
         plt.savefig(os.path.join(folder_save, f"fse_coeff_Q_snr{snr}.png"))
         plt.close()
+        
+        print(f"Found logs for SNR = {snr} dB")
 
     except FileNotFoundError as e:
-        print(f"No logs for SNR = {snr}")
-    except Exception as e:
-        print(f"SNR processing error = {snr} dB: {e}")
+        continue
 
 
 print("All plots were saved")

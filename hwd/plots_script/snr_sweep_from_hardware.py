@@ -62,11 +62,10 @@ for snr in range(snr_min, (snr_max+1)):
         bits_Q.append(int(snr_list[2]))
         errs_I.append(int(snr_list[3]))
         errs_Q.append(int(snr_list[4]))
+        print(f"Found logs for SNR = {snr} dB")
 
     except FileNotFoundError as e:
-        print(f"No logs for SNR = {snr}")
-    except Exception as e:
-        print(f"SNR processing error = {snr} dB: {e}")
+        continue
        
 
 #################  BER calculation based on hardware logged data #################
