@@ -4,62 +4,21 @@ import math
 from scipy import signal
 import os
 
-### Calculate the theoric values of BER in function of SNR
-def theoric_ber(SNRdB):
-    M = 4
-    SNR_slicer  = 10**(SNRdB/10)
-    EbNo = SNR_slicer/np.log2(M)
-    k    = np.log2(M)
-    x    = np.sqrt(3*k*EbNo/(M-1))
-    ber  = (4/k)*(1-1/np.sqrt(M))*(1/2)*math.erfc(x/np.sqrt(2))
 
-    return ber
+def get_snr_accurate (snr_idx):
+    #### Variables
+    OS = 4  # oversampling
+    var_signal = 0.1251046972473807     # data taken from float-point simulator
+    # SNR values 1dB to 20 dB
+    snr_values = np.array([ 0.4453125, 0.390625, 0.3515625, 0.3125, 0.28125, 0.25, 0.21875, 0.1953125,
+                            0.171875, 0.15625, 0.140625, 0.125, 0.109375, 0.09375, 0.0859375, 0.078125,
+                            0.0703125, 0.0625, 0.0546875, 0.046875])
+    snr_aux = snr_values[snr_idx-1]   
 
+    SNR_slicer  = (var_signal / (2*(snr_aux**2))) * OS
+    SNR_dB      = round(10*np.log10(SNR_slicer), 3)
 
-
-def ber_with_data_from_hw():
-    # Datos proporcionados
-    data_ber_I = [
-        15410734072,  # SNR 7
-        15154096919,  # SNR 8
-        15058556948,  # SNR 9
-        15066086070,  # SNR 10
-        15057614520,  # SNR 11
-        15029990543   # SNR 12
-    ]
-
-    data_err_I = [
-        233939948,  # SNR 7
-        110208793,  # SNR 8
-        41115022,   # SNR 9
-        17406034,   # SNR 10
-        5727043,    # SNR 11
-        1310255     # SNR 12
-    ]
-
-    data_ber_Q = [
-        15410734072,  # SNR 7
-        15154096919,  # SNR 8
-        15058556948,  # SNR 9
-        15066086070,  # SNR 10
-        15057614520,  # SNR 11
-        15029990543   # SNR 12
-    ]
-
-    data_err_Q = [
-        237602878,  # SNR 7
-        112501296,  # SNR 8
-        42274846,   # SNR 9
-        17988166,   # SNR 10
-        5938746,    # SNR 11
-        1351223     # SNR 12
-    ]
-
-    # Calculate theoric BER
-    BERI = [err / ber for err, ber in zip(data_err_I, data_ber_I)]
-    BERQ = [err / ber for err, ber in zip(data_err_Q, data_ber_Q)]
-
-    return BERI, BERQ
+    return SNR_dB     
 
 ####################################################################################
 #                                      MAIN                                        #
@@ -71,17 +30,18 @@ NBF_FSE_OUT    = 9
 NTAPS_FSE      = 9
 NBF_FSE_TAPS   = 7
 NSYMB          = 32760
-th_ber = []  
 
-for snr in range(7, 13):
-    folder = f"snr{snr}"
+# Create folder
+if not os.path.exists("plots"):
+    os.makedirs("plots")
 
-    # Create folder
-    if not os.path.exists("plots"):
-        os.makedirs("plots")
-    
-    
-    folder_save = f"plots"
+### Variables
+folder_save = f"plots"
+folder = "logs"
+snr_min = 7 
+snr_max = 17
+
+for snr in range(snr_min, (snr_max+1)):
 
     # Read files
     try:
@@ -115,9 +75,11 @@ for snr in range(7, 13):
         ############################################################################
         
         ############################# DSP signals ##########################
+        snr_exact = get_snr_accurate(snr)
+        
         # DSP input and output constellations
         plt.figure(figsize=[8,4])
-        plt.suptitle(f'Constellation Diagrams | SNR={snr} dB (data from hardware)')
+        plt.suptitle(f'Constellation Diagrams | SNR={snr_exact} dB (data from hardware)')
         plt.subplot(1,2,1)
         plt.plot(rx_symI_dw_r2, rx_symQ_dw_r2, color='chocolate', marker='.', linestyle='', label='DSP in')
         plt.xlim((-3, 3))
@@ -141,7 +103,7 @@ for snr in range(7, 13):
         
         # DSP input and output vs. time
         plt.figure(figsize=[10,6])
-        plt.suptitle(f'DSP input and output | SNR={snr} dB (data from hardware)')
+        plt.suptitle(f'DSP input and output | SNR={snr_exact} dB (data from hardware)')
         plt.subplot(2,1,1)
         plt.plot(rx_symI_dw_r2, color='chocolate', marker='.', linestyle='', label="DSP in")
         plt.ylim((-3, 3))
@@ -179,7 +141,7 @@ for snr in range(7, 13):
                     label=f"{actual_fc_fse / 1e6:.2f}MHz")
         plt.axvline(x=12.5e6,color='coral',linewidth=2.0,
                     label=f"{12.5e6 / 1e6:.2f}MHz")
-        plt.title(f'FSE I Bode | SNR={snr} dB (data from hardware)')
+        plt.title(f'FSE I Bode | SNR={snr_exact} dB (data from hardware)')
         plt.xlabel("Frequency [Hz]")
         plt.ylabel("Magnitud [dB]")
         plt.legend(loc="lower left")
@@ -200,7 +162,7 @@ for snr in range(7, 13):
         plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
                 linestyle='-', linewidth=2.0)
         plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-        plt.title(f'Impulse Response of FSE I Taps | SNR={snr} dB (data from hardware)')
+        plt.title(f'Impulse Response of FSE I Taps | SNR={snr_exact} dB (data from hardware)')
         plt.xlabel('Sample [s]')
         plt.ylabel('Magnitud')
         plt.ylim(-1.5,4.0)
@@ -213,7 +175,7 @@ for snr in range(7, 13):
         ## Evolution of FSE taps over time
         plt.figure(figsize=[10,6])
         plt.plot(fse_coeff_I.T)
-        plt.title(f'FSE I decimated taps | SNR={snr} dB (data from hardware)')
+        plt.title(f'FSE I decimated taps | SNR={snr_exact} dB (data from hardware)')
         plt.xlabel('Time [n]')
         plt.ylim(-1.5, 4.0)
         plt.grid(True)
@@ -223,7 +185,7 @@ for snr in range(7, 13):
         
         plt.figure(figsize=[10,6])
         plt.plot(fse_coeff_Q.T)
-        plt.title(f'FSE Q decimated taps | SNR={snr} dB (data from hardware)')
+        plt.title(f'FSE Q decimated taps | SNR={snr_exact} dB (data from hardware)')
         plt.xlabel('Time [n]')
         plt.ylim(-1.5, 4.0)
         plt.grid(True)
@@ -232,35 +194,10 @@ for snr in range(7, 13):
         plt.close()
 
     except FileNotFoundError as e:
-        print(f"Error: No se encontró el archivo: {e.filename}")
+        print(f"No logs for SNR = {snr}")
     except Exception as e:
-        print(f"Ocurrió un error procesando SNR={snr} dB: {e}")
+        print(f"SNR processing error = {snr} dB: {e}")
 
-
-
-
-snr_vect = np.array   ([7.184, 8.168, 9.279, 10.107, 11.022, 12.045])
-bersI, bersQ = ber_with_data_from_hw()
-
-for i in range(len(snr_vect)):
-    th_ber.append(theoric_ber(snr_vect[i]))
-
-# Plot
-plt.figure(figsize=[10,10])
-plt.title('BER vs SNR | (data from hardware)')
-plt.semilogy(snr_vect, th_ber, 'r', linewidth=2.0)
-plt.semilogy(snr_vect, bersI, 'b', linewidth=2.0)
-plt.semilogy(snr_vect, bersQ, 'g', linewidth=2.0)
-plt.xlabel('SNR [dB]')
-plt.ylabel('BER')
-plt.grid(True)
-#plt.ylim([1e-5, 0.7e-1])
-plt.xlim([6.8, 12.2])
-#plt.gca().set_aspect('equal', adjustable='box')
-plt.axis('equal')
-plt.legend(['SNR theo','SNR I','SNR Q'])
-plt.tight_layout()
-plt.savefig(os.path.join(folder_save, f"ber_vs_snr_hw.png"))
-plt.close()
 
 print("All plots were saved")
+
