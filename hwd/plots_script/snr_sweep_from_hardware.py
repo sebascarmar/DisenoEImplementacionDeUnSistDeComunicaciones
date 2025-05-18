@@ -40,12 +40,12 @@ errs_Q    = []
 ber_th    = []
 
 # Create folder
-if not os.path.exists("plots"):
-    os.makedirs("plots")
+if not os.path.exists("plots/snr_sweep"):
+    os.makedirs("plots/snr_sweep")
 
 ### Variables
-folder_save = "plots"
-folder      = "logs"
+folder_save = "plots/snr_sweep"
+folder      = "logs/snr_sweep"
 snr_min     = 7 
 snr_max     = 17
 

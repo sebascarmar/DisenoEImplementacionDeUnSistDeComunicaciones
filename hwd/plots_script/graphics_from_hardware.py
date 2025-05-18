@@ -32,12 +32,12 @@ NBF_FSE_TAPS   = 7
 NSYMB          = 32760
 
 # Create folder
-if not os.path.exists("plots"):
-    os.makedirs("plots")
+if not os.path.exists("plots/dsp_data"):
+    os.makedirs("plots/dsp_data")
 
 ### Variables
-folder_save = f"plots"
-folder = "logs"
+folder_save = f"plots/dsp_data"
+folder = "logs/dsp_data"
 snr_min = 7 
 snr_max = 17
 
