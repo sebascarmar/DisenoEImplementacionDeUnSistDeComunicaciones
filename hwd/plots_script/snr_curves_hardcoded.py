@@ -115,7 +115,7 @@ plt.ylabel('BER')
 plt.grid(True, which='both')
 plt.xlim([6.8, 10.5])
 plt.ylim([6e-4, 2e-2])
-plt.legend(['BER theo','BER float','BER hwd'])
+plt.legend(['BER theo','BER float (ch. BW: 12MHz)','BER hwd (ch. BW: 12MHz)'])
 plt.tight_layout()
 #plt.show()
 
@@ -144,6 +144,6 @@ ax.grid(True, which='major', linestyle='-', linewidth=0.8)
 ax.grid(True, which='minor', linestyle='--', linewidth=0.5)
 
 
-plt.legend(['BER theo', 'BER (impulse)', 'BER (12MHz)', 'BER (10MHz)'])
+plt.legend(['BER theo', 'BER (ch. BW: impulse)', 'BER (ch. BW: 12MHz)', 'BER (ch. BW: 10MHz)'])
 plt.tight_layout()
 plt.show()                                  
