@@ -72,9 +72,6 @@ for snr in range(snr_min, (snr_max+1)):
 ber_i_hwd = np.array([err / ber for err, ber in zip(errs_I, bits_I)])
 ber_q_hwd = np.array([err / ber for err, ber in zip(errs_Q, bits_Q)])
 
-for i in range(len(ber_i_hwd)):
-    ber_i_hwd[i] = round(ber_i_hwd[i],3)
-    ber_q_hwd[i] = round(ber_q_hwd[i],3)
 
 
 ################## plots 
