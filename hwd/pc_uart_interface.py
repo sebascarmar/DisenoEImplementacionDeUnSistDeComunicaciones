@@ -17,6 +17,7 @@ import binascii
 import struct
 import numpy    as np
 import subprocess
+import os
 
 #### set uart port for comunication
 portUSB = sys.argv[1]
@@ -64,18 +65,21 @@ variance_value = 0
 def save_data(data_Q, data_I, sub_opc_for_reading):
 
     global snr_select 
+    # Create folder
+    if not os.path.exists("dsp_data"):
+        os.makedirs("dsp_data")
 
     if (sub_opc_for_reading == b'\x09'): 
-        file_I = f"file_rx_symI_dwr2_snr_{snr_select}.txt" 
-        file_Q = f"file_rx_symQ_dwr2_snr_{snr_select}.txt" 
+        file_I = f"dsp_data/file_rx_symI_dwr2_snr_{snr_select}.txt" 
+        file_Q = f"dsp_data/file_rx_symQ_dwr2_snr_{snr_select}.txt" 
         
     elif (sub_opc_for_reading == b'\x0A'):
-        file_I = f"file_rx_symI_dwr1_snr_{snr_select}.txt"
-        file_Q = f"file_rx_symQ_dwr1_snr_{snr_select}.txt"
+        file_I = f"dsp_data/file_rx_symI_dwr1_snr_{snr_select}.txt"
+        file_Q = f"dsp_data/file_rx_symQ_dwr1_snr_{snr_select}.txt"
         
     elif (sub_opc_for_reading == b'\x0B'):     
-        file_I = f"file_fse_taps_I_snr_{snr_select}.txt"
-        file_Q = f"file_fse_taps_Q_snr_{snr_select}.txt"
+        file_I = f"dsp_data/file_fse_taps_I_snr_{snr_select}.txt"
+        file_Q = f"dsp_data/file_fse_taps_Q_snr_{snr_select}.txt"
         
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
@@ -96,7 +100,10 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
 
 def save_total_and_err_bits(snr_sweep):
 
-    file_be = f"sweep_with_snr_{snr_sweep}.txt"  
+    # Create folder
+    if not os.path.exists("snr_sweep"):
+        os.makedirs("snr_sweep")
+    file_be = f"snr_sweep/sweep_with_snr_{snr_sweep}.txt"  
     with open(file_be, "w") as f: 
         f.write(f"{variance_value}\n")
         f.write(f"{bits_I}\n")
