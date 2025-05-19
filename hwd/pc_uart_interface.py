@@ -399,7 +399,7 @@ def snr_sweep_option(start_val, end_val, time_val):
         # 4) save data
         save_total_and_err_bits(snr)
         print()
-    print("\n\n")    
+    print("\n")    
 
 
 #|__________________________Function for sub-options_______________________________|
@@ -430,7 +430,6 @@ def sub_menu(opc):
         if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x00' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): 
-                print("\n")
                 return b'\xFF'
 
     elif(opc == '3'):
@@ -458,7 +457,6 @@ def sub_menu(opc):
             return snr_value
         
         if (option == '2'): 
-                print("\n")
                 return b'\xFF'
 
     elif(opc == '5'): 
@@ -492,7 +490,6 @@ def sub_menu(opc):
             snr_sweep_option(start_val, end_val, time_val)
             
         if (option =='2'):  
-                print("\n")
                 return b'\xFF'
 
     elif(opc == '4'):
@@ -511,7 +508,6 @@ def sub_menu(opc):
         if (option == '2'): return b'\x01' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x02' # [1] enbl + [2:0] subop = 1|011  
         if (option == '4'): 
-                print("\n")
                 return b'\xFF'
         
     elif(opc == '6'):
@@ -530,7 +526,6 @@ def sub_menu(opc):
         if (option == '2'): return b'\x0A' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x0B' # [1] enbl + [2:0] subop = 1|011  
         if (option == '4'):
-                print("\n")
                 return b'\xFF'   
 
 #|_______________________Main script entry point___________________________________|
@@ -566,26 +561,30 @@ while 1 :
     if(input_opc == '1'):                                              # 1 - Reset 
         frame = data_frame_assembly (opc_1, b'\x01', b'\x00', device)  
         data_frame_disassembly (frame)  
+        print("\n") 
         
     elif(input_opc == '2'):                                            # 2 - Turn receiver ON/OFF               
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_2, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
+        print("\n") 
         
     elif(input_opc == '3'):                                            # 3 -  Set SNR value
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_3, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
+        print("\n") 
         
     elif(input_opc == '4'):                                            # 4 - Select channel filter 
         sub_opc = sub_menu(input_opc) 
         if (sub_opc != b'\xFF'):
             frame = data_frame_assembly (opc_4, sub_opc, b'\x00', device)  
             data_frame_disassembly (frame)   
+        print("\n") 
         
-    elif(input_opc == '5'):
+    elif(input_opc == '5'):                                            # 5 - SNR sweep
         sub_opc = sub_menu(input_opc)
         
     elif(input_opc == '6'):                                            # 6 - Store DSP data in memory          
@@ -597,7 +596,7 @@ while 1 :
             data_frame_disassembly (frame)  
             
             sub_opc_for_reading = sub_opc
-            print("\n\n") 
+        print("\n") 
 
     elif(input_opc == '7'):                                            # 7 - Read stored data         
         frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)   
