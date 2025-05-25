@@ -117,7 +117,7 @@ module ber_counter #(
 
   // Output assignment: it's HIGH if ber<2e-2 (for SNR=7dB approx.)
   assign o_sync_done_led = i_ber_counter_en; 
-  assign o_ber_ok_led    = (50*r_accum_err < r_accum_tot) ? 1'b1 : 1'b0 ;
+  assign o_ber_ok_led    = (64*r_accum_err < r_accum_tot) ? 1'b1 : 1'b0 ;
 
 
   // Data assignments to uBlaze

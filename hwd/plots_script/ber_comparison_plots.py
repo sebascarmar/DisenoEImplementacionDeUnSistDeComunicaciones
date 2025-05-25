@@ -1,11 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator
+import os 
 
 ### Los graficos a realizar son... 
 # BER th + Ber float + Ber fix (con isis y sin) 
 # BER th + Ber fix + Ber hwd (con isi y sin)
 
+# Create folder
+if not os.path.exists("plots/ber_compare"):
+    os.makedirs("plots/ber_compare")
+
+### Variables
+folder_save = f"plots/ber_compare"
 
 ########################################################################################
 ########################################################################################
@@ -123,6 +130,8 @@ plt.yticks(fontsize=14)
 plt.legend(['BER theo', 'BER float (BWch=impulse)', 'BER fixed (BWch=impulse)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
+plt.savefig(os.path.join(folder_save, f"ber_vs_snr_noise_float_fix.png"))
+plt.close()
 
 # Plot
 plt.figure(figsize=[7,7])
@@ -145,6 +154,9 @@ plt.yticks(fontsize=14)
 plt.legend(['BER theo','BER float (BWch=12MHz)','BER fixed (BWch=12MHz)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
+plt.savefig(os.path.join(folder_save, f"ber_vs_snr_noise_and_isi_float_fix.png"))
+plt.close()
+
 
 
 # Plot
@@ -169,6 +181,8 @@ plt.yticks(fontsize=14)
 plt.legend(['BER theo', 'BER fixed (BWch=impulse)', 'BER hwd (BWch=impulse)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
+plt.savefig(os.path.join(folder_save, f"ber_vs_snr_noise_fix_hwd.png"))
+plt.close()
 
 # Plot
 plt.figure(figsize=[7,7])
@@ -191,6 +205,8 @@ plt.yticks(fontsize=14)
 plt.legend(['BER theo', 'BER fixed (BWch=12MHz)', 'BER hwd (BWch=12MHz)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
+plt.savefig(os.path.join(folder_save, f"ber_vs_snr_noise_and_isi_fix_hwd.png"))
+plt.close()
 
 
 #   # Plot
@@ -237,6 +253,8 @@ ax.grid(True, which='major', linestyle='-', linewidth=0.8)
 ax.grid(True, which='minor', linestyle='--', linewidth=0.5)
 plt.legend(['BER theo', 'BER (BWch=impulse)', 'BER (BWch=12MHz)', 'BER (BWch=10MHz)'], fontsize=12)
 plt.tight_layout()
+#plt.show()        
+plt.savefig(os.path.join(folder_save, f"ber_vs_snr_noise_and_isi_hwd_data.png"))
+plt.close()
 
-plt.show()         
-
+print("All plots were saved")

@@ -50,8 +50,7 @@ bits_Q = 0
 errs_I = 0 
 errs_Q = 0 
 variance_value = 0
-
-
+ch_filter = '12MHz'
 
 #|____________Function to save the data collected from the filter outputs__________|
 #| INPUT:                                                                          |   
@@ -85,6 +84,7 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
         print("Error: invalid sub_opc_for_reading value. No files were created.")
 
     with open(file_I, 'w') as file:
+        file.write(ch_filter + '\n')
         for data in data_I:
             file.write(str(data) + '\n')  
 
@@ -92,10 +92,11 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
 
 
     with open(file_Q, 'w') as file:
+        file.write(ch_filter + '\n')
         for data in data_Q:
             file.write(str(data) + '\n') 
 
-    print(f"Writing complete {file_Q}\n\n\n")
+    print(f"Writing complete {file_Q}\n")
 
 
 def save_total_and_err_bits(snr_sweep):
@@ -105,6 +106,7 @@ def save_total_and_err_bits(snr_sweep):
         os.makedirs("snr_sweep")
     file_be = f"snr_sweep/sweep_with_snr_{snr_sweep}.txt"  
     with open(file_be, "w") as f: 
+        f.write(f"{ch_filter}\n")
         f.write(f"{variance_value}\n")
         f.write(f"{bits_I}\n")
         f.write(f"{bits_Q}\n")
@@ -504,6 +506,11 @@ def sub_menu(opc):
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
             option = input("Invalid value. Enter an option (1-4): ")   
         print()
+        global ch_filter  
+        if (option == '1'): ch_filter ="12MHz"  
+        if (option == '2'): ch_filter ="impulse" 
+        if (option == '3'): ch_filter ="10MHz"       
+
         if (option == '1'): return b'\x00' # [1] enbl + [2:0] subop = 1|001
         if (option == '2'): return b'\x01' # [1] enbl + [2:0] subop = 1|010 
         if (option == '3'): return b'\x02' # [1] enbl + [2:0] subop = 1|011  
@@ -511,23 +518,23 @@ def sub_menu(opc):
                 return b'\xFF'
         
     elif(opc == '6'):
-        print("| (6) Save DSP Data to Memory      |")  
-        print("|    (1): Store DSP input          |")
-        print("|    (2): Store DSP output         |")
-        print("|    (3): Store FSE taps           |")
-        print("|    (4): Return to Main Menu      |")
-        print("|__________________________________|")
+        print("| (6) Get DSP data                      |")  
+        print("|    The following data will be logged: |")
+        print("|    * DSP input                        |")
+        print("|    * DSP output                       |")
+        print("|    * FSE Taps                         |")
+        print("|                                       |")
+        print("|    (1): Start loggin                  |")
+        print("|    (2): Return to Main Menu           |")
+        print("|_______________________________________|")
         option = input("Enter an option: ")
-        
-        while (option != '1' and option != '2' and option != '3' and option != '4'): 
-            option = input("Invalid value. Enter an option (1-4): ")   
+       
+        while (option != '1' and option != '2' ): 
+            option = input("Invalid value. Enter an option (1-2): ")   
         print()
-        if (option == '1'): return b'\x09' # [1] enbl + [2:0] subop = 1|001
-        if (option == '2'): return b'\x0A' # [1] enbl + [2:0] subop = 1|010 
-        if (option == '3'): return b'\x0B' # [1] enbl + [2:0] subop = 1|011  
-        if (option == '4'):
-                return b'\xFF'   
-
+        if (option == '1'): return b'\x01' # [1] enbl + [2:0] subop = 1|001
+        if (option == '2'): return b'\xFF' # [1] enbl + [2:0] subop = 1|010 
+ 
 #|_______________________Main script entry point___________________________________|
 #| This is the starting point of the Main Menu where the desired option            |
 #| to perform is selected.                                                         |
@@ -539,23 +546,33 @@ sub_opc_for_reading = ''   # Auxiliary variable used only for logged data storag
 
 while 1 :
 
-    print("|******************* MAIN MENU ********************|")
-    print("| (1) Reset System                                 |")
-    print("| (2) Set Receiver State (ON/OFF)                  |") 
-    print("| (3) Set SNR Value                                |") 
-    print("| (4) Select Channel Filter                        |")
-    print("| (5) Run SNR Sweep                                |")  
-    print("| (6) Save DSP Data to Memory                      |")  
-    print("| (7) Read Stored Data                             |")
-    print("| (8) Get BER Values                               |")
-    print("| (9) Exit                                         |")
-    print("|__________________________________________________|")
+    print("|****************** MAIN MENU *******************|")
+    print("| (1) Reset System                               |")
+    print("| (2) Set Receiver State (ON/OFF)                |") 
+    print("| (3) Set SNR Value                              |") 
+    print("| (4) Select Channel Filter                      |")
+    print("| (5) Run SNR Sweep                              |")  
+    print("| (6) Get DSP data                               |")  
+    print("| (7) Get BER Values                             |")
+    print("| (8) Exit                                       |")
+    print("|________________________________________________|")
     input_opc = input("Enter an option: ")
+#       print("|******************* MAIN MENU ********************|")
+#       print("| (1) Reset System                                 |")
+#       print("| (2) Set Receiver State (ON/OFF)                  |") 
+#       print("| (3) Set SNR Value                                |") 
+#       print("| (4) Select Channel Filter                        |")
+#       print("| (5) Run SNR Sweep                                |")  
+#       print("| (6) Save DSP Data to Memory                      |")  
+#       print("| (7) Read Stored Data                             |")
+#       print("| (8) Get BER Values                               |")
+#       print("| (9) Exit                                         |")
+#       print("|__________________________________________________|")
+#       input_opc = input("Enter an option: ")
 
     while (input_opc != '1' and input_opc != '2' and input_opc != '3' and input_opc != '4' and 
-           input_opc != '5' and input_opc != '6' and input_opc != '7' and input_opc != '8' and 
-           input_opc != '9'): 
-        input_opc = input("Invalid value. Enter and option (1-9): ")   
+           input_opc != '5' and input_opc != '6' and input_opc != '7' and input_opc != '8'   ): 
+        input_opc = input("Invalid value. Enter and option (1-8): ")   
     print()
 
     if(input_opc == '1'):                                              # 1 - Reset 
@@ -586,25 +603,31 @@ while 1 :
         
     elif(input_opc == '5'):                                            # 5 - SNR sweep
         sub_opc = sub_menu(input_opc)
-        
+
     elif(input_opc == '6'):                                            # 6 - Store DSP data in memory          
         sub_opc = sub_menu(input_opc)  
         if (sub_opc != b'\xFF'):
-            frame = data_frame_assembly (opc_6, b'\x00', b'\x00', device) # Set option
-            data_frame_disassembly (frame)
-            frame = data_frame_assembly (opc_6, sub_opc, b'\x00', device) # Set option and store option
-            data_frame_disassembly (frame)  
-            
-            sub_opc_for_reading = sub_opc
-        print("\n") 
-
-    elif(input_opc == '7'):                                            # 7 - Read stored data         
-        frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)   
+            dsp_data = [b'\x09',b'\x0A',b'\x0B']    
+            for idx in dsp_data:
+                frame = data_frame_assembly (opc_6, b'\x00', b'\x00', device) # Set option
+                data_frame_disassembly (frame)
+                
+                frame = data_frame_assembly (opc_6, idx, b'\x00', device) # Set option and store option
+                data_frame_disassembly (frame)  
+                sub_opc_for_reading = idx
+                
+                frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)    
+                print("Receiving data. Please wait...")
+                data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
+               
+        print("\n")
+#    elif(input_opc == '7'):                                            # 7 - Read stored data         
+#        frame = data_frame_assembly (opc_7, b'\x01', b'\x00', device)   
+#        
+#        print("Receiving data. Please wait...")
+#        data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
         
-        print("Receiving data. Please wait...")
-        data_frame_IQ_disassembly  (frame,sub_opc_for_reading) # cambiar nombre a leer datos
-        
-    elif(input_opc == '8'):                                            # 8 - Get BER values
+    elif(input_opc == '7'):                                            # 8 - Get BER values
         frame = data_frame_assembly (opc_8, b'\x01', b'\x00', device)          
         data_frame_disassembly (frame)
         
@@ -612,11 +635,10 @@ while 1 :
         data_ber_disassembly (frame)
         print("\n\n")
 
-    elif (input_opc  == '9'):                                          # 9 - Exit
+    elif (input_opc  == '8'):                                          # 9 - Exit
         ser.close(); break                                             
         
     else: 
-        print("Invalid value (1-9)")
+        print("Invalid value (1-8)")
         print()
-
 
