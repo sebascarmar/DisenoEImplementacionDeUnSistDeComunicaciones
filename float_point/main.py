@@ -110,6 +110,7 @@ ch_symQ_rot[NSYMB_CONVERGENCE*OS: ] = (ch_symI_noisy[NSYMB_CONVERGENCE*OS: ]*np.
 
 #### Channel filter
 (t2, ch_filt_coeff, dot) = fn.r_rcosine(fc=fc_ch_filter, fs=OS*BR, rolloff=BETA, nbauds=4, norm=True)
+#ch_filt_coeff  = np.zeros(17); ch_filt_coeff[int(17/2)] = 1.0
 ch_symI_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symI_rot)
 ch_symQ_ch_filt = signal.lfilter(ch_filt_coeff, [1], ch_symQ_rot)
 
