@@ -5,6 +5,7 @@ from scipy.io import savemat
 import math
 import functions as fn
 from classes.prbs9 import prbs9
+import os
 
 
 ####################################################################################
@@ -350,45 +351,62 @@ print("theo_ber: {:.3e}".format(th_ber) )
 
 
 ###############################  PRINCIPAL GRAPHICS ###############################
+
+os.makedirs("plots", exist_ok=True)
 ### DSP input and output constellations
-plt.figure(figsize=[8,4])
-plt.suptitle('Constellation Diagrams | SNR={:.3f} dB (data from testbench)'.format(SNR_db))
+plt.figure(figsize=[10,5])
+plt.suptitle('Constellation Diagrams | SNR={} dB (float sim.)'.format(SNR_db), fontsize=18)
 plt.subplot(1,2,1)
-plt.plot(rx_symI_dw_r2, rx_symQ_dw_r2, color='chocolate', marker='.', linestyle='', label='DSP in')
+plt.plot(rx_symI_dw_r2[int(len(rx_symI_dw_r2)/2):], rx_symQ_dw_r2[int(len(rx_symQ_dw_r2)/2):],
+         color='chocolate', marker='.', linestyle='', label='DSP in')
 plt.xlim((-3, 3))
 plt.ylim((-3, 3))
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
-plt.xlabel('Real (I)')
-plt.ylabel('Imag (Q)')
-plt.legend()
+plt.xlabel('Real (I)', fontsize=15)
+plt.ylabel('Imag (Q)', fontsize=15)
+plt.legend(fontsize=12)
 plt.subplot(1,2,2)
-plt.plot(rx_symI_dw_r1, rx_symQ_dw_r1, color='seagreen', marker='.', linestyle='', label='DSP out')
+plt.plot(rx_symI_dw_r1[int(len(rx_symI_dw_r1)/2):], rx_symQ_dw_r1[int(len(rx_symQ_dw_r1)/2):],
+         color='seagreen', marker='.', linestyle='', label='DSP out')
 plt.xlim((-3, 3))
 plt.ylim((-3, 3))
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.gca().set_aspect('equal', adjustable='box')
 plt.grid(True)
-plt.xlabel('Real (I)')
-plt.legend()
+plt.xlabel('Real (I)', fontsize=15)
+plt.legend(fontsize=12)
+plt.tight_layout()
+plt.savefig(f"plots/constellation_snr{SNR_db}.png")
+plt.close()
 
 
 ### DSP input and output vs. time
-plt.figure(figsize=[10,6])
-plt.suptitle('DSP input and output | SNR={:.3f} dB (data from testbench)'.format(SNR_db))
+plt.figure(figsize=[12,8])
+plt.suptitle('DSP input and output | SNR={} dB (float sim.)'.format(SNR_db), fontsize=18)
 plt.subplot(2,1,1)
 plt.plot(rx_symI_dw_r2, color='chocolate', marker='.', linestyle='', label="DSP in")
 plt.ylim((-3, 3))
-plt.ylabel('Real (I)')
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.ylabel('Real (I)', fontsize=15)
 plt.grid(True)
-plt.legend()
+plt.legend(fontsize=12)
 plt.subplot(2,1,2)
 plt.plot(rx_symI_dw_r1, color='seagreen', marker='.', linestyle='', label="DSP out")
 plt.ylim((-3, 3))
-plt.xlabel('Time [n]')
-plt.ylabel('Real (I)')
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.xlabel('Time [n]', fontsize=15)
+plt.ylabel('Real (I)', fontsize=15)
 plt.grid(True)
-plt.legend()
-plt.show()
+plt.legend(fontsize=12)
+plt.tight_layout()
+plt.savefig(f"plots/symbols_time_snr{SNR_db}.png")
+plt.close()
 
 
 ### Frequency response
@@ -401,7 +419,7 @@ fc_idx = np.where(20*np.log10(np.abs(h_fse)) <= (20*np.log10(np.abs(h_fse[50])) 
 actual_fc_fse = f_fse[fc_idx]
 
 # Bode
-plt.figure(figsize=(8, 5))
+plt.figure(figsize=(11, 7))
 plt.plot(f_fse, 20*np.log10(np.abs(h_fse)), color='saddlebrown')
 plt.axhline(y=20*np.log10(np.abs(h_fse[50]))-3.01,
             color='black',linestyle='dashed',linewidth=2.0,
@@ -410,13 +428,18 @@ plt.axvline(x=actual_fc_fse,color='gray',linewidth=2.0,
             label=f"{actual_fc_fse / 1e6:.2f}MHz")
 plt.axvline(x=12.5e6,color='coral',linewidth=2.0,
             label=f"{12.5e6 / 1e6:.2f}MHz")
-plt.title(f'FSE I Bode | SNR={SNR_db:.3f} dB (data from float sim.)')
-plt.xlabel("Frequency [Hz]")
-plt.ylabel("Magnitud [dB]")
+plt.suptitle(f'Re{"{FSE Taps}"} Bode | SNR={SNR_db} dB (float sim.)', fontsize=18)
+plt.xlabel("Frequency [Hz]", fontsize=15)
+plt.ylabel("Magnitud [dB]", fontsize=15)
 plt.legend(loc="lower left")
 plt.ylim(-30.0,20.0)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.grid(True)
-plt.legend()
+plt.legend(fontsize=12)
+plt.tight_layout()
+plt.savefig(f"plots/bode_fse_I_snr{SNR_db}.png")
+plt.close()
 
 
 ### Impulse response
@@ -425,25 +448,34 @@ t = np.linspace(-0.5*(1/(50e6))*(len(last_fse_taps)-1),
                 0.5*(1/(50e6))*(len(last_fse_taps)-1),
                 len(last_fse_taps))
 # Impulse response of the transmitter filter
-plt.figure(figsize=[7,4])
+plt.figure(figsize=[9,6])
 plt.plot(t, last_fse_taps, color='saddlebrown', marker='o',
         linestyle='-', linewidth=2.0)
 plt.axvline(0, color='k', linestyle='--', linewidth=1.5) 
-plt.title(f'Impulse Response of FSE I Taps | SNR={SNR_db:.3f} dB (data from float sim.)')
-plt.xlabel('Sample [s]')
-plt.ylabel('Magnitud')
+plt.suptitle(f'Re{"{FSE Taps}"} | SNR={SNR_db} dB (float sim.)', fontsize=18)
+plt.xlabel('Sample [s]', fontsize=15)
+plt.ylabel('Magnitud', fontsize=15)
 plt.ylim(-1.5,4.0)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.grid(True)
-plt.show()
+plt.tight_layout()
+plt.savefig(f"plots/fse_coeff_impulse_snr{SNR_db}.png")
+plt.close()
 
 
 # Evolution of FSE coeffcients over time
 plt.figure(figsize=[10,6])
 plt.plot(fse_coeff.T)
-plt.title(f'FSE I decimated taps | SNR={SNR_db:.3f} dB (data from float sim.)')
+plt.suptitle(f'Decimated Re{"{FSE Taps}"} | SNR={SNR_db} dB (float sim.)', fontsize=18)
+plt.xlabel('Time [n]',fontsize=15)
 plt.ylim(-1.5, 4.0)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 plt.grid(True)
-plt.show()
+plt.tight_layout()
+plt.savefig(f"plots/fse_coeff_I_snr{SNR_db}.png")
+plt.close()
 
 
 ## Integral error vs time (FCR)
