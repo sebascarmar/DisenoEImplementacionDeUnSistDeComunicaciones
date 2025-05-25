@@ -4,7 +4,7 @@ from tool._fixedInt import *
 
 class lms_class:
 
-    def __init__(self, step, leak, NTOT_STEP, NFRA_STEP, NTOT_LEAK, NFRA_LEAK,
+    def __init__(self, step, leak, NTAPS, NTOT_STEP, NFRA_STEP, NTOT_LEAK, NFRA_LEAK,
                  NTOT_TAP, NFRA_TAP, NTOT_SHI, NFRA_SHI, NTOT_ERR, NFRA_ERR):
         
         ### Variables for the step and leakage of the adaptive filter
@@ -48,34 +48,42 @@ class lms_class:
         self.tapQ_quan       = DeFixedInt(NTOT_TAP, NFRA_TAP, 'S', 'trunc', 'saturate')
         self.tapI_quan.value = 0.0
         self.tapQ_quan.value = 0.0
+        ## HACER ARRAY
+        fseI_coeff  = np.zeros(NTAPS); fseI_coeff[int(NTAPS/2)] = 1
+        fseQ_coeff  = np.zeros(NTAPS); fseQ_coeff[int(NTAPS/2)] = 0
+        self.tapsI  = arrayFixedInt(NTOT_TAP, NFRA_TAP, fseI_coeff, 'S', 'trunc', 'saturate')
+        self.tapsQ  = arrayFixedInt(NTOT_TAP, NFRA_TAP, fseQ_coeff, 'S', 'trunc', 'saturate')
 
     
-    def update(self, errI, errQ, tapsI, shftrI, tapsQ, shftrQ):
+    #def update(self, errI, errQ, tapsI, shftrI, tapsQ, shftrQ):
+    def update(self, errI, errQ, shftrI, shftrQ):
         
         # Equations for calculating new taps:
         #new_tapsI = tapsI*(1-step*leak) - step*(errI*shftrI + errQ*shftrQ)
         #new_tapsQ = tapsQ*(1-step*leak) + step*(errI*shftrQ - errQ*shftrI)
         
-        new_tapsI = np.zeros(len(tapsI))
-        new_tapsQ = np.zeros(len(tapsQ))
-        for i in range(len(tapsI)):
+        new_tapsI = np.zeros(len(self.tapsI))
+        new_tapsQ = np.zeros(len(self.tapsQ))
+        for i in range(len(self.tapsI)):
             # Compute new I taps
-            self.term1_I.value = tapsI[i] * (1 - self.step.fValue*self.leak.fValue)
+            self.term1_I.value = self.tapsI[i].fValue * (1 - self.step.fValue*self.leak.fValue)
             self.term2_I.value = self.step.fValue * (errI*shftrI[i] + errQ*shftrQ[i])
             self.add_I.value   = self.term1_I.fValue - self.term2_I.fValue
             # Apply quantization to the new tap
-            self.tapI_quan.value = self.add_I.fValue
+            #self.tapI_quan.value = self.add_I.fValue
+            self.tapsI[i].value = self.add_I.fValue
             
-            new_tapsI[i] = self.tapI_quan.fValue
+            new_tapsI[i] = self.tapsI[i].fValue
             
             # Compute new Q taps
-            self.term1_Q.value = tapsQ[i] * (1 - self.step.fValue*self.leak.fValue)
+            self.term1_Q.value = self.tapsQ[i].fValue * (1 - self.step.fValue*self.leak.fValue)
             self.term2_Q.value = self.step.fValue * (errI*shftrQ[i] - errQ*shftrI[i])
             self.add_Q.value   = self.term1_Q.fValue + self.term2_Q.fValue
             # Apply quantization to the new tap
-            self.tapQ_quan.value = self.add_Q.fValue
+            #self.tapQ_quan.value = self.add_Q.fValue
+            self.tapsQ[i].value = self.add_Q.fValue
             
-            new_tapsQ[i] = self.tapQ_quan.fValue
+            new_tapsQ[i] = self.tapsQ[i].fValue
             
             
         return new_tapsI, new_tapsQ
