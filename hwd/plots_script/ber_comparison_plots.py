@@ -2,28 +2,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import LogLocator
 
-
+### Los graficos a realizar son... 
+# BER th + Ber float + Ber fix (con isis y sin) 
+# BER th + Ber fix + Ber hwd (con isi y sin)
 
 
 ########################################################################################
 ########################################################################################
 
-snr                       = np.array([    7.184,     8.168,     9.279,    10.107])
+snr                       = np.array([   7.0  ,     8.0  ,     9.0  ,    10.0  ])
+snr_hwd                   = np.array([   7.184,     8.168,     9.279,    10.107])
 
-ber_the                   = np.array([1.111e-02, 5.217e-03, 1.805e-03, 6.840e-04])
+ber_the                   = np.array([1.259e-02, 6.004e-03, 2.43e-03, 7.827e-04])
 
 #---------------------------------------------------------------------------------------
 
-ber_I_noise_float         = np.array([1.125e-02, 5.373e-03, 1.985e-03, 7.108e-04]) # 1M of symbs
-ber_Q_noise_float         = np.array([1.130e-02, 5.279e-03, 1.822e-03, 7.094e-04]) # 1M of symbs
+ber_I_noise_float         = np.array([1.363e-02, 6.595e-03, 2.755e-03, 1.002e-03]) # 1M of symbs
+ber_Q_noise_float         = np.array([1.369e-02, 6.733e-03, 2.723e-03, 9.710e-04]) # 1M of symbs
+
+ber_I_noise_fixed         = np.array([1.432e-02, 6.595e-03, 2.975e-03, 1.093e-03]) # 1M of symbs
+ber_Q_noise_fixed         = np.array([1.417e-02, 6.733e-03, 2.963e-03, 1.011e-03]) # 1M of symbs
 
 ber_I_noise_hwd           = np.array([1.454e-02, 6.888e-03, 2.543e-03, 1.061e-03]) # 5 min to take it
 ber_Q_noise_hwd           = np.array([1.474e-02, 7.015e-03, 2.606e-03, 1.091e-03]) # 5 min to take it
 
 #---------------------------------------------------------------------------------------
 
-ber_I_noise_isi_float_12M = np.array([1.224e-02, 5.871e-03, 2.023e-03, 8.173e-04]) # 1M of symbs
-ber_Q_noise_isi_float_12M = np.array([1.241e-02, 5.845e-03, 2.128e-03, 8.659e-04]) # 1M of symbs
+
+ber_I_noise_isi_float_12M = np.array([1.363e-02, 6.692e-03, 2.759e-03, 9.441e-04]) # 1M of symbs
+ber_Q_noise_isi_float_12M = np.array([1.357e-02, 6.593e-03, 2.901e-03, 9.873e-04]) # 1M of symbs
+
+ber_I_noise_isi_fixed_12M = np.array([1.529e-2,  7.795e-03, 3.338e-03, 1.273e-03]) # 1M of symbs
+ber_Q_noise_isi_fixed_12M = np.array([1.516e-02, 7.598e-03, 3.349e-03, 1.165e-03]) # 1M of symbs
 
 ber_I_noise_isi_hwd_12M   = np.array([1.518e-02, 7.273e-03, 2.730e-03, 1.155e-03]) # 5 min to take it
 ber_Q_noise_isi_hwd_12M   = np.array([1.542e-02, 7.423e-03, 2.807e-03, 1.194e-03]) # 5 min to take it
@@ -36,14 +46,21 @@ ber_Q_noise_isi_hwd_10M   = np.array([1.692e-02, 8.399e-03, 3.324e-03, 1.483e-03
 ########################################################################################
 ########################################################################################
 
-snr_full                     = np.array([   7.184,     8.168,     9.279,    10.107,
+
+snr_th_full                  = np.array([   7.0,     8.0,     9.0,    10.0,
+                                           11.0,    12.0,    13.0,    14.0,
+                                           15.0,    16.0,    17.0  
+                                        ])
+
+snr_hwd_full                 = np.array([   7.184,     8.168,     9.279,    10.107,
                                            11.022,    12.045,    13.205,    14.544,
                                            15.299,    16.127,    17.042  
                                         ])
 
-ber_the_full                 = np.array([1.111e-02, 5.217e-03, 1.805e-03, 6.840e-04,
-                                         1.875e-04, 3.145e-05, 2.400e-06, 4.762e-08,
-                                         2.932e-09, 7.634e-11, 5.633e-13 
+
+ber_th_full                  = np.array([1.259e-02, 6.004e-03, 2.43e-03, 7.827e-04,
+                                         1.939855e-04, 3.430262e-05, 3.969248e-06, 2.695148e-07, 
+                                         9.361040e-09, 1.399028e-10, 7.235976e-13
                                         ])
 
 #---------------------------------------------------------------------------------------
@@ -86,64 +103,140 @@ ber_Q_noise_isi_hwd_10M_full = np.array([1.692e-02, 8.400e-03, 3.325e-03, 1.483e
 
 # Plot
 plt.figure(figsize=[7, 7])  
-plt.title('BER vs SNR | Noise')
-plt.semilogy(snr, ber_the, 'r', linewidth=2.0)
+plt.title('BER vs SNR | Noise', fontsize=18)
+plt.semilogy(snr, ber_the, 'r',marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+
 plt.semilogy(snr, (ber_I_noise_float+ber_Q_noise_float)/2,
-             'g', linewidth=2.0)
-plt.semilogy(snr, (ber_I_noise_hwd+ber_Q_noise_hwd)/2, 
-             color='coral', linewidth=2.0)
-plt.xlabel('SNR [dB]')
-plt.ylabel('BER')
+             'g--', marker='o', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_fixed+ber_Q_noise_fixed)/2, 
+             color='blue', linestyle='--', marker='^', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr_hwd, (ber_I_noise_hwd+ber_Q_noise_hwd)/2, 
+#                color='darkviolet', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER', fontsize=15)
 plt.grid(True, which='both')
 plt.xlim([6.8, 10.5])
 plt.ylim([6e-4, 2e-2])
-plt.legend(['BER theo','BER float','BER hwd'])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+# plt.legend(['BER theo', 'BER float (BWch: impulse)', 'BER fixed (BWch: impulse)', 'BER hwd (BWch: impulse)'], fontsize=12)
+plt.legend(['BER theo', 'BER float (BWch: impulse)', 'BER fixed (BWch: impulse)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
-
 
 # Plot
 plt.figure(figsize=[7,7])
-plt.title('BER vs SNR | Noise+ISI')
-plt.semilogy(snr, ber_the, 'r', linewidth=2.0)
+plt.title('BER vs SNR | Noise+ISI', fontsize=18)
+plt.semilogy(snr, ber_the, 'r',marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
 plt.semilogy(snr, (ber_I_noise_isi_float_12M+ber_Q_noise_isi_float_12M)/2,
-             'g',  linewidth=2.0)
-plt.semilogy(snr, (ber_I_noise_isi_hwd_12M+ber_Q_noise_isi_hwd_12M)/2,
-             color='coral', linewidth=2.0)
-plt.xlabel('SNR [dB]')
-plt.ylabel('BER')
+             'g--', marker='o', markerfacecolor='none', markersize=7,markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_isi_fixed_12M+ber_Q_noise_isi_fixed_12M)/2,
+             color='blue', linestyle='--', marker='^', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr_hwd, (ber_I_noise_isi_hwd_12M+ber_Q_noise_isi_hwd_12M)/2, 
+#                color='darkviolet', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER',fontsize=15)
 plt.grid(True, which='both')
 plt.xlim([6.8, 10.5])
 plt.ylim([6e-4, 2e-2])
-plt.legend(['BER theo','BER float (ch. BW: 12MHz)','BER hwd (ch. BW: 12MHz)'])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+#plt.legend(['BER theo','BER float (BWch: 12MHz)','BER fixed (ch BW: 12MHz)', 'BER hwd (BWch: 12MHz)'], fontsize=12)
+plt.legend(['BER theo','BER float (BWch: 12MHz)','BER fixed (ch BW: 12MHz)'], fontsize=12)
 plt.tight_layout()
 #plt.show()
 
 
- 
-                                     
 # Plot
 plt.figure(figsize=[7, 7])  
-plt.title('BER vs SNR | Data from hardware')
-plt.semilogy(snr_full, ber_the_full, color='red', linewidth=2.0)
-plt.semilogy(snr_full, (ber_I_noise_hwd_full+ber_Q_noise_hwd_full)/2,
-             color='green', linewidth=2.0)
-plt.semilogy(snr_full, (ber_I_noise_isi_hwd_12M_full+ber_Q_noise_isi_hwd_12M_full)/2,
-             color='blueviolet', linewidth=2.0)
-plt.semilogy(snr_full, (ber_I_noise_isi_hwd_10M_full+ber_Q_noise_isi_hwd_10M_full)/2,
-             color='coral', linewidth=2.0)
+plt.title('BER vs SNR | Noise', fontsize=18)
+plt.semilogy(snr, ber_the, 'r',marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
 
-plt.xlabel('SNR [dB]')
-plt.ylabel('BER')
+#plt.semilogy(snr, (ber_I_noise_float+ber_Q_noise_float)/2,
+#             'g--', marker='o', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_fixed+ber_Q_noise_fixed)/2, 
+             color='blue', linestyle='--', marker='^', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_hwd+ber_Q_noise_hwd)/2, 
+             color='darkviolet', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER', fontsize=15)
+plt.grid(True, which='both')
+plt.xlim([6.8, 10.5])
+plt.ylim([6e-4, 2e-2])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+# plt.legend(['BER theo', 'BER float (BWch: impulse)', 'BER fixed (BWch: impulse)', 'BER hwd (BWch: impulse)'], fontsize=12)
+plt.legend(['BER theo', 'BER fixed (BWch: impulse)', 'BER hwd (BWch: impulse)'], fontsize=12)
+plt.tight_layout()
+#plt.show()
+
+# Plot
+plt.figure(figsize=[7,7])
+plt.title('BER vs SNR | Noise+ISI', fontsize=18)
+plt.semilogy(snr, ber_the, 'r',marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr, (ber_I_noise_isi_float_12M+ber_Q_noise_isi_float_12M)/2,
+#                'g--', marker='o', markerfacecolor='none', markersize=7,markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_isi_fixed_12M+ber_Q_noise_isi_fixed_12M)/2,
+             color='blue', linestyle='--', marker='^', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd, (ber_I_noise_isi_hwd_12M+ber_Q_noise_isi_hwd_12M)/2, 
+             color='darkviolet', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER',fontsize=15)
+plt.grid(True, which='both')
+plt.xlim([6.8, 10.5])
+plt.ylim([6e-4, 2e-2])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+#plt.legend(['BER theo','BER float (BWch: 12MHz)','BER fixed (ch BW: 12MHz)', 'BER hwd (BWch: 12MHz)'], fontsize=12)
+plt.legend(['BER theo', 'BER fixed (ch BW: 12MHz)', 'BER hwd (BWch: 12MHz)'], fontsize=12)
+plt.tight_layout()
+#plt.show()
+
+
+#   # Plot
+#   plt.figure(figsize=[7,7])
+#   plt.title('BER vs SNR | Noise+ISI', fontsize=18)
+#   plt.semilogy(snr, ber_the, 'r',marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr, (ber_I_noise_isi_float_12M+ber_Q_noise_isi_float_12M)/2,
+#                'g--', marker='o', markerfacecolor='none', markersize=7,markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr_hwd, (ber_I_noise_isi_fixed_12M+ber_Q_noise_isi_fixed_12M)/2,
+#                color='blue', linestyle='--', marker='^', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.semilogy(snr_hwd, (ber_I_noise_isi_hwd_12M+ber_Q_noise_isi_hwd_12M)/2, 
+#                color='darkviolet', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+#   plt.xlabel('SNR [dB]', fontsize=15)
+#   plt.ylabel('BER',fontsize=15)
+#   plt.grid(True, which='both')
+#   plt.xlim([6.8, 10.5])
+#   plt.ylim([6e-4, 2e-2])
+#   plt.xticks(fontsize=14)
+#   plt.yticks(fontsize=14)
+#   plt.legend(['BER theo','BER float (BWch: 12MHz)','BER fixed (ch BW: 12MHz)', 'BER hwd (BWch: 12MHz)'], fontsize=12)
+#   plt.tight_layout()
+#   #plt.show()
+            
+
+# Plot
+plt.figure(figsize=[7, 7])  
+plt.title('BER vs SNR | Data from hardware', fontsize=18)
+plt.semilogy(snr_th_full, ber_th_full, color='red', marker='x', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd_full, (ber_I_noise_hwd_full+ber_Q_noise_hwd_full)/2,
+             color='green', linestyle='--', marker='o', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd_full, (ber_I_noise_isi_hwd_12M_full+ber_Q_noise_isi_hwd_12M_full)/2,
+             color='blueviolet', linestyle='--', marker='v', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.semilogy(snr_hwd_full, (ber_I_noise_isi_hwd_10M_full+ber_Q_noise_isi_hwd_10M_full)/2,
+             color='coral', linestyle='--', marker='D', markerfacecolor='none', markersize=7, markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER', fontsize=15)
 plt.xlim([6.5, 17.5])
 plt.ylim([3e-13, 2e-2])
-
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 ax = plt.gca()
 ax.yaxis.set_minor_locator(LogLocator(base=10.0, subs=np.arange(2, 10)*0.1, numticks=100))
 ax.grid(True, which='major', linestyle='-', linewidth=0.8)
 ax.grid(True, which='minor', linestyle='--', linewidth=0.5)
-
-
-plt.legend(['BER theo', 'BER (ch. BW: impulse)', 'BER (ch. BW: 12MHz)', 'BER (ch. BW: 10MHz)'])
+plt.legend(['BER theo', 'BER (BWch: impulse)', 'BER (BWch: 12MHz)', 'BER (BWch: 10MHz)'], fontsize=12)
 plt.tight_layout()
-plt.show()                                  
+
+plt.show()         
+
