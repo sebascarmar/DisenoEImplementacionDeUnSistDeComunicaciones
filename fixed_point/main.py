@@ -229,8 +229,8 @@ for i in range(NSYMB*OS):
 
     ################################ CHANNEL ###############################
     #### Noise
-    ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_txf)
-    ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_txf)
+    ch_symI_noisy = awgn_gen_I.add_noise_I(tx_symI_txf)
+    ch_symQ_noisy = awgn_gen_Q.add_noise_Q(tx_symQ_txf)
     if(LOG==True):
         CH_SYMI_NOISY_LOG[i] = ch_symI_noisy
         CH_SYMQ_NOISY_LOG[i] = ch_symQ_noisy
