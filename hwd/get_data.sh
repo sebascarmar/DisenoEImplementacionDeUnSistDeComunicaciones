@@ -14,18 +14,20 @@
 # Dowload data in sweep_snr
 for x in {7..17}; do
     echo "Download sweep_with_snr_$x.txt..."
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/sweep_with_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/snr_sweep/sweep_with_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/snr_sweep
 done
+
+
 
 # Download data stored 
 for x in {7..17}; do
     echo "Download sweep_with_snr_$x.txt..."
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_rx_symI_dwr2_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/  
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_rx_symQ_dwr2_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/  
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_rx_symI_dwr1_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/  
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_rx_symQ_dwr1_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/  
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_fse_taps_I_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/ 
-    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/file_fse_taps_Q_snr_${x}.txt ~/Escritorio/Barrido_snr_hw/snr${x}/   
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_rx_symI_dwr2_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/  
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_rx_symQ_dwr2_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/  
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_rx_symI_dwr1_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/  
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_rx_symQ_dwr1_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/  
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_fse_taps_I_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/ 
+    scp -P 4466 user@fulgorip1.hopto.org:/home/user/work_dda/djuarez/scripts/tesis/dsp_data/file_fse_taps_Q_snr_${x}.txt ~/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/hwd/plots_script/logs/dsp_data/   
 done
 
 
