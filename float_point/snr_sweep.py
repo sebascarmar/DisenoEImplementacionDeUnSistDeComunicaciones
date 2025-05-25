@@ -5,6 +5,7 @@ from scipy.io import savemat
 import math
 import functions as fn
 from classes.prbs9 import prbs9
+import os
 
 
 ####################################################################################
@@ -14,11 +15,11 @@ from classes.prbs9 import prbs9
 ############################### PARAMETERS #############################
 
 #### Sweep
-SWEEP_TIMES = 6
+SWEEP_TIMES = 5
 START_SWP   = 7
 
 #### General
-NSYMB = 400000 # 1000000
+NSYMB = 400000 
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -28,7 +29,7 @@ SEED_I =  0x1AA
 SEED_Q =  0x1FE
 
 #### Channel
-SNR_db   = 7.184
+SNR_db   = 7
 NSYMB_CONVERGENCE = 20000   # FSE and FCR convergence (a half for each)
 f_offset     = 0.0 # Hz
 fc_ch_filter = 0.48*BR # Cut-off frecuency of channel filter [Hz]
@@ -47,7 +48,7 @@ START_SYN = 249879
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-np.random.seed(1)  # set the seed: 3-0-4-1
+#np.random.seed(1)  # set the seed: 3-0-4-1
 
 
 bersI_contadas = np.zeros(SWEEP_TIMES+START_SWP)
@@ -353,9 +354,9 @@ for SNR_db in range(START_SWP, SWEEP_TIMES+START_SWP):
     th_ber[SNR_db] = fn.theoric_ber(M, SNR_db)
 
     print("SNR=", SNR_db, " | f_off=",f_offset)
-    print("BER_I: ", bit_err_I/bit_tot_I)
-    print("BER_Q: ", bit_err_Q/bit_tot_Q)
-    print("theo_ber: ", th_ber[SNR_db], "\n")
+    print("BER_I: {:.3e}".format(bit_err_I/bit_tot_I))
+    print("BER_Q: {:.3e}".format(bit_err_Q/bit_tot_Q))
+    print("theo_ber: {:.3e}\n".format(th_ber[SNR_db]) )
 
 
 ############################ GRAPHICS #############################
@@ -374,18 +375,25 @@ th_ber_full = np.full_like(x_axis_full, np.nan, dtype=float)
 th_ber_full[START_SWP: len(th_ber)] = th_ber[START_SWP:] 
 
 # Plot
-plt.figure(figsize=[10,10])
-plt.title('BER vs SNR | (data from float sim.)')
-plt.semilogy(x_axis_full, th_ber_full, 'r', linewidth=2.0)
-plt.semilogy(x_axis_full, bersI_full, 'b', linewidth=2.0)
-plt.semilogy(x_axis_full, bersQ_full, 'g', linewidth=2.0)
-plt.xlabel('SNR(dB)')
-plt.ylabel('BER')
+os.makedirs("plots", exist_ok=True)
+
+
+plt.figure(figsize=[7,7])
+plt.title('BER vs SNR | (float sim.)', fontsize=18)
+plt.semilogy(x_axis_full, th_ber_full, 'r', marker='x', markeredgewidth=2.5, markersize=7, linewidth=2.0)
+plt.semilogy(x_axis_full, (bersQ_full+bersQ_full)/2, 'g--', marker='o', markerfacecolor='none', markersize=7,
+             markeredgewidth=2.5, linewidth=2.0)
+plt.xlabel('SNR [dB]', fontsize=15)
+plt.ylabel('BER', fontsize=15)
 plt.grid(True)
 #plt.ylim([1e-5, 0.7e-1])
-plt.xlim([6.8, 12.2])
+#plt.xlim([6.8, 12.2])
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
 #plt.gca().set_aspect('equal', adjustable='box')
 plt.axis('equal')
-plt.legend(['SNR theo','SNR I','SNR Q'])
-plt.show()
+plt.legend(['BER theo','BER float'], fontsize=12)
+plt.tight_layout()
+plt.savefig(f"plots/ber_vs_snr_from_float.png")
+plt.close()
 
