@@ -317,7 +317,7 @@ plt.yticks(fontsize=14)
 plt.axis('equal')
 plt.legend(['BER theo','BER fixed'], fontsize=12)
 plt.tight_layout()
-plt.savefig(f"plots/ber_vs_snr_from_float.png")
+plt.savefig(f"plots/ber_vs_snr_from_fixed.png")
 plt.close()
 
 
