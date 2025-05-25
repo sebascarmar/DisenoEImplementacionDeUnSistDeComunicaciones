@@ -344,9 +344,9 @@ th_ber = fn.theoric_ber(M, SNR_db)
 
 print("SNR = {:.3f} dB".format(SNR_db), " | f_off=",f_offset, " | step=", lms_step, " | leak=", lms_leak)
 print("Kp=", Kp, " | Ki=", Ki, " | fc_ch=", fc_ch_filter, " | fc_aaf=",fc_aa_filter, )
-print( "BER_I: {:.3e}".format((bit_err_I/bit_tot_I)) )
-print( "BER_Q: {:.3e}".format((bit_err_Q/bit_tot_Q)) )
-print( "theo_ber: {:.3e}".format(th_ber) )
+print("BER_I: {:.3e}".format((bit_err_I/bit_tot_I)) )
+print("BER_Q: {:.3e}".format((bit_err_Q/bit_tot_Q)) )
+print("theo_ber: {:.3e}".format(th_ber) )
 
 
 ###############################  PRINCIPAL GRAPHICS ###############################
