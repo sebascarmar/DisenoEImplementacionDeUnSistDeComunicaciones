@@ -90,9 +90,6 @@ for snr in range(snr_min, (snr_max+1)):
         errs_Q.append(int(snr_list[4]))
         print(f"Found logs for SNR = {snr}dB")
 
-        print(f"{snr_list}")
-        print(f"{ch_filter}\n")
-
     except FileNotFoundError as e:
         continue
 
