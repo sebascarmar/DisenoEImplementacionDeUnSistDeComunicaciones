@@ -29,7 +29,7 @@ SWEEP_TIMES = 4
 START_SWP   = 7
 
 #### General
-NSYMB = 400000
+NSYMB = 500000
 BR    = 25e6    # Baud
 OS    = 4       # oversampling
 BETA  = 0.5     # roll-off
@@ -58,22 +58,21 @@ START_SYN = 352590
 prbs9_cycles = 16  # right value: 511
 START_CNT = START_SYN + 511*prbs9_cycles
 
-seedddd=5
-np.random.seed(seedddd)  # set the seed: 11,12,14,16,17 - 1,3,4,6,7,8 - 0,2,5,9,13 - 10,15
+seed=5
+np.random.seed(seed)  # set the seed: 11,12,14,16,17 - 1,3,4,6,7,8 - 0,2,5,9,13 - 10,15
                          # set the seed: 3,4 - 2 - 0,1 - 5
-print("seeeeed:", seedddd)
 
 #### Fixed Point formats
 # Tx & Channel
-NTOT =  8; NFRA =  7
+NTOT          =  8; NFRA          =  7
 # FSE & LMS
 NTOT_LMS_TAPS = 20; NFRA_LMS_TAPS = 17
-NTOT_FSE_TAPS = 10; NFRA_FSE_TAPS = 7
-NTOT_STEP = 12; NFRA_STEP = 11
-NTOT_LEAK = 11; NFRA_LEAK = 10
-NTOT_SHI =  8; NFRA_SHI =  7
-NTOT_OUT = 12; NFRA_OUT =  9
-NTOT_ERR  =  9; NFRA_ERR  =  7
+NTOT_FSE_TAPS = 10; NFRA_FSE_TAPS =  7
+NTOT_STEP     = 12; NFRA_STEP     = 11
+NTOT_LEAK     = 11; NFRA_LEAK     = 10
+NTOT_SHI      =  8; NFRA_SHI      =  7
+NTOT_OUT      = 12; NFRA_OUT      =  9
+NTOT_ERR      =  9; NFRA_ERR      =  7
 # FCR
 NTOT_KP      = 11; NFRA_KP      = 10
 NTOT_KI      = 21; NFRA_KI      = 20
@@ -186,8 +185,8 @@ for SNR_db in range(START_SWP, SWEEP_TIMES+START_SWP):
     
         ################################ CHANNEL ###############################
         #### Noise
-        ch_symI_noisy = awgn_gen_I.add_noise(tx_symI_txf)
-        ch_symQ_noisy = awgn_gen_Q.add_noise(tx_symQ_txf)
+        ch_symI_noisy = awgn_gen_I.add_noise_I(tx_symI_txf)
+        ch_symQ_noisy = awgn_gen_Q.add_noise_Q(tx_symQ_txf)
     
         #### Frequency Offset
         if( i>(NSYMB_CONVERGENCE*OS-1) ):
