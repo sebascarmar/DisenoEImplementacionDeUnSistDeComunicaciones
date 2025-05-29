@@ -65,20 +65,23 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
 
     global snr_select 
     # Create folder
-    if not os.path.exists("dsp_data"):
-        os.makedirs("dsp_data")
+    if not os.path.exists("plot_scripts/logs"):
+        os.makedirs("plot_scripts/logs")
+
+    if not os.path.exists("plot_scripts/logs/dsp_data"):
+        os.makedirs("plot_scripts/logs/dsp_data")
 
     if (sub_opc_for_reading == b'\x09'): 
-        file_I = f"dsp_data/file_rx_symI_dwr2_snr_{snr_select}.txt" 
-        file_Q = f"dsp_data/file_rx_symQ_dwr2_snr_{snr_select}.txt" 
+        file_I = f"plot_scripts/logs/dsp_data/file_rx_symI_dwr2_snr_{snr_select}.txt" 
+        file_Q = f"plot_scripts/logs/dsp_data/file_rx_symQ_dwr2_snr_{snr_select}.txt" 
         
     elif (sub_opc_for_reading == b'\x0A'):
-        file_I = f"dsp_data/file_rx_symI_dwr1_snr_{snr_select}.txt"
-        file_Q = f"dsp_data/file_rx_symQ_dwr1_snr_{snr_select}.txt"
+        file_I = f"plot_scripts/logs/dsp_data/file_rx_symI_dwr1_snr_{snr_select}.txt"
+        file_Q = f"plot_scripts/logs/dsp_data/file_rx_symQ_dwr1_snr_{snr_select}.txt"
         
     elif (sub_opc_for_reading == b'\x0B'):     
-        file_I = f"dsp_data/file_fse_taps_I_snr_{snr_select}.txt"
-        file_Q = f"dsp_data/file_fse_taps_Q_snr_{snr_select}.txt"
+        file_I = f"plot_scripts/logs/dsp_data/file_fse_taps_I_snr_{snr_select}.txt"
+        file_Q = f"plot_scripts/logs/dsp_data/file_fse_taps_Q_snr_{snr_select}.txt"
         
     elif (sub_opc_for_reading == ' '):   
         print("Error: invalid sub_opc_for_reading value. No files were created.")
@@ -101,10 +104,13 @@ def save_data(data_Q, data_I, sub_opc_for_reading):
 
 def save_total_and_err_bits(snr_sweep):
 
+    if not os.path.exists("plot_scripts/logs"):
+        os.makedirs("plot_scripts/logs")
+   
     # Create folder
-    if not os.path.exists("snr_sweep"):
-        os.makedirs("snr_sweep")
-    file_be = f"snr_sweep/sweep_with_snr_{snr_sweep}.txt"  
+    if not os.path.exists("plot_scripts/logs/snr_sweep"):
+        os.makedirs("plot_scripts/logs/snr_sweep")
+    file_be = f"plot_scripts/logs/snr_sweep/sweep_with_snr_{snr_sweep}.txt"  
     with open(file_be, "w") as f: 
         f.write(f"{ch_filter}\n")
         f.write(f"{variance_value}\n")
@@ -419,11 +425,11 @@ def snr_sweep_option(start_val, end_val, time_val):
 def sub_menu(opc):
 
     if(opc == '2'):
-        print("| (2) Set Receiver State (ON/OFF)  |") 
-        print("|    (1): ON                       |")
-        print("|    (2): OFF                      |")
-        print("|    (3): Return to Main Menu      |")
-        print("|__________________________________|")
+        print("| (2) Set Receiver State (ON/OFF)                |") 
+        print("|    (1): ON                                     |")
+        print("|    (2): OFF                                    |")
+        print("|    (3): Return to Main Menu                    |")
+        print("|________________________________________________|")
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2' and option != '3'): 
@@ -435,10 +441,10 @@ def sub_menu(opc):
                 return b'\xFF'
 
     elif(opc == '3'):
-        print("| (3) Set SNR Value             |") 
-        print("|    (1): Enter a value         |")
-        print("|    (2): Return to Main Menu   |")
-        print("|_______________________________|")
+        print("| (3) Set SNR Value                              |") 
+        print("|    (1): Enter a value                          |")
+        print("|    (2): Return to Main Menu                    |")
+        print("|________________________________________________|")
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2'): 
@@ -462,10 +468,10 @@ def sub_menu(opc):
                 return b'\xFF'
 
     elif(opc == '5'): 
-        print("| (5) Run SNR Sweep                               |")  
-        print("|    (1): Set range and wait time                 |")
-        print("|    (2): Return to Main Menu                     |")
-        print("|_________________________________________________|")
+        print("| (5) Run SNR Sweep                              |")  
+        print("|    (1): Set range and wait time                |")
+        print("|    (2): Return to Main Menu                    |")
+        print("|________________________________________________|")
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2'): 
@@ -495,12 +501,12 @@ def sub_menu(opc):
                 return b'\xFF'
 
     elif(opc == '4'):
-        print("| (4) Select Channel Filter        |")
-        print("|    (1): fc = 12 MHz              |")
-        print("|    (2): impulse                  |")
-        print("|    (3): fc = 10 MHz              |")
-        print("|    (4): Return to Main Menu      |")
-        print("|__________________________________|")
+        print("| (4) Select Channel Filter                      |")
+        print("|    (1): fc = 12 MHz                            |")
+        print("|    (2): impulse                                |")
+        print("|    (3): fc = 10 MHz                            |")
+        print("|    (4): Return to Main Menu                    |")
+        print("|________________________________________________|")
         option = input("Enter an option: ")
         
         while (option != '1' and option != '2' and option != '3' and option != '4'): 
@@ -518,15 +524,15 @@ def sub_menu(opc):
                 return b'\xFF'
         
     elif(opc == '6'):
-        print("| (6) Get DSP data                      |")  
-        print("|    The following data will be logged: |")
-        print("|    * DSP input                        |")
-        print("|    * DSP output                       |")
-        print("|    * FSE Taps                         |")
-        print("|                                       |")
-        print("|    (1): Start loggin                  |")
-        print("|    (2): Return to Main Menu           |")
-        print("|_______________________________________|")
+        print("| (6) Get DSP data                               |")  
+        print("|    The following data will be logged:          |")
+        print("|    * DSP input                                 |")
+        print("|    * DSP output                                |")
+        print("|    * FSE Taps                                  |")
+        print("|                                                |")
+        print("|    (1): Start loggin                           |")
+        print("|    (2): Return to Main Menu                    |")
+        print("|________________________________________________|")
         option = input("Enter an option: ")
        
         while (option != '1' and option != '2' ): 
