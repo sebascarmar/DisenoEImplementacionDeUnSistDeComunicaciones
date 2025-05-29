@@ -10,10 +10,10 @@ set_property -dict { PACKAGE_PIN T9    IOSTANDARD LVCMOS33 } [get_ports { o_norm
 set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports { o_normal_led[1] }]; #IO_L24N_T3_A00_D16_14 Sch=led[7]
 
 ## RGB LEDs
-set_property -dict { PACKAGE_PIN K1    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led3_b }]; #IO_L23P_T3_35 Sch=led3_b
-set_property -dict { PACKAGE_PIN J3    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led2_b }]; #IO_L21N_T3_DQS_35 Sch=led2_b
-set_property -dict { PACKAGE_PIN J4    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led1_g }]; #IO_L21P_T3_DQS_35 Sch=led1_g
-set_property -dict { PACKAGE_PIN F6    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led0_g }]; #IO_L19N_T3_VREF_35 Sch=led0_g
+set_property -dict { PACKAGE_PIN K1    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led3_r }]; #IO_L23P_T3_35 Sch=led3_r
+set_property -dict { PACKAGE_PIN J3    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led2_r }]; #IO_L21N_T3_DQS_35 Sch=led2_r
+set_property -dict { PACKAGE_PIN G4    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led1_b }]; #IO_L20P_T3_35 Sch=led1_b
+set_property -dict { PACKAGE_PIN E1    IOSTANDARD LVCMOS33 } [get_ports { o_rgb_led0_b }]; #IO_L18N_T2_35 Sch=led0_b
 
 ## Misc. ChipKit Ports
 set_property -dict { PACKAGE_PIN C2    IOSTANDARD LVCMOS33 } [get_ports { i_reset }]; #IO_L16P_T2_35 Sch=ck_rst

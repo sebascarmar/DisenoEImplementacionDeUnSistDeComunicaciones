@@ -162,10 +162,10 @@ module qpsk_comm_sys
   output                                          o_control_for_rate_1,
   //
   output       [1:0] o_normal_led ,
-  output             o_rgb_led3_b ,
-  output             o_rgb_led2_b ,
-  output             o_rgb_led1_g ,
-  output             o_rgb_led0_g ,
+  output             o_rgb_led3_r ,
+  output             o_rgb_led2_r ,
+  output             o_rgb_led1_b ,
+  output             o_rgb_led0_b ,
 
   input        [1:0] i_sel_ch_taps, 
   input signed [7:0] i_sigma      , 
@@ -503,10 +503,10 @@ module qpsk_comm_sys
   //////////////// Assign processed signals to output ports  
   assign o_normal_led[1] = w_reset       ;
   assign o_normal_led[0] = i_sw          ;
-  assign o_rgb_led3_b    = w_sync_done_I ;
-  assign o_rgb_led2_b    = w_sync_done_Q ;
-  assign o_rgb_led1_g    = w_ber_ok_led_I;
-  assign o_rgb_led0_g    = w_ber_ok_led_Q;
+  assign o_rgb_led3_r    = w_sync_done_I ;
+  assign o_rgb_led2_r    = w_sync_done_Q ;
+  assign o_rgb_led1_b    = w_ber_ok_led_I;
+  assign o_rgb_led0_b    = w_ber_ok_led_Q;
 
   // Data assignments to uBlaze
   assign o_control_for_rate_2 = w_control_for_rate_2;

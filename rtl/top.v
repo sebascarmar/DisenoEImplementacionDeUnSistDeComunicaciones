@@ -32,10 +32,10 @@ module top #(
 ( 
   output       o_tx_uart   ,
   output [1:0] o_normal_led,
-  output       o_rgb_led3_b,
-  output       o_rgb_led2_b,
-  output       o_rgb_led1_g,
-  output       o_rgb_led0_g,
+  output       o_rgb_led3_r,
+  output       o_rgb_led2_r,
+  output       o_rgb_led1_b,
+  output       o_rgb_led0_b,
 
   input        i_rx_uart   ,
   input        i_sw        ,
@@ -225,10 +225,10 @@ module top #(
     .o_control_for_rate_2(w_control_for_rate_2     ),
     .o_control_for_rate_1(w_control_for_rate_1     ),
     .o_normal_led        (w_normal_led             ),
-    .o_rgb_led3_b        (w_sync_done_I            ),
-    .o_rgb_led2_b        (w_sync_done_Q            ),
-    .o_rgb_led1_g        (w_ber_ok_led_I           ),
-    .o_rgb_led0_g        (w_ber_ok_led_Q           ),
+    .o_rgb_led3_r        (w_sync_done_I            ),
+    .o_rgb_led2_r        (w_sync_done_Q            ),
+    .o_rgb_led1_b        (w_ber_ok_led_I           ),
+    .o_rgb_led0_b        (w_ber_ok_led_Q           ),
     .i_sel_ch_taps       (w_sel_ch_taps            ),  
     .i_sigma             (w_sigma                  ), 
     .i_sw                (w_sw && w_en_rx_soft     ),
@@ -241,10 +241,10 @@ module top #(
   //  assign o_normal_led[2] = w_locked            ;
   assign o_normal_led[1] = w_reset || ~w_rst_soft;
   assign o_normal_led[0] = i_sw && w_en_rx_soft  ;
-  assign o_rgb_led3_b    = w_sync_done_I         ;
-  assign o_rgb_led2_b    = w_sync_done_Q         ;
-  assign o_rgb_led1_g    = w_ber_ok_led_I        ;
-  assign o_rgb_led0_g    = w_ber_ok_led_Q        ;
+  assign o_rgb_led3_r    = w_sync_done_I         ;
+  assign o_rgb_led2_r    = w_sync_done_Q         ;
+  assign o_rgb_led1_b    = w_ber_ok_led_I        ;
+  assign o_rgb_led0_b    = w_ber_ok_led_Q        ;
 
 
 endmodule
