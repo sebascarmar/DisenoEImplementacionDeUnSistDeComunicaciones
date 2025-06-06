@@ -22,7 +22,8 @@ import os
 #### set uart port for comunication
 portUSB = sys.argv[1]
 ser = serial.Serial(
-   port='/dev/ttyUSB{}'.format(int(portUSB)),   # pass port as parameter
+#    port='/dev/ttyUSB{}'.format(int(portUSB)),   # pass port as parameter
+   port='COM{}'.format(int(portUSB)),   # pass port as parameter
    baudrate=115200,
    parity=serial.PARITY_NONE,
    stopbits=serial.STOPBITS_ONE,
