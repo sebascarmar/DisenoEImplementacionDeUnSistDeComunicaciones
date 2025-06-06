@@ -39,7 +39,7 @@ if not os.path.exists("plots/dsp_data"):
 folder_save = f"plots/dsp_data"
 folder = "logs/dsp_data"
 snr_min = 7 
-snr_max = 7
+snr_max = 17
 ch_fil_dws2 = ""
 ch_fil_dw1  = ""
 ch_fil_taps = ""
