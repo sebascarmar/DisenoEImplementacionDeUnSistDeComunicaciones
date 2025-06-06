@@ -20,7 +20,7 @@
 
 // TRANSMITTER FILTER
 //`define TXFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_txf.dat"
-`define TXFILT_COEFF_FILE "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_txf.dat"
+`define TXFILT_COEFF_FILE "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_txf.dat"
 `define NBT_TXFILT_COEF   8
 `define NBF_TXFILT_COEF   7
 `define NBT_TXFILT_OUT    8
@@ -45,10 +45,10 @@
 // CHANNEL FILTER
 `define NUM_CHFILT_COEF  17
 //`define CHFIL_COEF_FILE_0 "./../../../../../../../fixed_point/logs/coeffs_chfilt.dat"
-`define CHFIL_COEF_FILE_0 "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_chfilt_12M.dat"
-`define CHFIL_COEF_FILE_1 "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_chfilt_impulso.dat"
-`define CHFIL_COEF_FILE_2 "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_chfilt_10M.dat"
-`define CHFIL_COEF_FILE_3 "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_chfilt_12M.dat"
+`define CHFIL_COEF_FILE_0 "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_chfilt_12M.dat"
+`define CHFIL_COEF_FILE_1 "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_chfilt_impulso.dat"
+`define CHFIL_COEF_FILE_2 "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_chfilt_10M.dat"
+`define CHFIL_COEF_FILE_3 "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_chfilt_12M.dat"
 `define NBT_CHFILT_COEF   8
 `define NBF_CHFILT_COEF   7
 `define NBT_CHFILT_OUT    8
@@ -57,7 +57,7 @@
 // ANTI-ALIAS FILTER
 `define NUM_AAFILT_COEF  17
 //`define AAFILT_COEFF_FILE "./../../../../../../../fixed_point/logs/coeffs_aafilt.dat"
-`define AAFILT_COEFF_FILE "/home/danielito/Escritorio/DisenoEImplementacionDeUnSistDeComunicaciones/rtl/coeffs_aafilt.dat"
+`define AAFILT_COEFF_FILE "D:\\CorreccionDeEfectosDeCanal\\rtl\\coeffs_aafilt.dat"
 `define NBT_AAFILT_COEF   8
 `define NBF_AAFILT_COEF   7
 `define NBT_AAFILT_OUT    8
